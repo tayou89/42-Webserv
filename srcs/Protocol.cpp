@@ -124,22 +124,47 @@ std::string Protocol::readBody(std::string body)
 	return ("");
 }
 
+std::string getCurrentHttpDate() 
+{
+    // Get the current time
+    time_t rawtime;
+    time(&rawtime);
+
+    // Convert to a struct tm
+    struct tm* timeinfo = gmtime(&rawtime);
+	// std::cout << "tm_hour: " << timeinfo->tm_hour << std::endl;
+	timeinfo->tm_hour = (timeinfo->tm_hour + 9 + 24) % 24; //UTC to KST
+
+    // Format the time to HTTP date format
+    char buffer[80];
+    strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
+	std::string str(buffer);
+	str = "Date: " + str + "\r\n";
+    return (str);
+}
+
+//you MUST change the servername!!!!!!!!!!!!
+
 std::string Protocol::create400Response()
 {
-	return ("400 response");
+	std::string response = "HTTP/1.1 400 Bad Request\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
+	return (response);
 }
 
 std::string Protocol::create413Response()
 {
-	return ("413 response");
+	std::string response = "HTTP/1.1 413 Request Entity Too Large\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
+	return (response);
 }
 
 std::string Protocol::create414Response()
 {
-	return ("414 response");
+	std::string response = "HTTP/1.1 414 URI Too Long\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
+	return (response);
 }
 
 std::string Protocol::create505Response()
 {
-	return ("505 response");
+	std::string response = "HTTP/1.1 505 HTTP Version Not Supported\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
+	return (response);
 }
