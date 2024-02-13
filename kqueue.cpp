@@ -35,6 +35,7 @@ int main() {
   int server_socket;
   struct sockaddr_in server_addr;
 
+  /* make listening socket */
   if ((server_socket = socket(PF_INET, SOCK_STREAM, 0)) == -1)
     exit_with_perror("socket() error\n" + std::string(strerror(errno)));
 

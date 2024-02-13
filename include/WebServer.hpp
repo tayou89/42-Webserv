@@ -18,9 +18,6 @@ public:
   //_WebServerList[idx].getEvent(eventlist[j]);
   void getEvent(IEvent *event);
 
-  // EV_DELETE register, _fds.delete(), close(event.ident)
-  void deleteEvent(IEvent *event);
-
   // read socket descriptor when new event occurred, call protocol
   std::string recvEvent(int fd);
 
