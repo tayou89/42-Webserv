@@ -1,5 +1,4 @@
 #include "../include/KqueueLoop.hpp"
-#include "../include/Kevent.hpp"
 
 KqueueLoop::KqueueLoop(std::map<int, IServer *> serverList)
     : _serverList(serverList) {
@@ -23,6 +22,12 @@ KqueueLoop &KqueueLoop::operator=(const KqueueLoop &ref) {
 
 void KqueueLoop::initServerSocket() {
   // register _serverList at kqueue
+  std::map<int, IServer *>::iterator iter = _serverList.begin();
+
+  for (; iter != _serverList.end(); iter++) {
+    // iter->second->getListenSocket 으로 반환된 descriptor를
+    // Event 객체로 변환하여 _changeList에 등록함
+  }
 }
 
 void KqueueLoop::addEvent(Kevent event) {

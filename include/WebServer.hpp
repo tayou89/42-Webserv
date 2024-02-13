@@ -27,6 +27,8 @@ public:
   // input something returned from protocol (instance or std::string or ...)
   void excuteEvent();
 
+  // listenSocket을 반환하는 함수 필요함.
+
 private:
   WebServer();
   WebServer(const WebServer &);
