@@ -1,12 +1,14 @@
 #pragma once
 
 #include "IServer.hpp"
+#include <arpa/inet.h>
+#include <map>
 #include <sys/event.h>
-#include <vector>
+#include <sys/socket.h>
 
 class WebServer : public IServer {
 public:
-  WebServer(Config conf, Protocol protocol);
+  WebServer(Config conf, Protocol protocol); // bind, listen
   virtual ~WebServer();
 
   // accept new client
@@ -35,7 +37,8 @@ private:
   WebServer &operator=(const WebServer &);
 
   int _listenSocket; // set on constructor
-  std::vector<int> _fds;
+  struct sockaddr_in _serverAddress;
+  std::map<int, std::string> _clientSocket;
 
   Config _conf;
   Protocol _protocol;
