@@ -30,7 +30,7 @@ void KqueueLoop::initServerSocket() {
   }
 }
 
-void KqueueLoop::addEvent(Kevent event) {
+void KqueueLoop::newEvent(Kevent event) {
   this->_changeList.push_back(event.getEvent());
 }
 
@@ -56,7 +56,11 @@ void KqueueLoop::run() {
        * 대한 판단이 필수적인지에 대해서 다시한번 생각해봐야함 */
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
         // new client accept
-        // _serverList[currentEvent->ident]->acceptClient();
+        // 새로 accept 된 socket은 _eventList에 등록한다.
+        // int newSocket = _serverList[currentEvent->ident]->acceptClient();
+        // _eventList[newSocket] =
+        // new ClientStat(IServer *currentServer, int newSocket);
+        // !!!!!!leak warning!!!!!! 연결 해제시 반드시 할당된 메모리도 해제할 것
       } else {
         /* eventloop는 발생한 이벤트를 서버에 던져주기만 하고 동작에 대한 내부
          * 구현은 이벤트 객체가 가리키는 서버에서 내부적으로 처리 */

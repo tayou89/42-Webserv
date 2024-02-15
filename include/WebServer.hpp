@@ -43,3 +43,8 @@ private:
   Config _conf;
   Protocol _protocol;
 };
+
+/* Server의 Configuration의 일부를 Server에서 내부적으로 가지고 있는것이
+ * 좋을지에 대한 고찰 -> 필요하다면 parsing이 완료된 후 constructor에서 처리 */
+
+// ex) std::map<std::string, Location> _location = Config.getLocation();
