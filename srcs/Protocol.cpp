@@ -69,18 +69,18 @@ std::string Protocol::readHeader(std::string header)
 
 	while (1)
 	{
-		index = header.find("\r\n", pos + 2);
+		index = header.find("\\r\\n", pos + 2);
 		tmp = header.substr(pos + 2, index - pos - 2);
 		colon_index = tmp.find(":", 0);
 		if (colon_index == std::string::npos)
 			return (create400Response());
 		this->_requestHeader.insert(std::make_pair(tmp.substr(0, colon_index), tmp.substr(colon_index + 2)));
-		if (index == std::string::npos || header.find("\r\n", index + 2) == index + 2)
+		if (index == std::string::npos || header.find("\\r\\n", index + 2) == index + 2)
 		{
-			this->_requestBody = header.substr(index + 4);
+			// this->_requestBody = header.substr(index + 4);
 			break;
 		}
-		pos = index;
+		pos = index + 2;
 	}
 	for (std::map<std::string, std::string>::iterator it = this->_requestHeader.begin(); it != this->_requestHeader.end(); it++)
 	{	
@@ -115,6 +115,7 @@ std::string Protocol::checkContentLength(int client_max_body_size)
 
 std::string Protocol::readBody(std::string body)
 {
+	// std::cout << "body is:" << body << std::endl;
 	if (body.size() > static_cast<unsigned long>(std::stol(this->_requestHeader["Content-Length"])))
 		return (create413Response());
 	else if (body.size() < static_cast<unsigned long>(std::stol(this->_requestHeader["Content-Length"])))
@@ -124,26 +125,55 @@ std::string Protocol::readBody(std::string body)
 	return ("");
 }
 
-std::string getCurrentHttpDate() 
+std::string Protocol::getRequestMethod() const
 {
-    // Get the current time
-    time_t rawtime;
-    time(&rawtime);
-
-    // Convert to a struct tm
-    struct tm* timeinfo = gmtime(&rawtime);
-	// std::cout << "tm_hour: " << timeinfo->tm_hour << std::endl;
-	timeinfo->tm_hour = (timeinfo->tm_hour + 9 + 24) % 24; //UTC to KST
-
-    // Format the time to HTTP date format
-    char buffer[80];
-    strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
-	std::string str(buffer);
-	str = "Date: " + str + "\r\n";
-    return (str);
+	return (this->_requestMethod);
 }
 
+std::string Protocol::getRequestURI() const
+{
+	return (this->_requestURI);
+}
+
+std::string Protocol::getRequestBody() const
+{
+	return (this->_requestBody);
+}
+
+std::map<std::string, std::string> Protocol::getRequestHeader() const
+{
+	return (this->_requestHeader);
+}
+
+void Protocol::setRequestHeader(std::string key, std::string value)
+{
+	this->_requestHeader.insert(std::make_pair(key, value));
+}
+
+void Protocol::setResponseHeader(std::string key, std::string value)
+{
+	this->_responseHeader.insert(std::make_pair(key, value));
+}
+
+void Protocol::setResponseBody(std::string body)
+{
+	this->_responseBody = body;
+}
+
+
+////////////////////////////////////////////
 //you MUST change the servername!!!!!!!!!!!!
+////////////////////////////////////////////
+
+
+std::string Protocol::create200Response()
+{
+	std::string response = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n";
+	for (std::map<std::string, std::string>::iterator it = this->_responseHeader.begin(); it != this->_responseHeader.end(); it++)
+		response += it->first + ": " + it->second + "\r\n";
+	response = response + this->_responseBody;
+	return (response);
+}
 
 std::string Protocol::create400Response()
 {
