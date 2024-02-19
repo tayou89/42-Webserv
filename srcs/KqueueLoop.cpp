@@ -57,7 +57,14 @@ void KqueueLoop::run() {
       /* 서버객체를 저장하지 않고 event 단위로 행동을 정의할경우 listenSocket에
        * 대한 판단이 필수적인지에 대해서 다시한번 생각해봐야함 */
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
-        std::cout << "hello " << idx << std::endl;
+        std::cout << "hello " << currentEvent->ident << std::endl;
+        int newClient = accept(currentEvent->ident, NULL, NULL);
+        fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        _eventList[newClient] =
+            new ClientStat(_serverList[currentEvent->ident]);
+        if (newClient == -1)
+          exit(1); // accept error
+        write(newClient, "hello\n", 6);
         // new client accept
         // 새로 accept 된 socket은 _eventList에 등록한다.
         // int newSocket = _serverList[currentEvent->ident]->acceptClient();

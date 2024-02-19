@@ -1,11 +1,14 @@
 #pragma once
 
+#include "ClientStat.hpp"
 #include "IEventLoop.hpp"
 #include "IServer.hpp"
 #include "Kevent.hpp"
 #include <fcntl.h>
 #include <map>
 #include <sys/event.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <vector>
 
 class ClientStat;
