@@ -39,9 +39,9 @@ void TestServer::getRequest(int fd)
     }
     buf[readSize] = '\0';
     std::string packet(buf);
-    
-    //check if \r\n\r\n exists
-    if (packet.find("\\r\\n\\r\\n") == std::string::npos)
+
+	//check if \r\n\r\n and \r\n exists
+    if (packet.find("\\r\\n\\r\\n") == std::string::npos || packet.find("\\r\\n") == std::string::npos)
     {
 		//create400Response();
 		std::cout << packet << std::endl;
@@ -49,10 +49,17 @@ void TestServer::getRequest(int fd)
 		return ;
 	}
 	std::string firstLine = packet.substr(0, packet.find("\\r\\n"));
-    this->_protocol.readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
-	std::string header = packet.substr(packet.find("\\r\\n") + 2, packet.find("\\r\\n\\r\\n") - packet.find("\\r\\n") - 2);
-	this->_protocol.readHeader(header);
+    firstLine = this->_protocol.readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
+	if (firstLine != "")
+	{
+		std::cout << firstLine;
+		exit(1);
+	}
 
+	std::string header = packet.substr(packet.find("\\r\\n") + 2, packet.find("\\r\\n\\r\\n") - packet.find("\\r\\n") - 2);
+	header = this->_protocol.readHeader(header);
+	if (header != "")
+		exit(1);
 	// if (chunked == true)
 	// 	std::string body = packet.substr(packet.find("\r\n\r\n") + 4, getcontentLength());
 	// else
@@ -137,5 +144,6 @@ void TestServer::sendResponse(int fd)
 {
 	(void)fd;
 	std::string response = this->_protocol.create200Response();
+	//print instead of sending packet
 	std::cout << response << std::endl;
 }

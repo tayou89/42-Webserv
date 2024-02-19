@@ -55,7 +55,6 @@ std::string Protocol::readStartLine(std::string startLine, int large_client_head
 		else
 			return(create400Response());
 	}
-
 	//if the requestFirstLine is valid, return a empty string
     return ("");
 }
@@ -64,28 +63,26 @@ std::string Protocol::readHeader(std::string header)
 {
 	size_t pos = 0;
 	size_t index = 0;
-	size_t colon_index = 0;
+	// size_t colon_index = 0;
 	std::string tmp;
 
 	while (1)
 	{
 		index = header.find("\\r\\n", pos + 2);
-		tmp = header.substr(pos + 2, index - pos - 2);
-		colon_index = tmp.find(":", 0);
-		if (colon_index == std::string::npos)
-			return (create400Response());
-		this->_requestHeader.insert(std::make_pair(tmp.substr(0, colon_index), tmp.substr(colon_index + 2)));
-		if (index == std::string::npos || header.find("\\r\\n", index + 2) == index + 2)
-		{
-			// this->_requestBody = header.substr(index + 4);
+		if (index == std::string::npos)
 			break;
-		}
+		tmp = header.substr(pos + 2, index - pos - 2);
+		std::string key = splitBeforeColon(tmp);
+		std::string value = splitAfterColon(tmp);
+		this->_requestHeader.insert(std::make_pair(key, value));
+		if (header.find("\\r\\n", index + 2) == index + 2)
+			break;
 		pos = index + 2;
 	}
 	for (std::map<std::string, std::string>::iterator it = this->_requestHeader.begin(); it != this->_requestHeader.end(); it++)
-	{	
-		tmp = Protocol::checkValidHeader(it->first, it->second).size();
-		if (tmp.size() != 0)
+	{
+		tmp = Protocol::checkValidHeader(it->first, it->second);
+		if (tmp != "")
 			return (tmp);
 	}
 	return ("");

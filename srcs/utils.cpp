@@ -18,3 +18,43 @@ std::string getCurrentHttpDate()
 	str = "Date: " + str + "\r\n";
     return (str);
 }
+
+std::string splitBeforeColon(std::string sentence)
+{
+    size_t    split_index;
+    size_t i = 1;
+    std::string key;
+
+    split_index = sentence.find(":", 0);
+    if (split_index == std::string::npos)
+        return ("");
+    while (i < split_index)
+    {
+        if (sentence[split_index - i] == ' ')
+            i++;
+        else
+            break;
+    }
+    key = sentence.substr(0, split_index - i + 1);
+    return (key);
+}
+
+std::string splitAfterColon(std::string sentence)
+{
+    size_t    split_index;
+    size_t i = 1;
+    std::string value;
+
+    split_index = sentence.find(":", 0);
+    if (split_index == std::string::npos)
+        return ("");
+    while (i < sentence.size() - split_index)
+    {
+        if (sentence[split_index + i] == ' ')
+            i++;
+        else
+            break;
+    }
+    value = sentence.substr(split_index + i);
+    return (value);
+}
