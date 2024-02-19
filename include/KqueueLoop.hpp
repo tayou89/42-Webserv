@@ -14,7 +14,8 @@ class KqueueLoop : public IEventLoop {
 public:
   KqueueLoop(std::map<int, IServer *> serverList);
   virtual ~KqueueLoop();
-  void newEvent(Kevent event); // register new event at kqueue
+  void newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
+                uint32_t fflags, intptr_t data, void *udata);
   //   void eventAlert(IServer *); // 아마 필요 없을듯?
   void initServerSocket(); // make listening socket and register at _changeList
   void run();

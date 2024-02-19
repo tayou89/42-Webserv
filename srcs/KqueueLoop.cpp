@@ -1,4 +1,5 @@
 #include "../include/KqueueLoop.hpp"
+#include <iostream>
 
 KqueueLoop::KqueueLoop(std::map<int, IServer *> serverList)
     : _serverList(serverList) {
@@ -21,17 +22,18 @@ KqueueLoop &KqueueLoop::operator=(const KqueueLoop &ref) {
 }
 
 void KqueueLoop::initServerSocket() {
-  // register _serverList at kqueue
   std::map<int, IServer *>::iterator iter = _serverList.begin();
 
-  for (; iter != _serverList.end(); iter++) {
-    // iter->second->getListenSocket 으로 반환된 descriptor를
-    // Event 객체로 변환하여 _changeList에 등록함
-  }
+  for (; iter != _serverList.end(); iter++)
+    newEvent(iter->first, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 }
 
-void KqueueLoop::newEvent(Kevent event) {
-  this->_changeList.push_back(event.getEvent());
+void KqueueLoop::newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
+                          uint32_t fflags, intptr_t data, void *udata) {
+  struct kevent temp;
+
+  EV_SET(&temp, ident, filter, flags, fflags, data, udata);
+  _changeList.push_back(temp);
 }
 
 void KqueueLoop::run() {
@@ -55,11 +57,12 @@ void KqueueLoop::run() {
       /* 서버객체를 저장하지 않고 event 단위로 행동을 정의할경우 listenSocket에
        * 대한 판단이 필수적인지에 대해서 다시한번 생각해봐야함 */
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
+        std::cout << "hello " << idx << std::endl;
         // new client accept
         // 새로 accept 된 socket은 _eventList에 등록한다.
         // int newSocket = _serverList[currentEvent->ident]->acceptClient();
         // _eventList[newSocket] =
-        // new ClientStat(IServer *currentServer, int newSocket);
+        //     new ClientStat(IServer * currentServer, int newSocket);
         // !!!!!!leak warning!!!!!! 연결 해제시 반드시 할당된 메모리도 해제할 것
       } else {
         /* eventloop는 발생한 이벤트를 서버에 던져주기만 하고 동작에 대한 내부
