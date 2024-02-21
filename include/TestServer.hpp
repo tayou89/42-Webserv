@@ -1,6 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
 #include "Protocol.hpp"
 
 class TestServer {
@@ -13,9 +16,17 @@ class TestServer {
         void executeMethod();
         void sendResponse(int fd);
 
+        void setEnvp(char **envp);
+
+        void    GET_HEAD();
+        void    POST();
+        void    DELETE();
+        void    PUT();
+
     private :
         TestServer(const TestServer&);
         TestServer& operator=(const TestServer&);
 
-        Protocol _protocol;
+        Protocol    _protocol;
+        char        **envp;
 };

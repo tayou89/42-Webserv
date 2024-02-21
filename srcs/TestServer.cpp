@@ -1,10 +1,6 @@
 #include "../include/Protocol.hpp"
 #include "../include/TestServer.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
-
 #define LARGE_CLIENT_HEADER_BUFFERS 1000
 #define MAX_BODY_SIZE 1000
 
@@ -27,6 +23,20 @@ TestServer& TestServer::operator=(const TestServer&)
 {
 	return (*this);
 }
+
+void TestServer::setEnvp(char **envp)
+{
+	this->envp = envp;
+}
+
+
+
+
+
+
+
+
+
 
 void TestServer::getRequest(int fd)
 {
@@ -84,7 +94,9 @@ void TestServer::checkValidity()
 	DIR *dir = opendir(this->_protocol.getRequestURI().c_str());
 	if (dir != NULL)
 	{ //if URI is a directory
-		// std::cout << "directory" << std::endl;
+		// 1. check index directive in conf file
+		// 2. check if autoindex is enabled
+		// 3. check if try_files exist
 		closedir(dir);
 	}
 	else
@@ -97,47 +109,14 @@ void TestServer::checkValidity()
 
 void TestServer::executeMethod()
 {
-	char readbuf[10000];
-	if (this->_protocol.getRequestMethod() == "GET")
-	{
-		int fd;
-
-		fd = open(this->_protocol.getRequestURI().c_str(), O_RDONLY);
-		if (fd == -1)
-		{
-			std::cout << "open error" << std::endl;
-			return ;
-		}
-		int readSize = read(fd, readbuf, 10000);
-		if (readSize == -1)
-		{
-			std::cout << "read error" << std::endl;
-			return ;
-		}
-		readbuf[readSize] = '\0';
-		this->_protocol.setResponseBody(readbuf);
-		this->_protocol.setResponseHeader("Content-Length", std::to_string(readSize));
-		// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
-		this->_protocol.setResponseHeader("Content-Type", "text/html");
-		this->_protocol.setResponseHeader("Content-Language", "en-US");
-		this->_protocol.setResponseHeader("Last-Modified", getCurrentHttpDate());
-	}
+	if (this->_protocol.getRequestMethod() == "GET" || this->_protocol.getRequestMethod() == "HEAD")
+		GET_HEAD();
 	else if (this->_protocol.getRequestMethod() == "POST")
-	{
-		std::cout << "POST" << std::endl;
-	}
+		POST();
 	else if (this->_protocol.getRequestMethod() == "DELETE")
-	{
-		std::cout << "DELETE" << std::endl;
-	}
+		DELETE();
 	else if (this->_protocol.getRequestMethod() == "PUT")
-	{
-		std::cout << "PUT" << std::endl;
-	}
-	else if (this->_protocol.getRequestMethod() == "HEAD")
-	{
-		std::cout << "HEAD" << std::endl;
-	}
+		PUT();
 }
 
 void TestServer::sendResponse(int fd)
