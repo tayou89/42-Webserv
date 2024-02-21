@@ -5,6 +5,7 @@
 #include "IServer.hpp"
 
 #define INITSTATUS 0
+#define BUFFERSIZE 1024
 
 class ClientStat {
 
@@ -19,4 +20,5 @@ private:
 
   IServer *_routeServer;
   int _status;
+  char buf[BUFFERSIZE];
 };
