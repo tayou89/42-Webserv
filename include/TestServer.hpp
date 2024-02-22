@@ -11,17 +11,19 @@ class TestServer {
         TestServer();
         ~TestServer();
 
-        void getRequest(int fd);
-        void checkValidity();
-        void executeMethod();
-        void sendResponse(int fd);
+        void	getRequest(int fd);
+        void	checkValidity();
+        void	executeMethod();
+        void	sendResponse(int fd);
 
-        void setEnvp(char **envp);
+        void	setEnvp(char **envp);
 
         void    GET_HEAD();
         void    POST();
         void    DELETE();
         void    PUT();
+        void    OPTIONS();
+        void    TRACE();
 
     private :
         TestServer(const TestServer&);

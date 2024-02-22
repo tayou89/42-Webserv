@@ -117,12 +117,15 @@ void TestServer::executeMethod()
 		DELETE();
 	else if (this->_protocol.getRequestMethod() == "PUT")
 		PUT();
+	else if (this->_protocol.getRequestMethod() == "OPTIONS")
+		OPTIONS();
+	else if (this->_protocol.getRequestMethod() == "TRACE")
+		TRACE();
 }
 
 void TestServer::sendResponse(int fd)
 {
 	(void)fd;
-	std::string response = this->_protocol.create200Response();
 	//print instead of sending packet
-	std::cout << response << std::endl;
+	std::cout << this->_protocol.getResponse() << std::endl;
 }

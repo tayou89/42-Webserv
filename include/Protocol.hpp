@@ -15,20 +15,23 @@ class Protocol {
 		std::string checkValidHeader(std::string key, std::string value);
 		std::string checkContentLength(int client_max_body_size);
 		std::string readBody(std::string body);
-		std::string create200Response();
-		std::string create400Response();
-		std::string create413Response();
-		std::string create414Response();
-		std::string create505Response();
+		void		create200Response();
+		void		create204Response();
+		void		create400Response();
+		void 		create413Response();
+		void		create414Response();
+		void 		create505Response();
 
 		std::string getRequestMethod() const;
 		std::string getRequestURI() const;
 		std::string getRequestBody() const;
 		std::map<std::string, std::string> getRequestHeader() const;
-		void setRequestHeader(std::string key, std::string value);
+		void		setRequestHeader(std::string key, std::string value);
 
-		void setResponseHeader(std::string key, std::string value);
-		void setResponseBody(std::string body);
+		void		setResponseHeader(std::string key, std::string value);
+		void		setResponseBody(std::string body);
+		void		setResponse(std::string response);
+		std::string	getResponse();
 
     private :
         Protocol(const Protocol&);
@@ -40,5 +43,6 @@ class Protocol {
 
 		std::map<std::string, std::string> _responseHeader;
 		std::string _responseBody;
+		std::string _response;
     
 };

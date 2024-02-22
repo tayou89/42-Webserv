@@ -30,30 +30,30 @@ std::string Protocol::readStartLine(std::string startLine, int large_client_head
     std::string::size_type pos2 = startLine.find(" ", pos1 + 1);
 
 	if (pos1 == std::string::npos || pos2 == std::string::npos)
-		return (create400Response());
+		create400Response();
     this->_requestMethod = startLine.substr(0, pos1);
     this->_requestURI = startLine.substr(pos1 + 1, pos2 - pos1 - 1);
     requestHTTPVersion = startLine.substr(pos2 + 1, startLine.size() - pos2);
 
 	//if it is not method sp URI sp HTTP-Version, create 400 response
 	if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 || requestHTTPVersion.size() == 0)
-		return(create400Response());
+		create400Response();
 
 	//if it is not GET, HEAD, DELETE, OPTIONS, POST, PUT, TRACE, create 400 response
 	if (!(this->_requestMethod == "GET" || this->_requestMethod == "HEAD" || this->_requestMethod == "DELETE" || this->_requestMethod == "OPTIONS" || this->_requestMethod == "POST" || this->_requestMethod == "PUT" ||this->_requestMethod == "TRACE"))
-		return(create400Response());
+		create400Response();
 
 	//if the requestURI is longer than large_client_header_buffers, create 414 response
 	if (this->_requestURI.size() > static_cast<unsigned long>(large_client_header_buffers))
-		return(create414Response());
+		create414Response();
 
 	//if the HTTP-Version is not HTTP/1.1, create 505 response, else create 400 response
 	if (requestHTTPVersion != "HTTP/1.1")
 	{
 		if (requestHTTPVersion == "HTTP/0.9" || requestHTTPVersion == "HTTP/1.0" || requestHTTPVersion == "HTTP/2.0" || requestHTTPVersion == "HTTP/3.0")
-			return(create505Response());
+			create505Response();
 		else
-			return(create400Response());
+			create400Response();
 	}
 	//if the requestFirstLine is valid, return a empty string
     return ("");
@@ -91,7 +91,7 @@ std::string Protocol::readHeader(std::string header)
 std::string Protocol::checkValidHeader(std::string key, std::string value)
 {
 	if (key.empty() || value.empty())
-		return (create400Response());
+		create400Response();
 
 	//check validity of mandatory headers??
 
@@ -103,9 +103,9 @@ std::string Protocol::checkContentLength(int client_max_body_size)
 	if (this->_requestHeader.find("Content-Length") != this->_requestHeader.end())
 	{
 		if (this->_requestHeader["Content-Length"].size() > 10)
-			return (create400Response());
+			create400Response();
 		if (std::stoi(this->_requestHeader["Content-Length"]) > client_max_body_size)
-			return (create413Response());
+			create413Response();
 	}
 	return ("");
 }
@@ -114,9 +114,9 @@ std::string Protocol::readBody(std::string body)
 {
 	// std::cout << "body is:" << body << std::endl;
 	if (body.size() > static_cast<unsigned long>(std::stol(this->_requestHeader["Content-Length"])))
-		return (create413Response());
+		create413Response();
 	else if (body.size() < static_cast<unsigned long>(std::stol(this->_requestHeader["Content-Length"])))
-		return (create400Response());
+		create400Response();
 	else
 		this->_requestBody = body;
 	return ("");
@@ -157,41 +157,56 @@ void Protocol::setResponseBody(std::string body)
 	this->_responseBody = body;
 }
 
+void	Protocol::setResponse(std::string response)
+{
+	this->_response = response;
+}
+
+std::string	Protocol::getResponse()
+{
+	return (this->_response);
+}
 
 ////////////////////////////////////////////
 //you MUST change the servername!!!!!!!!!!!!
 ////////////////////////////////////////////
 
 
-std::string Protocol::create200Response()
+void	Protocol::create200Response()
 {
 	std::string response = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n";
-	for (std::map<std::string, std::string>::iterator it = this->_responseHeader.begin(); it != this->_responseHeader.end(); it++)
-		response += it->first + ": " + it->second + "\r\n";
-	response = response + this->_responseBody;
-	return (response);
+	for (std::map<std::string, std::string>::iterator itr = this->_responseHeader.begin(); itr != this->_responseHeader.end(); ++itr)
+		response = response + itr->first + " : " + itr->second + "\r\n";
+	response = response + "\r\n" + this->_responseBody;
+	this->_response = response;
 }
 
-std::string Protocol::create400Response()
+void	Protocol::create204Response()
+{
+	std::string response = "HTTP/1.1 204 No Content\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
+	this->_response = response;
+}
+
+void	Protocol::create400Response()
 {
 	std::string response = "HTTP/1.1 400 Bad Request\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
-	return (response);
+	this->_response = response;
 }
 
-std::string Protocol::create413Response()
+void	Protocol::create413Response()
 {
 	std::string response = "HTTP/1.1 413 Request Entity Too Large\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
-	return (response);
+	this->_response = response;
 }
 
-std::string Protocol::create414Response()
+void	Protocol::create414Response()
 {
 	std::string response = "HTTP/1.1 414 URI Too Long\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
-	return (response);
+	this->_response = response;
 }
 
-std::string Protocol::create505Response()
+void	Protocol::create505Response()
 {
 	std::string response = "HTTP/1.1 505 HTTP Version Not Supported\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
-	return (response);
+	this->_response = response;
 }

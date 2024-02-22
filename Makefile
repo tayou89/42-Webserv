@@ -23,4 +23,9 @@ re :
 	make fclean
 	make all
 
+only :
+	make fclean
+	make all
+	make clean
+
 .PHONY : all clean fclean re .c.o
