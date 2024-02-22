@@ -18,7 +18,7 @@ ClientStat::~ClientStat() {}
 ClientStat::ClientStat(int socket, IServer *acceptServer)
     : _routeServer(acceptServer), _socket(socket) {
   this->_status = READABLE;
-  memset(&_buf[0], 0, BUFFERSIZE);
+  memset(&_buf[0], 0, BUFFERSIZE + 1);
   _str.assign("");
   static_cast<void>(_routeServer); // remove after
 }
@@ -27,14 +27,17 @@ int ClientStat::readSocket() {
   if (_status != READABLE)
     return (0);
 
-  memset(&_buf[0], 0, BUFFERSIZE);
+  memset(&_buf[0], 0, BUFFERSIZE + 1);
   size_t readSize = read(_socket, &_buf[0], BUFFERSIZE);
   if (readSize == 0)
     return (253);
   std::string tmp(_buf);
   _str += tmp;
-  if (readSize < BUFFERSIZE)
+  if (readSize < BUFFERSIZE) {
     _status = WRITEABLE;
+    // send to protocol
+    // _routeServer->getProtocol();
+  }
   return (0);
 }
 
