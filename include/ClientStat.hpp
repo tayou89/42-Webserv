@@ -20,5 +20,6 @@ private:
 
   IServer *_routeServer;
   int _status;
-  char buf[BUFFERSIZE];
+  char _buf[BUFFERSIZE];
+  std::string _str;
 };
