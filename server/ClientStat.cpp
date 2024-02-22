@@ -16,10 +16,11 @@ ClientStat::~ClientStat() {}
 /* essential part */
 
 ClientStat::ClientStat(int socket, IServer *acceptServer)
-    : _socket(socket), _routeServer(acceptServer) {
+    : _routeServer(acceptServer), _socket(socket) {
   this->_status = READABLE;
   memset(&_buf[0], 0, BUFFERSIZE);
   _str.assign("");
+  static_cast<void>(_routeServer); // remove after
 }
 
 int ClientStat::readSocket() {
@@ -27,7 +28,7 @@ int ClientStat::readSocket() {
     return (0);
 
   memset(&_buf[0], 0, BUFFERSIZE);
-  int readSize = read(_socket, &_buf[0], BUFFERSIZE);
+  size_t readSize = read(_socket, &_buf[0], BUFFERSIZE);
   if (readSize == 0)
     return (253);
   std::string tmp(_buf);
@@ -41,7 +42,7 @@ int ClientStat::writeSocket() {
   if (_status != WRITEABLE)
     return (0);
 
-  int writeSize = write(_socket, _str.c_str(), _str.size());
+  size_t writeSize = write(_socket, _str.c_str(), _str.size());
   if (writeSize != _str.size())
     return (254);
   _str.assign("");
