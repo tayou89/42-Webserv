@@ -95,9 +95,10 @@ void KqueueLoop::run() {
           delete _eventList[currentEvent->ident]; // allocation delete
           _eventList[currentEvent->ident] = NULL;
           _eventList.erase(currentEvent->ident);
-          std::cout << "connection ended: " << currentEvent->ident << "\n";
+          close(currentEvent->ident);
+          std::cout << "disconnect: " << currentEvent->ident << "\n";
           if (_eventList.find(currentEvent->ident) == _eventList.end())
-            std::cout << "connection ended successfully\n";
+            std::cout << "disconnection successfully\n";
         } else if (eventStatus == 254) {
           /* Write Event Error Process */
           std::cout << "Write Error occurs\n";
