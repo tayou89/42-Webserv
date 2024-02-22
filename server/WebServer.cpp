@@ -1,24 +1,18 @@
-#include "../include/EchoServer.hpp"
+#include "../include/WebServer.hpp"
 #include <iostream> // test
 
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <sys/event.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-EchoServer::EchoServer() {
-  _listenSocket = socket(PF_INET, SOCK_STREAM, 0);
+WebServer::WebServer(Config conf) { // + protocol
+  _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 
   if (_listenSocket == -1)
     exit(1); // socket error
 
   memset(&_serverAddress, 0, sizeof(_serverAddress));
   _serverAddress.sin_family = AF_INET;
-  _serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-  _serverAddress.sin_port = htons(8080);
+  //   _serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+  _serverAddress.sin_port = htons(conf.getPortNumber());
+  inet_pton(AF_INET, conf.getIPAddress().c_str(),
+            &_serverAddress.sin_addr.s_addr);
 
   if (bind(_listenSocket, (struct sockaddr *)&_serverAddress,
            sizeof(_serverAddress)) == -1) {
@@ -31,6 +25,6 @@ EchoServer::EchoServer() {
   fcntl(_listenSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 
-EchoServer::~EchoServer() {}
+WebServer::~WebServer() {}
 
-int EchoServer::getListenSocket() const { return (_listenSocket); }
+int WebServer::getListenSocket() const { return (_listenSocket); }
