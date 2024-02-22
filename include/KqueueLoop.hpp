@@ -3,7 +3,6 @@
 #include "ClientStat.hpp"
 #include "IEventLoop.hpp"
 #include "IServer.hpp"
-#include "Kevent.hpp"
 #include <fcntl.h>
 #include <map>
 #include <sys/event.h>
@@ -17,10 +16,10 @@ class KqueueLoop : public IEventLoop {
 public:
   KqueueLoop(std::map<int, IServer *> serverList);
   virtual ~KqueueLoop();
+  void initServerSocket(); // make listening socket and register at _changeList
   void newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
                 uint32_t fflags, intptr_t data, void *udata);
-  //   void eventAlert(IServer *); // 아마 필요 없을듯?
-  void initServerSocket(); // make listening socket and register at _changeList
+  //   void deleteEvent(struct kevent *event);
   void run();
 
 private:

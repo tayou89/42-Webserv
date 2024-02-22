@@ -36,8 +36,17 @@ void KqueueLoop::newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
   _changeList.push_back(temp);
 }
 
+// void KqueueLoop::deleteEvent(struct kevent *event) {
+//   struct kevent temp;
+
+//   EV_SET(&temp, event->ident, event->filter, event->flags, event->fflags,
+//          event->data, event->udata);
+//   _changeList.push_back(temp);
+// }
+
 void KqueueLoop::run() {
   int eventCount;
+  int eventStatus;
   struct kevent newEvents[8];
   struct kevent *currentEvent;
 
@@ -50,6 +59,7 @@ void KqueueLoop::run() {
 
     for (int idx = 0; idx < eventCount; idx++) {
       currentEvent = &newEvents[idx];
+      eventStatus = 0;
       if (currentEvent->flags & EV_ERROR)
         continue; // skip the error event
 
@@ -57,14 +67,15 @@ void KqueueLoop::run() {
       /* 서버객체를 저장하지 않고 event 단위로 행동을 정의할경우 listenSocket에
        * 대한 판단이 필수적인지에 대해서 다시한번 생각해봐야함 */
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
-        std::cout << "hello " << currentEvent->ident << std::endl;
         int newClient = accept(currentEvent->ident, NULL, NULL);
         fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
         _eventList[newClient] =
-            new ClientStat(_serverList[currentEvent->ident]);
+            new ClientStat(newClient, _serverList[currentEvent->ident]);
         if (newClient == -1)
           exit(1); // accept error
-        write(newClient, "hello\n", 6);
+        newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        std::cout << "hello " << newClient << std::endl;
         // new client accept
         // 새로 accept 된 socket은 _eventList에 등록한다.
         // int newSocket = _serverList[currentEvent->ident]->acceptClient();
@@ -72,6 +83,25 @@ void KqueueLoop::run() {
         //     new ClientStat(IServer * currentServer, int newSocket);
         // !!!!!!leak warning!!!!!! 연결 해제시 반드시 할당된 메모리도 해제할 것
       } else {
+        if (currentEvent->filter == EVFILT_READ)
+          eventStatus = _eventList[currentEvent->ident]->readSocket();
+        else if (currentEvent->filter == EVFILT_WRITE)
+          eventStatus = _eventList[currentEvent->ident]->writeSocket();
+
+        /* connection ended */
+        if (eventStatus == 253) {
+          newEvent(currentEvent->ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+          newEvent(currentEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+          delete _eventList[currentEvent->ident]; // allocation delete
+          _eventList[currentEvent->ident] = NULL;
+          _eventList.erase(currentEvent->ident);
+          std::cout << "connection ended: " << currentEvent->ident << "\n";
+          if (_eventList.find(currentEvent->ident) == _eventList.end())
+            std::cout << "connection ended successfully\n";
+        } else if (eventStatus == 254) {
+          /* Write Event Error Process */
+          std::cout << "Write Error occurs\n";
+        }
         /* eventloop는 발생한 이벤트를 서버에 던져주기만 하고 동작에 대한 내부
          * 구현은 이벤트 객체가 가리키는 서버에서 내부적으로 처리 */
 
