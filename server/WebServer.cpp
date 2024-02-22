@@ -1,7 +1,7 @@
 #include "../include/WebServer.hpp"
 #include <iostream> // test
 
-WebServer::WebServer(Config conf) { // + protocol
+WebServer::WebServer(Config conf) : _config(conf) { // + protocol
   _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 
   if (_listenSocket == -1)
@@ -9,7 +9,6 @@ WebServer::WebServer(Config conf) { // + protocol
 
   memset(&_serverAddress, 0, sizeof(_serverAddress));
   _serverAddress.sin_family = AF_INET;
-  //   _serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
   _serverAddress.sin_port = htons(conf.getPortNumber());
   inet_pton(AF_INET, conf.getIPAddress().c_str(),
             &_serverAddress.sin_addr.s_addr);
@@ -20,11 +19,13 @@ WebServer::WebServer(Config conf) { // + protocol
     exit(1); // bind error
   }
 
-  if (listen(_listenSocket, 5) == -1)
-    exit(1); // listen error
+  if (listen(_listenSocket, 5) == -1) // siege test 수행 후 backlog 사이즈 변경
+    exit(1);                          // listen error
   fcntl(_listenSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 
 WebServer::~WebServer() {}
 
 int WebServer::getListenSocket() const { return (_listenSocket); }
+
+Config WebServer::getConfig() const { return (_config); }

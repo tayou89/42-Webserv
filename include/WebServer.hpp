@@ -18,9 +18,11 @@ public:
   ~WebServer();
 
   int getListenSocket() const;
+  Config getConfig() const;
 
 private:
   int _listenSocket;
   struct sockaddr_in _serverAddress;
+  Config _config;
   std::map<int, std::string> _clientSocket;
 };
