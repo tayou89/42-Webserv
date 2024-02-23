@@ -90,7 +90,17 @@ void TestServer::DELETE() {
   this->_protocol.create200Response();
 }
 
-void TestServer::PUT() { std::cout << "PUT" << std::endl; }
+void TestServer::PUT() {
+  int fd;
+
+	fd = open(this->_protocol.getRequestURI().c_str(), O_WRONLY | O_TRUNC);
+	if (fd == -1)
+	{
+		std::cout << "file does not exist" << std::endl;
+	}
+	write(fd, this->_protocol.getRequestBody().c_str(), this->_protocol.getRequestBody().size());
+
+}
 
 void TestServer::OPTIONS() {}
 
