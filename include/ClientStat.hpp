@@ -7,7 +7,7 @@
 
 #define READABLE 0
 #define WRITEABLE 1
-#define BUFFERSIZE 1024
+#define BUFFERSIZE 1023
 
 class ClientStat {
 
@@ -26,6 +26,6 @@ private:
   IServer *_routeServer;
   int _socket;
   int _status;
-  char _buf[BUFFERSIZE];
+  char _buf[BUFFERSIZE + 1];
   std::string _str;
 };

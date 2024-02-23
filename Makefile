@@ -14,7 +14,10 @@ SRCS = main.cpp \
 	   parse/ParameterChecker.cpp \
 	   server/ClientStat.cpp \
 	   server/KqueueLoop.cpp \
-	   server/WebServer.cpp
+	   server/WebServer.cpp \
+	   protocol/executeMethod.cpp \
+	   protocol/Protocol.cpp \
+	   protocol/utils.cpp
 
 INCS = include/ClientStat.hpp \
 	   include/Config.hpp \
@@ -29,7 +32,9 @@ INCS = include/ClientStat.hpp \
 	   include/KqueueLoop.hpp \
 	   include/Location.hpp \
 	   include/ParameterChecker.hpp \
-	   include/WebServer.hpp
+	   include/WebServer.hpp \
+	   include/Protocol.hpp \
+	   include/utils.hpp
 
 OBJS = $(SRCS:.cpp=.o)
 
