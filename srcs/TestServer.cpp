@@ -45,31 +45,22 @@ void TestServer::getRequest(int fd)
     if (readSize == -1)
     {
         std::cout << "read error" << std::endl;
-        exit(1);
+        throw ("");
     }
     buf[readSize] = '\0';
     std::string packet(buf);
 
 	//check if \r\n\r\n and \r\n exists
     if (packet.find("\\r\\n\\r\\n") == std::string::npos || packet.find("\\r\\n") == std::string::npos)
-    {
-		//create400Response();
-		std::cout << packet << std::endl;
-		std::cout << "create400Response" << std::endl;
-		return ;
-	}
+		throw (this->_protocol.create400Response());
 	std::string firstLine = packet.substr(0, packet.find("\\r\\n"));
-    firstLine = this->_protocol.readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
-	if (firstLine != "")
-	{
-		std::cout << firstLine;
-		exit(1);
-	}
+    this->_protocol.readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
 
 	std::string header = packet.substr(packet.find("\\r\\n") + 2, packet.find("\\r\\n\\r\\n") - packet.find("\\r\\n") - 2);
-	header = this->_protocol.readHeader(header);
-	if (header != "")
-		exit(1);
+	this->_protocol.readHeader(header);
+	
+	this->_protocol.checkContentLength(MAX_BODY_SIZE);
+
 	// if (chunked == true)
 	// 	std::string body = packet.substr(packet.find("\r\n\r\n") + 4, getcontentLength());
 	// else
@@ -81,12 +72,7 @@ void TestServer::getRequest(int fd)
     std::string body = packet.substr(packet.find("\\r\\n\\r\\n") + 8);
 	std::map<std::string, std::string> pro = this->_protocol.getRequestHeader();
 	if (pro.find("Content-Length") != pro.end())
-	{
-		// std::cout << "content-length is:" << pro["Content-Length"] << std::endl;
-		std::string tmpBody = this->_protocol.readBody(body);
-		if (tmpBody != "")
-			std::cout << tmpBody << std::endl;
-	}
+		this->_protocol.readBody(body);
 }
 
 void TestServer::checkValidity()

@@ -7,16 +7,10 @@ void	TestServer::GET_HEAD()
 	char readbuf[10000];
 	fd = open(this->_protocol.getRequestURI().c_str(), O_RDONLY);
 	if (fd == -1)
-	{
-		std::cout << "open error" << std::endl;
-		return ;
-	}
+		throw (this->_protocol.create404Response());
 	int readSize = read(fd, readbuf, 10000);
 	if (readSize == -1)
-	{
-		std::cout << "read error" << std::endl;
-		return ;
-	}
+		throw (this->_protocol.create500Response());
 	readbuf[readSize] = '\0';
 	if (this->_protocol.getRequestMethod() == "GET")
 		this->_protocol.setResponseBody(readbuf);
@@ -35,7 +29,7 @@ void	TestServer::POST()
 	//return 201 created
 }
 
-std::string	getPath(char **envp, std::string cmd)
+std::string	TestServer::getPath(char **envp, std::string cmd)
 {
 	std::string path;
 
@@ -56,7 +50,8 @@ std::string	getPath(char **envp, std::string cmd)
 			return (RmPath);
 		path = splitAfterColon(path);
 	}
-	std::cout << "cannot find cmd" << std::endl;
+	//cannot find cmd, so 500 internal server error
+	throw (this->_protocol.create500Response());
 	return ("");
 }
 
@@ -66,21 +61,14 @@ void	TestServer::DELETE()
 
 	fd = open(this->_protocol.getRequestURI().c_str(), O_RDONLY);
 	if (fd == -1)
-	{
-		//file does not exist, thus cannot be deleted, 204 No Content
-		this->_protocol.create204Response();
-		std::cout << "open error" << std::endl;
-		return ;
-	}
+		throw (this->_protocol.create204Response()); //file does not exist, thus cannot be deleted, 204 No Content
 	close(fd);
 	std::string rmPath = getPath(envp, "rm");
-	if (rmPath == "")
-		return ;
 	
 	//leak warning
 	int pid = fork();
 	if (pid < 0)
-		return ;
+		throw (this->_protocol.create500Response());
 	else if (pid == 0)
 	{
 		char **option = (char **)malloc(sizeof(char *) * 3);
@@ -103,7 +91,13 @@ void	TestServer::DELETE()
 
 void	TestServer::PUT()
 {
-	std::cout << "PUT" << std::endl;
+	int fd;
+
+	fd = open(this->_protocol.getRequestURI().c_str(), O_WRONLY | O_TRUNC);
+	if (fd == -1)
+		throw (this->_protocol.create404Response());
+	write(fd, this->_protocol.getRequestBody().c_str(), this->_protocol.getRequestBody().size());
+	this->_protocol.create200Response();
 }
 
 void	TestServer::OPTIONS()

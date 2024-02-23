@@ -10,17 +10,19 @@ class Protocol {
 		Protocol();
         ~Protocol();
 
-		std::string	readStartLine(std::string startLine, int large_client_header_buffers);
-		std::string readHeader(std::string header);
-		std::string checkValidHeader(std::string key, std::string value);
-		std::string checkContentLength(int client_max_body_size);
-		std::string readBody(std::string body);
-		void		create200Response();
-		void		create204Response();
-		void		create400Response();
-		void 		create413Response();
-		void		create414Response();
-		void 		create505Response();
+		void	readStartLine(std::string startLine, int large_client_header_buffers);
+		void	readHeader(std::string header);
+		void	checkValidHeader(std::string key, std::string value);
+		void	checkContentLength(int client_max_body_size);
+		void	readBody(std::string body);
+		std::string		create200Response();
+		std::string		create204Response();
+		std::string		create400Response();
+		std::string		create404Response();
+		std::string 	create413Response();
+		std::string		create414Response();
+		std::string		create500Response();
+		std::string 	create505Response();
 
 		std::string getRequestMethod() const;
 		std::string getRequestURI() const;

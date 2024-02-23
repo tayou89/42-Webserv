@@ -17,6 +17,7 @@ class TestServer {
         void	sendResponse(int fd);
 
         void	setEnvp(char **envp);
+        std::string	getPath(char **envp, std::string cmd);
 
         void    GET_HEAD();
         void    POST();

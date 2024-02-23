@@ -1,1 +1,1 @@
-GET target_file.txt HTTP/1.1\r\nContent-Length: 12\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nsec-ch-ua: "Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: "macOS"\r\nUpgrade-Insecure-Requests: 1\r\n\r\nbodybodybody
+DELETE a.txt HTTP/1.1\r\nContent-Length: 12\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nsec-ch-ua: "Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: "macOS"\r\nUpgrade-Insecure-Requests: 1\r\n\r\nbodybodybody
