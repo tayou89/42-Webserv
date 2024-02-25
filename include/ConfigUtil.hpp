@@ -43,6 +43,7 @@ class	ConfigUtil
 		static bool			isSizeUnit(const char &character);
 		static void			removeComments(std::string &text);
 		static bool			isHTTPMethod(const std::string &string);
+		static bool			isFileExisted(const std::string &dirPath, const std::string &fileName);
 
 		// //for test
 		// static void			printStringVector(const std::vector<std::string> vector);
