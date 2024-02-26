@@ -22,8 +22,8 @@ CGIExecutor	&CGIExecutor::operator=(const CGIExecutor &object)
 	return (*this);
 }
 
-CGIExecutor::CGIExecutor(const std::string &fileName, const Location &location, const Protocol &protocol)
-	: _fileName(fileName), _location(location), _protocol(protocol)
+CGIExecutor::CGIExecutor(const Location &location, const Protocol &protocol)
+	: _location(location), _protocol(protocol)
 {
 	_setMetaVariables();
 }

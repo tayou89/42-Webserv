@@ -32,11 +32,14 @@
 
 int	main(void)
 {
-	DIR				*directory = opendir("/Users/tayou/Downloads");
+	DIR				*directory = opendir("/tayou/Downloads");
 	struct dirent	*entry;
 
 	if (directory == NULL)
-		std::cout << "Opening directory failed\n";	
+	{
+		std::cout << errno << ' ' << strerror(errno) << '\n';;	
+		return (1);
+	}
 	entry = readdir(directory);
 	while (entry != NULL)
 	{

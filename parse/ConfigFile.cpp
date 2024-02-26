@@ -6,6 +6,7 @@ ConfigFile::ConfigFile(void) {}
 ConfigFile::~ConfigFile(void)
 {
 	_closeFile();
+	_closeDirectory();
 }
 
 ConfigFile::ConfigFile(const ConfigFile &object)
@@ -24,6 +25,7 @@ ConfigFile &ConfigFile::operator=(const ConfigFile &object)
 }
 
 ConfigFile::ConfigFile(const char *configFilePath)
+	: _dirPointer(NULL), _dirEntry(NULL)
 {
 	_setFilePath(configFilePath);
 	_openFile();
@@ -51,8 +53,37 @@ std::string ConfigFile::getFileString(void)
 	return (std::string(buf_iterator(_fileStream), buf_iterator()));
 }
 
+std::string ConfigFile::getExecutableFile(const std::string &dirPath, const string_vector &fileList)
+{
+	try
+	{
+		_setDirectoryPath(dirPath);
+		_openDirectory();
+	}
+	catch (const std::exception &e)
+	{
+	}
+}
+
+void	ConfigFile::_setDirectoryPath(const std::string &dirPath)
+{
+	_dirPath = dirPath;
+}
+
+void	ConfigFile::_openDirectory(void)
+{
+	_dirPointer = opendir(_dirPath.c_str());
+	if (_dirPointer == NULL)
+}
+
 void ConfigFile::_closeFile(void)
 {
 	if (_fileStream.is_open() == true)
 		_fileStream.close();
+}
+
+void ConfigFile::_closeDirectory(void)
+{
+	if (_dirPointer != NULL)
+		closedir(_dirPointer);
 }
