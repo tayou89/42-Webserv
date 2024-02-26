@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.hpp"
+#include "Convert.hpp"
 #include "IServer.hpp"
 #include "Protocol.hpp"
 #include <arpa/inet.h>
@@ -15,7 +16,7 @@
 class WebServer : public IServer {
 
 public:
-  WebServer(Config conf, Protocol prot, char **envp);
+  WebServer(Config conf, Protocol prot, Convert conv, char **envp);
   ~WebServer();
 
   int getListenSocket() const;
@@ -25,6 +26,7 @@ public:
 private:
   Config _config;
   Protocol _protocol;
+  Convert _conv;
   char **_envp;
   int _listenSocket;
   struct sockaddr_in _serverAddress;

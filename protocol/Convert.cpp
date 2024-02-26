@@ -1,20 +1,20 @@
-#include "../include/Server.hpp"
+#include "../include/Convert.hpp"
 #include "../include/Protocol.hpp"
 
 #define LARGE_CLIENT_HEADER_BUFFERS 1000
 #define MAX_BODY_SIZE 1000
 
-Server::Server() {}
+Convert::Convert() {}
 
-Server::~Server() {}
+Convert::~Convert() {}
 
-Server::Server(const Server &) {}
+Convert::Convert(const Convert &) {}
 
-Server &Server::operator=(const Server &) { return (*this); }
+Convert &Convert::operator=(const Convert &) { return (*this); }
 
-void Server::setEnvp(char **envp) { this->envp = envp; }
+void Convert::setEnvp(char **envp) { this->envp = envp; }
 
-void Server::getRequest(int fd) {
+void Convert::getRequest(int fd) {
   char buf[LARGE_CLIENT_HEADER_BUFFERS + MAX_BODY_SIZE + 1];
   int readSize = read(fd, buf, LARGE_CLIENT_HEADER_BUFFERS + MAX_BODY_SIZE);
   if (readSize == -1) {
@@ -52,7 +52,7 @@ void Server::getRequest(int fd) {
     this->_protocol.readBody(body);
 }
 
-void Server::checkValidity() {
+void Convert::checkValidity() {
   DIR *dir = opendir(this->_protocol.getRequestURI().c_str());
   if (dir != NULL) {
     // // 1. check index directive in conf file
@@ -74,8 +74,9 @@ void Server::checkValidity() {
     // std::to_string(filelist.size()));
     // 	// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
     // 	this->_protocol.setResponseHeader("Content-Type", "directory Listing");
-    // //need to change 	this->_protocol.setResponseHeader("Last-Modified",
-    // getCurrentHttpDate()); 	this->_protocol.create200Response();
+    // //need to change
+    // this->_protocol.setResponseHeader("Last-Modified", getCurrentHttpDate());
+    // this->_protocol.create200Response();
     // }
     closedir(dir);
   } else { // if URI is a file
@@ -92,7 +93,7 @@ void Server::checkValidity() {
   // check more...
 }
 
-void Server::executeMethod() {
+void Convert::executeMethod() {
   if (this->_protocol.getRequestMethod() == "GET" ||
       this->_protocol.getRequestMethod() == "HEAD")
     GET_HEAD();
@@ -110,7 +111,7 @@ void Server::executeMethod() {
     throw(this->_protocol.create405Response());
 }
 
-void Server::sendResponse(int fd) {
+void Convert::sendResponse(int fd) {
   (void)fd;
   // print instead of sending packet
   std::cout << this->_protocol.getResponse() << std::endl;

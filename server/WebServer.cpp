@@ -1,8 +1,8 @@
 #include "../include/WebServer.hpp"
 #include <iostream> // test
 
-WebServer::WebServer(Config conf, Protocol prot, char **envp)
-    : _config(conf), _protocol(prot) {
+WebServer::WebServer(Config conf, Protocol prot, Convert conv, char **envp)
+    : _config(conf), _protocol(prot), _conv(convert) {
   _envp = envp;
   _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 
