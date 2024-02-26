@@ -3,12 +3,12 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#include "../include/TestServer.hpp"
+#include "../include/Server.hpp"
 
 int main(int argc, char **argv, char **envp)
 {
     Protocol protocol;
-    TestServer testserver;
+    Server server;
     int fd;
 
     (void)argc;
@@ -21,11 +21,10 @@ int main(int argc, char **argv, char **envp)
     }
     try 
     {
-        testserver.setEnvp(envp);
-        testserver.getRequest(fd);
-        testserver.checkValidity();
-        testserver.executeMethod();
-        testserver.sendResponse(fd);
+        server.setEnvp(envp);
+        server.getRequest(fd);
+        server.checkValidity();
+        server.sendResponse(fd);
     }
     catch (std::string &e)
     {

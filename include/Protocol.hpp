@@ -19,6 +19,7 @@ class Protocol {
 		std::string		create204Response();
 		std::string		create400Response();
 		std::string		create404Response();
+		std::string		create405Response();
 		std::string 	create413Response();
 		std::string		create414Response();
 		std::string		create500Response();
@@ -28,6 +29,7 @@ class Protocol {
 		std::string getRequestURI() const;
 		std::string getRequestBody() const;
 		std::map<std::string, std::string> getRequestHeader() const;
+		std::string getRequestHeader(std::string key) const;
 		void		setRequestHeader(std::string key, std::string value);
 
 		void		setResponseHeader(std::string key, std::string value);
@@ -38,6 +40,7 @@ class Protocol {
     private :
         Protocol(const Protocol&);
         Protocol& operator=(const Protocol&);
+		std::string _request;
         std::map<std::string, std::string> _requestHeader;
 		std::string _requestBody;
 		std::string _requestMethod;

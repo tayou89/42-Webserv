@@ -1,6 +1,6 @@
-#include "../include/TestServer.hpp"
+#include "../include/Server.hpp"
 
-void	TestServer::GET_HEAD()
+void	Server::GET_HEAD()
 {
     int fd;
 
@@ -22,14 +22,14 @@ void	TestServer::GET_HEAD()
 	this->_protocol.create200Response();
 }
 
-void	TestServer::POST()
+void	Server::POST()
 {
     //straight to CGI (make two pipes, then fork)
 	std::cout << "POST" << std::endl;
 	//return 201 created
 }
 
-std::string	TestServer::getPath(char **envp, std::string cmd)
+std::string	Server::getPath(char **envp, std::string cmd)
 {
 	std::string path;
 
@@ -55,7 +55,7 @@ std::string	TestServer::getPath(char **envp, std::string cmd)
 	return ("");
 }
 
-void	TestServer::DELETE()
+void	Server::DELETE()
 {
 	int fd;
 
@@ -89,7 +89,7 @@ void	TestServer::DELETE()
 	this->_protocol.create200Response();
 }
 
-void	TestServer::PUT()
+void	Server::PUT()
 {
 	int fd;
 
@@ -100,12 +100,24 @@ void	TestServer::PUT()
 	this->_protocol.create200Response();
 }
 
-void	TestServer::OPTIONS()
+void	Server::OPTIONS()
 {
 
 }
 
-void	TestServer::TRACE()
+void	Server::TRACE()
 {
+	std::string body;
+	std::map<std::string, std::string> header;
 
+	body = this->_protocol.getRequestMethod() + " " 
+		+ this->_protocol.getRequestURI() + " HTTP/1.1\r\n";
+	header = this->_protocol.getRequestHeader();
+	for (std::map<std::string, std::string>::iterator itr = header.begin(); itr != header.end(); ++itr)	 
+	{
+		body = body + itr->first + ": " + itr->second + "\r\n";
+	}
+	body = body + this->_protocol.getRequestBody();
+	this->_protocol.setResponseBody(body);
+	this->_protocol.create200Response();
 }

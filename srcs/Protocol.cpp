@@ -128,6 +128,14 @@ std::string Protocol::getRequestBody() const
 	return (this->_requestBody);
 }
 
+std::string Protocol::getRequestHeader(std::string key) const
+{
+	if (this->_requestHeader.find(key) != this->_requestHeader.end())
+		return (this->_requestHeader.find(key)->second);
+	else
+		return ("");
+}
+
 std::map<std::string, std::string> Protocol::getRequestHeader() const
 {
 	return (this->_requestHeader);
@@ -190,6 +198,13 @@ std::string	Protocol::create400Response()
 std::string	Protocol::create404Response()
 {
 	std::string response = "HTTP/1.1 404 Not Found\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
+	this->_response = response;
+	return (response);
+}
+
+std::string	Protocol::create405Response()
+{
+	std::string response = "HTTP/1.1 405 Method Not Allowed\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n\r\n";
 	this->_response = response;
 	return (response);
 }

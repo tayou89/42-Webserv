@@ -1,29 +1,35 @@
 #pragma once
 
-#include <sys/event.h>
-#include <vector>
+#include <iostream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
+#include "Protocol.hpp"
 
 class Server {
-	public:
-		Server(Config conf);
-		virtual ~Server();
+    public :
+        Server();
+        ~Server();
 
-		int createClientSocket(); // accept new client
-		struct kevent eventRegister(); // ev.newEvent(ev.sv[idx].eventRegister())
-		void getEvent(struct kevent event); //_serverList[idx].getEvent(eventlist[j]);
-		void deleteEvent(struct kevent event); //EV_DELETE register, _fds.delete(), clost(event.ident)
-		void readEvent(int fd); // read socket descriptor when new event occurred, call protocol
-		void excuteEvent(); // input something returned from protocol (instance or std::string or ...)
-		void sendEvent(int fd, std::string content); // register new send Event. send content to fd.
+        void	getRequest(int fd);
+        void	checkValidity();
+        void	executeMethod();
+        void	sendResponse(int fd);
 
-	private:
-		Server();
-		Server(const Server &);
-		Server &operator=(const Server &);
+        void	setEnvp(char **envp);
+        std::string	getPath(char **envp, std::string cmd);
 
-		Config _conf;
-		int _listenSocket; // set on constructor
-		std::vector<int> _fds;
+        void    GET_HEAD();
+        void    POST();
+        void    DELETE();
+        void    PUT();
+        void    OPTIONS();
+        void    TRACE();
 
-		Protocol _protocol;
+    private :
+        Server(const Server&);
+        Server& operator=(const Server&);
+
+        Protocol    _protocol;
+        char        **envp;
 };

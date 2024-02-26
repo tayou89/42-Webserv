@@ -1,7 +1,7 @@
 CXX = c++
 NAME = webserv
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-SRCS = srcs/main.cpp srcs/Protocol.cpp srcs/TestServer.cpp srcs/executeMethod.cpp srcs/utils.cpp
+SRCS = srcs/main.cpp srcs/Protocol.cpp srcs/Server.cpp srcs/executeMethod.cpp srcs/utils.cpp
 INCS = include
 OBJS = $(SRCS:.cpp=.o)
 

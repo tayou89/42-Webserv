@@ -1,30 +1,30 @@
 #include "../include/Protocol.hpp"
-#include "../include/TestServer.hpp"
+#include "../include/Server.hpp"
 
 #define LARGE_CLIENT_HEADER_BUFFERS 1000
 #define MAX_BODY_SIZE 1000
 
-TestServer::TestServer()
+Server::Server()
 {
 
 }
         
-TestServer::~TestServer()
+Server::~Server()
 {
 
 }
 
-TestServer::TestServer(const TestServer&)
+Server::Server(const Server&)
 {
 
 }
 
-TestServer& TestServer::operator=(const TestServer&)
+Server& Server::operator=(const Server&)
 {
 	return (*this);
 }
 
-void TestServer::setEnvp(char **envp)
+void Server::setEnvp(char **envp)
 {
 	this->envp = envp;
 }
@@ -38,7 +38,7 @@ void TestServer::setEnvp(char **envp)
 
 
 
-void TestServer::getRequest(int fd)
+void Server::getRequest(int fd)
 {
 	char buf[LARGE_CLIENT_HEADER_BUFFERS + MAX_BODY_SIZE + 1];
     int readSize = read(fd, buf, LARGE_CLIENT_HEADER_BUFFERS + MAX_BODY_SIZE);
@@ -75,25 +75,51 @@ void TestServer::getRequest(int fd)
 		this->_protocol.readBody(body);
 }
 
-void TestServer::checkValidity()
+void Server::checkValidity()
 {
 	DIR *dir = opendir(this->_protocol.getRequestURI().c_str());
 	if (dir != NULL)
-	{ //if URI is a directory
-		// 1. check index directive in conf file
-		// 2. check if autoindex is enabled
-		// 3. check if try_files exist
+	{	
+		// // 1. check index directive in conf file
+		// if (index_directive == true)
+		// {
+		// 	//find index files in order, then put it in the response packet
+		// }
+
+		// // 2. check if autoindex is enabled
+		// if (autoindex == true)
+		// {
+		// 	//read all files in the directory and put it in the response packet
+		// 	struct dirent *ent;
+		// 	std::string filelist = "";
+		// 	while ((ent = readdir(dir)) != NULL)
+		// 		filelist = filelist + ent->d_name + "\n";
+		// 	this->_protocol.setResponseBody(filelist);
+		// 	this->_protocol.setResponseHeader("Content-Length", std::to_string(filelist.size()));
+		// 	// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
+		// 	this->_protocol.setResponseHeader("Content-Type", "directory Listing"); //need to change
+		// 	this->_protocol.setResponseHeader("Last-Modified", getCurrentHttpDate());
+		// 	this->_protocol.create200Response();
+		// }
 		closedir(dir);
 	}
 	else
-	{ //if URI is a file
-		// std::cout << "file" << std::endl;
+	{	//if URI is a file
+		// 1. check if the method is allowed or executable
+		// -> going to check it in executeMethod()
+		// 2. check if authorization header exists
+		if (this->_protocol.getRequestHeader("Authorization") != "")
+		{
+			//check if the user is authorized
+			//if not, throw 401 response
+		}
+		this->executeMethod();
 	}
 
 	//check more...
 }
 
-void TestServer::executeMethod()
+void Server::executeMethod()
 {
 	if (this->_protocol.getRequestMethod() == "GET" || this->_protocol.getRequestMethod() == "HEAD")
 		GET_HEAD();
@@ -107,9 +133,11 @@ void TestServer::executeMethod()
 		OPTIONS();
 	else if (this->_protocol.getRequestMethod() == "TRACE")
 		TRACE();
+	else
+		throw (this->_protocol.create405Response());
 }
 
-void TestServer::sendResponse(int fd)
+void Server::sendResponse(int fd)
 {
 	(void)fd;
 	//print instead of sending packet
