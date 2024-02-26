@@ -175,7 +175,7 @@ std::string	Protocol::create200Response()
 {
 	std::string response = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() + "Server: " + "webserv\r\n";
 	for (std::map<std::string, std::string>::iterator itr = this->_responseHeader.begin(); itr != this->_responseHeader.end(); ++itr)
-		response = response + itr->first + " : " + itr->second + "\r\n";
+		response = response + itr->first + ": " + itr->second + "\r\n";
 	response = response + "\r\n" + this->_responseBody;
 	this->_response = response;
 	return (response);

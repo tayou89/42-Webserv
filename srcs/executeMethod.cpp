@@ -102,7 +102,13 @@ void	Server::PUT()
 
 void	Server::OPTIONS()
 {
-
+	if (this->_protocol.getRequestHeader("Origins") == "")
+		throw (this->_protocol.create400Response());
+	int fd = open(this->_protocol.getRequestHeader("Origins").c_str(), O_RDONLY);
+	if (fd == -1)
+		throw (this->_protocol.create400Response());
+	this->_protocol.setResponseHeader("Access-Control-Allow-Origin", this->_protocol.getRequestHeader("Origins"));
+	this->_protocol.create200Response();
 }
 
 void	Server::TRACE()
