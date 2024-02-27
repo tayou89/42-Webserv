@@ -1,5 +1,7 @@
 #include "../include/Location.hpp"
 #include <dirent.h>
+#include <iostream>
+#include <unistd.h>
 
 Location::Location(void)
     : _autoindex(false), _clientBodyMax(1024 * 1024), _clientHeaderMax(32 * 1024)
@@ -51,7 +53,9 @@ Location::Location(const std::string &path, const std::string &text, const Locat
 }
 
 Location::Location(const std::string &configText, const string_set &directiveSet)
-    : ConfigBase(configText, directiveSet), _autoindex(false), _clientBodyMax(1024 * 1024),
+    : ConfigBase(configText, directiveSet),
+      _autoindex(false),
+      _clientBodyMax(1024 * 1024),
       _clientHeaderMax(32 * 1024)
 {
     _setFunctionPTRMap();
@@ -85,27 +89,6 @@ const bool &Location::getAutoIndex(void) const
 const std::vector<std::string> &Location::getIndexes(void) const
 {
     return (_indexes);
-}
-
-const std::string &Location::getExistingFile(void) const
-{
-    std::string fileName;
-    DIR        *rootDirectory = opendir(_rootDirectory.c_str());
-    size_t      indexCount    = _indexes.size();
-    size_t      i;
-
-    if (rootDirectory == NULL)
-    {
-        closedir(rootDirectory);
-        return ("");
-    }
-    for (i = 0; i < indexCount; i++)
-    {
-        fileName = _indexes[i];
-        if (ConfigUtil::isFileExisted(_rootDirectory, fileName) == true)
-            return (fileName);
-    }
-    return ("");
 }
 
 const error_page_map &Location::getErrorPageMap(void) const
@@ -145,6 +128,23 @@ const string_vector &Location::getAcceptedMethods(void) const
 const std::string &Location::getLocationPath(void) const
 {
     return (_path);
+}
+
+void Location::setIndexFile(void)
+{
+    try
+    {
+        _configFile.set(_rootDirectory, _indexes);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error: " << e.what() << '\n';
+    }
+}
+
+const ConfigFile &Location::getIndexFile(void) const
+{
+    return (_configFile);
 }
 
 std::set<std::string> Location::_getDirectiveSet(void) const
@@ -240,22 +240,4 @@ void Location::_setClientHeaderMax(void)
 void Location::_setAcceptedMethods(void)
 {
     _acceptedMethods = _parameters;
-}
-
-void Location::_setIndexFile(void)
-{
-    DIR        *rootDirectory = opendir(_rootDirectory.c_str());
-    size_t      indexCount    = _indexes.size();
-    std::string fileName;
-    size_t      i;
-
-    if (rootDirectory == NULL)
-        return;
-    for (i = 0; i < indexCount; i++)
-    {
-        fileName = _indexes[i];
-        if (ConfigUtil::isFileExisted(_rootDirectory, fileName) == true)
-            return (fileName);
-    }
-    return ("");
 }

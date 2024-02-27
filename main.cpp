@@ -25,26 +25,24 @@
 //   eventLoop.initServerSocket();
 //   eventLoop.run();
 // }
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
 #include <dirent.h>
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
 
-int	main(void)
+int main(void)
 {
-	DIR				*directory = opendir("/tayou/Downloads");
-	struct dirent	*entry;
-
-	if (directory == NULL)
-	{
-		std::cout << errno << ' ' << strerror(errno) << '\n';;	
-		return (1);
-	}
-	entry = readdir(directory);
-	while (entry != NULL)
-	{
-		std::cout << entry->d_name << '\n';
-		entry = readdir(directory);
-	}
-	return (0);
+    if (access("/Users/tayou/Desktop/tayou/temp", F_OK) == 0)
+        std::cout << "File is existed\n";
+    else
+        std::cout << "File is not existed\n";
+    if (access("/Users/tayou/Desktop/tayou/temp/aaa", R_OK) == 0)
+        std::cout << "File is readable\n";
+    else
+        std::cout << "File is not readable\n";
+    if (access("/Users/tayou/Desktop/tayou/temp/aaa", X_OK) == 0)
+        std::cout << "File is executable\n";
+    else
+        std::cout << "File is not executable\n";
+    return (0);
 }

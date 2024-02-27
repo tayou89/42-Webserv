@@ -1,286 +1,295 @@
 #include "../include/ConfigUtil.hpp"
 #include <cctype>
+#include <dirent.h>
 #include <map>
 #include <sstream>
+#include <unistd.h>
 #include <vector>
-#include <dirent.h>
 
 bool ConfigUtil::isIPAddressFormat(const std::string &string)
 {
-	std::vector<std::string> octetVector;
-	std::string octet;
-	int octetCount, i;
+    std::vector<std::string> octetVector;
+    std::string              octet;
+    int                      octetCount, i;
 
-	octetVector = splitString(string, '.');
-	octetCount = octetVector.size();
-	if (octetCount != 4)
-		return (false);
-	for (i = 0; i < octetCount; i++)
-	{
-		octet = octetVector[i];
-		if (isNumberString(octet) == false)
-			return (false);
-		if (isValidOctetNumber(std::atoi(octet.c_str())) == false)
-			return (false);
-	}
-	return (true);
+    octetVector = splitString(string, '.');
+    octetCount  = octetVector.size();
+    if (octetCount != 4)
+        return (false);
+    for (i = 0; i < octetCount; i++)
+    {
+        octet = octetVector[i];
+        if (isNumberString(octet) == false)
+            return (false);
+        if (isValidOctetNumber(std::atoi(octet.c_str())) == false)
+            return (false);
+    }
+    return (true);
 }
 
 bool ConfigUtil::isValidOctetNumber(const int &number)
 {
-	if (number >= 0 && number <= 255)
-		return (true);
-	else
-		return (false);
+    if (number >= 0 && number <= 255)
+        return (true);
+    else
+        return (false);
 }
 
 bool ConfigUtil::isValidErrorStatusCode(const int &number)
 {
-	if (number < 300 || number > 600)
-		return (false);
-	else
-		return (true);
+    if (number < 300 || number > 600)
+        return (false);
+    else
+        return (true);
 }
 
 bool ConfigUtil::isValidPortNumber(const int &number)
 {
-	if (number < 1 || number > 65535)
-		return (false);
-	else
-		return (true);
+    if (number < 1 || number > 65535)
+        return (false);
+    else
+        return (true);
 }
 
 bool ConfigUtil::isNumberString(const std::string &string)
 {
-	int stringSize = string.size();
-	int i;
+    int stringSize = string.size();
+    int i;
 
-	if (stringSize == 0)
-		return (false);
-	for (i = 0; i < stringSize; i++)
-	{
-		if (std::isdigit(string[i]) == false)
-			return (false);
-	}
-	return (true);
+    if (stringSize == 0)
+        return (false);
+    for (i = 0; i < stringSize; i++)
+    {
+        if (std::isdigit(string[i]) == false)
+            return (false);
+    }
+    return (true);
 }
 
 bool ConfigUtil::isAlphabetNumberString(const std::string &string)
 {
-	int stringSize = string.size();
-	int i;
+    int stringSize = string.size();
+    int i;
 
-	if (stringSize == 0)
-		return (false);
-	for (i = 0; i < stringSize; i++)
-	{
-		if (std::isalnum(string[i]) == false)
-			return (false);
-	}
-	return (true);
+    if (stringSize == 0)
+        return (false);
+    for (i = 0; i < stringSize; i++)
+    {
+        if (std::isalnum(string[i]) == false)
+            return (false);
+    }
+    return (true);
 }
 
 bool ConfigUtil::isExtensionString(const std::string &string)
 {
-	if (string[0] != '.')
-		return (false);
-	if (isAlphabetNumberString(string.substr(1)) == false)
-		return (false);
-	return (true);
+    if (string[0] != '.')
+        return (false);
+    if (isAlphabetNumberString(string.substr(1)) == false)
+        return (false);
+    return (true);
 }
 
 size_t ConfigUtil::convertToSizeT(const std::string &string)
 {
-	std::stringstream stringStream(string);
-	size_t size;
+    std::stringstream stringStream(string);
+    size_t            size;
 
-	stringStream >> size;
-	return (size);
+    stringStream >> size;
+    return (size);
 }
 
 bool ConfigUtil::isConvertibleToSizeT(const std::string &string)
 {
-	std::stringstream stringStream(string);
-	size_t beforeSize, size;
-	size_t unit = convertByteUnit(string[string.size() - 1]);
+    std::stringstream stringStream(string);
+    size_t            beforeSize, size;
+    size_t            unit = convertByteUnit(string[string.size() - 1]);
 
-	stringStream >> size;
-	if (stringStream.fail() == true)
-		return (false);
-	beforeSize = size;
-	size = size * unit;
-	if ((size / unit) != beforeSize)
-		return (false);
-	return (true);
+    stringStream >> size;
+    if (stringStream.fail() == true)
+        return (false);
+    beforeSize = size;
+    size       = size * unit;
+    if ((size / unit) != beforeSize)
+        return (false);
+    return (true);
 }
 
 size_t ConfigUtil::convertByteUnit(const char &byteUnit)
 {
-	if (byteUnit == 'K')
-		return (1024);
-	else if (byteUnit == 'M')
-		return (1024 * 1024);
-	else if (byteUnit == 'G')
-		return (1024 * 1024 * 1024);
-	else
-		return (1);
+    if (byteUnit == 'K')
+        return (1024);
+    else if (byteUnit == 'M')
+        return (1024 * 1024);
+    else if (byteUnit == 'G')
+        return (1024 * 1024 * 1024);
+    else
+        return (1);
 }
 
 int ConfigUtil::getStringCount(const std::string &string)
 {
-	std::stringstream stringStream(string);
-	std::string buffer;
-	int stringCount = 0;
+    std::stringstream stringStream(string);
+    std::string       buffer;
+    int               stringCount = 0;
 
-	while (stringStream >> buffer)
-		++stringCount;
-	return (stringCount);
+    while (stringStream >> buffer)
+        ++stringCount;
+    return (stringCount);
 }
 
-std::vector<std::string> ConfigUtil::splitString(const std::string &string,
-												 const char &delimeter)
+std::vector<std::string> ConfigUtil::splitString(const std::string &string, const char &delimeter)
 {
-	std::vector<std::string> splitStrings;
-	std::stringstream stringStream(string);
-	std::string buffer;
+    std::vector<std::string> splitStrings;
+    std::stringstream        stringStream(string);
+    std::string              buffer;
 
-	while (std::getline(stringStream, buffer, delimeter))
-		splitStrings.push_back(buffer);
-	return (splitStrings);
+    while (std::getline(stringStream, buffer, delimeter))
+        splitStrings.push_back(buffer);
+    return (splitStrings);
 }
 
-std::vector<std::string>
-ConfigUtil::getStringVector(const std::string &string)
+std::vector<std::string> ConfigUtil::getStringVector(const std::string &string)
 {
-	std::stringstream stringStream(string);
-	std::vector<std::string> stringVector;
-	std::string buffer;
+    std::stringstream        stringStream(string);
+    std::vector<std::string> stringVector;
+    std::string              buffer;
 
-	while (stringStream >> buffer)
-		stringVector.push_back(buffer);
-	return (stringVector);
+    while (stringStream >> buffer)
+        stringVector.push_back(buffer);
+    return (stringVector);
 }
 
 bool ConfigUtil::isDelimeter(const char &character)
 {
-	if (character == '{' || character == '}' || character == ';')
-		return (true);
-	else
-		return (false);
+    if (character == '{' || character == '}' || character == ';')
+        return (true);
+    else
+        return (false);
 }
 
 char ConfigUtil::getParameterTerminator(const std::string &directive)
 {
-	if (isBlockDirective(directive) == true)
-		return ('{');
-	else
-		return (';');
+    if (isBlockDirective(directive) == true)
+        return ('{');
+    else
+        return (';');
 }
 
 bool ConfigUtil::isBlockDirective(const std::string &directive)
 {
-	if (directive == "server" || directive == "location")
-		return (true);
-	else
-		return (false);
+    if (directive == "server" || directive == "location")
+        return (true);
+    else
+        return (false);
 }
 
 size_t ConfigUtil::findDelimeter(const std::string &string)
 {
-	size_t stringSize = string.size();
-	size_t i;
+    size_t stringSize = string.size();
+    size_t i;
 
-	for (i = 0; i < stringSize; i++)
-	{
-		if (isDelimeter(string[i]) == true)
-			return (i);
-	}
-	return (std::string::npos);
+    for (i = 0; i < stringSize; i++)
+    {
+        if (isDelimeter(string[i]) == true)
+            return (i);
+    }
+    return (std::string::npos);
 }
 
 std::string ConfigUtil::convertIntToString(const int &integer)
 {
-	std::stringstream stringStream;
-	std::string string;
+    std::stringstream stringStream;
+    std::string       string;
 
-	stringStream << integer;
-	stringStream >> string;
-	return (string);
+    stringStream << integer;
+    stringStream >> string;
+    return (string);
 }
 
 bool ConfigUtil::isSizeString(const std::string &string)
 {
-	std::string copyString = string;
-	size_t stringSize = string.size();
-	char unit;
+    std::string copyString = string;
+    size_t      stringSize = string.size();
+    char        unit;
 
-	if (stringSize == 0)
-		return (false);
-	unit = string[stringSize - 1];
-	if (isSizeUnit(unit) == true)
-		copyString = string.substr(0, stringSize - 1);
-	if (isNumberString(copyString) == false)
-		return (false);
-	return (true);
+    if (stringSize == 0)
+        return (false);
+    unit = string[stringSize - 1];
+    if (isSizeUnit(unit) == true)
+        copyString = string.substr(0, stringSize - 1);
+    if (isNumberString(copyString) == false)
+        return (false);
+    return (true);
 }
 
 bool ConfigUtil::isSizeUnit(const char &character)
 {
-	if (character == 'K' || character == 'M' || character == 'G')
-		return (true);
-	else
-		return (false);
+    if (character == 'K' || character == 'M' || character == 'G')
+        return (true);
+    else
+        return (false);
 }
 
 void ConfigUtil::removeComments(std::string &text)
 {
-	std::stringstream stringStream(text);
-	std::string nonCommentText;
-	std::string nonCommentString;
-	std::string commentString;
+    std::stringstream stringStream(text);
+    std::string       nonCommentText;
+    std::string       nonCommentString;
+    std::string       commentString;
 
-	while (std::getline(stringStream, nonCommentString, '#'))
-	{
-		nonCommentText += nonCommentString;
-		std::getline(stringStream, commentString);
-	}
-	text = nonCommentText;
+    while (std::getline(stringStream, nonCommentString, '#'))
+    {
+        nonCommentText += nonCommentString;
+        std::getline(stringStream, commentString);
+    }
+    text = nonCommentText;
 }
 
 bool ConfigUtil::isHTTPMethod(const std::string &string)
 {
-	std::string HTTPMethods[] = {"GET", "POST", "DELETE", "PUT", "HEAD",
-								 "OPTIONS", "PATCH", "CONNECT", "TRACE"};
-	std::string *start = HTTPMethods;
-	std::string *end = HTTPMethods + (sizeof(HTTPMethods) / sizeof(std::string));
+    std::string  HTTPMethods[] = {"GET",     "POST",  "DELETE",  "PUT",  "HEAD",
+                                  "OPTIONS", "PATCH", "CONNECT", "TRACE"};
+    std::string *start         = HTTPMethods;
+    std::string *end           = HTTPMethods + (sizeof(HTTPMethods) / sizeof(std::string));
 
-	if (std::find(start, end, string) != end)
-		return (true);
-	else
-		return (false);
+    if (std::find(start, end, string) != end)
+        return (true);
+    else
+        return (false);
 }
 
-bool	ConfigUtil::isFileExisted(const std::string &dirPath, const std::string &fileName)
+bool ConfigUtil::isExistingFile(const std::string &filePath)
 {
-	DIR				*directory = opendir(dirPath.c_str());
-	struct dirent	*dirEntry;
-
-	if (directory == NULL)
-		return (false);
-	dirEntry = readdir(directory);
-	while (dirEntry != NULL)
-	{
-		if (std::string(dirEntry->d_name) == fileName)
-		{
-			closedir(directory);
-			return (true);
-		}
-		dirEntry = readdir(directory);
-	}
-	closedir(directory);
-	return (false);
+    if (access(filePath.c_str(), F_OK) == 0)
+        return (true);
+    else
+        return (false);
 }
 
+bool ConfigUtil::isReadableFile(const std::string &filePath)
+{
+    if (access(filePath.c_str(), R_OK) == 0)
+        return (true);
+    else
+        return (false);
+}
+
+bool ConfigUtil::isExecutableFile(const std::string &filePath)
+{
+    if (access(filePath.c_str(), X_OK) == 0)
+        return (true);
+    else
+        return (false);
+}
+
+bool ConfigUtil::isWritableFile(const std::string &filePath)
+{
+    if (access(filePath.c_str(), W_OK) == 0)
+        return (true);
+    else
+        return (false);
+}
 // # include <iostream>
 // # include "Config.hpp"
 

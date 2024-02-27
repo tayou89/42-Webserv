@@ -20,18 +20,20 @@ class Location : public ConfigBase
 
         Location(const std::string &path, const std::string &text, const Location &location);
         Location(const std::string &configText, const string_set &directiveSet);
+        bool                  isAcceptedHTTPMethod(const std::string &HTTPMethod);
+        void                  setIndexFile(void);
         const bool           &getAutoIndex(void) const;
+        std::string           getErrorPage(const int &errorPageNumber) const;
         const size_t         &getClientBodyMax(void) const;
         const size_t         &getClientHeaderMax(void) const;
+        const ConfigFile     &getIndexFile(void) const;
         const std::string    &getRootDirectory(void) const;
         const std::string    &getReturn(void) const;
-        const std::string    &getExistingFile(void) const;
-        const string_vector  &getIndexes(void) const;
-        const error_page_map &getErrorPageMap(void) const;
-        const string_vector  &getAcceptedMethods(void) const;
         const std::string    &getLocationPath(void) const;
-        std::string           getErrorPage(const int &errorPageNumber) const;
-        bool                  isAcceptedHTTPMethod(const std::string &HTTPMethod);
+        const string_vector  &getIndexes(void) const;
+        const string_vector  &getAcceptedMethods(void) const;
+        const error_page_map &getErrorPageMap(void) const;
+
     protected:
         Location(void);
         virtual string_set    _getDirectiveSet(void) const;

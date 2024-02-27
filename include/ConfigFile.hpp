@@ -1,9 +1,18 @@
 #ifndef CONFIG_FILE_HPP
 #define CONFIG_FILE_HPP
 
-#include <dirent.h>
+#include "ConfigUtil.hpp"
 #include <fstream>
 #include <string>
+#include <vector>
+
+typedef struct FileStatus
+{
+        bool isAccessible;
+        bool isReadable;
+        bool isWritable;
+        bool isExecutable;
+} FileStatus;
 
 class ConfigFile
 {
@@ -11,30 +20,32 @@ class ConfigFile
         typedef std::vector<std::string> string_vector;
 
         ConfigFile(void);
-        ConfigFile(const char *configFilePath);
         ~ConfigFile(void);
         ConfigFile(const ConfigFile &object);
         ConfigFile &operator=(const ConfigFile &object);
 
-        std::string getFileString(void);
-        std::string getExecutableFile(const std::string &dirPath, const string_vector &fileList);
+        ConfigFile(const char *configFilePath);
+        std::string getString(void);
+        std::string getPath(void) const;
+        void        set(const std::string &dirPath, const string_vector &fileList);
+        bool        isAccessible(void) const;
+        bool        isReadable(void) const;
+        bool        isWritable(void) const;
+        bool        isExecutable(void) const;
+
     private:
-        void _setFilePath(const char *configFilePath);
-        void _openFile(void);
-        void _closeFile(void);
+        void          _setFilePath(const char *configFilePath);
+        void          _openFile(void);
+        void          _closeFile(void);
+        void          _checkDirectoryStatus(void);
+        void          _findIndexFile(const string_vector &fileList);
+        void          _checkFileStatus(void);
+        void          _initializeFileStatus(void);
 
-        void _setDirectoryPath(const std::string &dirPath);
-        void _openDirectory(void);
-        void _closeDirectory(void);
-
-        std::string   _filePath;
-        std::ifstream _fileStream;
-
-        std::string    _dirPath;
-        DIR           *_dirPointer;
-        struct dirent *_dirEntry;
-
-        int _errorCode;
+        std::string   _directory;
+        std::string   _path;
+        std::ifstream _stream;
+        FileStatus    _status;
 };
 
 #endif
