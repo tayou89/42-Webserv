@@ -12,7 +12,6 @@ int main(int argc, char *argv[], char *envp[]) {
 
   ConfigMain configMain(argv[1]);
   Protocol protocol;
-  Convert convert;
   std::map<int, IServer *> serverMap;
 
   std::vector<Config> confVec = configMain.getServerConfigs();
