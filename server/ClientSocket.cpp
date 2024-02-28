@@ -34,8 +34,6 @@ int ClientSocket::readHead() {
   _tmp += tmp;
 
   /* header의 끝 찾기 */
-  /* 버퍼 크기에 따라 종료순간이 이상하게 꼬이고있어서 수정해야함 왜이래
-   * 도대체ㅠㅠ */
   //   size_t pos = _header.find("\\r\\n\\r\\n");
   std::cout << "head\n";
   size_t pos = _tmp.find("  "); // test spliter
@@ -46,11 +44,13 @@ int ClientSocket::readHead() {
     _tmp.clear();
     // header에 대한 유효성 검사 추가할 부분
     _bodySize = _body.size(); // _req.getBodySize()로 수정할 예정
-    if (readSize < BUFFERSIZE) {
+    if (readSize < 0) {
       _status = WRITE;
       return (1);
     }
     _status = BODYREAD; // body read 또는 Chunked 상태로 변경
+  } else {
+    // 바디가 없는 경우에 대해서 처리해줄 코드 만들어야됨!!!!!!!
   }
   return (0);
 }
