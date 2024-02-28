@@ -3,11 +3,9 @@
 #pragma once
 
 #include "IServer.hpp"
+#include "define.hpp"
+#include <string>
 #include <unistd.h>
-
-#define READABLE 0
-#define WRITEABLE 1
-#define BUFFERSIZE 1023
 
 class ClientSocket {
 
@@ -16,6 +14,9 @@ public:
   virtual ~ClientSocket();
 
   int readSocket();
+  int readHead();
+  int readContentBody();
+  //   int readChunkedBody();
   int writeSocket();
 
 private:
@@ -27,8 +28,11 @@ private:
   int _socket;
   int _status;
   char _buf[BUFFERSIZE + 1];
-  std::string _str;
+  std::string _tmp;
+  std::string _header;
+  size_t _bodySize;
+  std::string _body;
   //   Request _req;
   //   Response _res;
-  int _responseFile;
+  int _responseFile; // request file fd or cgi pipe fd store
 };
