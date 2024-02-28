@@ -44,6 +44,18 @@ void KqueueLoop::newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
 //   _changeList.push_back(temp);
 // }
 
+void KqueueLoop::disconnect(int socket) {
+  newEvent(socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+  newEvent(socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+  delete _clientList[socket]; // allocation delete
+  _clientList[socket] = NULL;
+  _clientList.erase(socket);
+  close(socket);
+  std::cout << "disconnect: " << socket << "\n";
+  if (_clientList.find(socket) == _clientList.end())
+    std::cout << "successfully disconnected\n";
+}
+
 void KqueueLoop::run() {
   int eventCount;
   int eventStatus;
@@ -63,7 +75,6 @@ void KqueueLoop::run() {
       if (currentEvent->flags & EV_ERROR)
         continue; // skip the error event
 
-      /* EVENT THROWER*/
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
         fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
@@ -78,32 +89,20 @@ void KqueueLoop::run() {
         if (currentEvent->filter == EVFILT_READ) {
           eventStatus = _clientList[currentEvent->ident]->readSocket();
           if (eventStatus == 1) { // when read done, change event status
-            newEvent(currentEvent->ident, EVFILT_READ, EV_ADD | EV_DISABLE, 0,
-                     0, NULL);
-            newEvent(currentEvent->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0,
-                     0, NULL);
+            newEvent(currentEvent->ident, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
+            newEvent(currentEvent->ident, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
           }
         } else if (currentEvent->filter == EVFILT_WRITE) {
           eventStatus = _clientList[currentEvent->ident]->writeSocket();
           if (eventStatus == 1) { // write finish, change status
-            newEvent(currentEvent->ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
-                     NULL);
-            newEvent(currentEvent->ident, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0,
-                     0, NULL);
+            newEvent(currentEvent->ident, EVFILT_READ, EV_ENABLE, 0, 0, NULL);
+            newEvent(currentEvent->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
           }
         }
 
         /* connection ended */
         if (eventStatus == 253) {
-          newEvent(currentEvent->ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-          newEvent(currentEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-          delete _clientList[currentEvent->ident]; // allocation delete
-          _clientList[currentEvent->ident] = NULL;
-          _clientList.erase(currentEvent->ident);
-          close(currentEvent->ident);
-          std::cout << "disconnect: " << currentEvent->ident << "\n";
-          if (_clientList.find(currentEvent->ident) == _clientList.end())
-            std::cout << "disconnection successfully\n";
+          disconnect(currentEvent->ident);
         } else if (eventStatus == 254) {
           /* Write Event Error Process */
           std::cout << "Write Error occurs\n";
