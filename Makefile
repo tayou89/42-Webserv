@@ -12,14 +12,14 @@ SRCS = main.cpp \
 	   parse/ConfigStream.cpp \
 	   parse/ConfigUtil.cpp \
 	   parse/ParameterChecker.cpp \
-	   server/ClientStat.cpp \
+	   server/ClientSocket.cpp \
 	   server/KqueueLoop.cpp \
 	   server/WebServer.cpp \
 	   protocol/executeMethod.cpp \
 	   protocol/Protocol.cpp \
 	   protocol/utils.cpp
 
-INCS = include/ClientStat.hpp \
+INCS = include/ClientSocket.hpp \
 	   include/Config.hpp \
 	   include/ConfigBase.hpp \
 	   include/ConfigFile.hpp \

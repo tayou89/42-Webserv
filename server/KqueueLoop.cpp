@@ -64,48 +64,50 @@ void KqueueLoop::run() {
         continue; // skip the error event
 
       /* EVENT THROWER*/
-      /* 서버객체를 저장하지 않고 event 단위로 행동을 정의할경우 listenSocket에
-       * 대한 판단이 필수적인지에 대해서 다시한번 생각해봐야함 */
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
         fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        _eventList[newClient] =
-            new ClientStat(newClient, _serverList[currentEvent->ident]);
+        _clientList[newClient] =
+            new ClientSocket(newClient, _serverList[currentEvent->ident]);
         if (newClient == -1)
           exit(1); // accept error
         newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
         std::cout << "hello " << newClient << std::endl;
-        // new client accept
-        // 새로 accept 된 socket은 _eventList에 등록한다.
-        // int newSocket = _serverList[currentEvent->ident]->acceptClient();
-        // _eventList[newSocket] =
-        //     new ClientStat(IServer * currentServer, int newSocket);
-        // !!!!!!leak warning!!!!!! 연결 해제시 반드시 할당된 메모리도 해제할 것
       } else {
-        if (currentEvent->filter == EVFILT_READ)
-          eventStatus = _eventList[currentEvent->ident]->readSocket();
-        else if (currentEvent->filter == EVFILT_WRITE)
-          eventStatus = _eventList[currentEvent->ident]->writeSocket();
+        if (currentEvent->filter == EVFILT_READ) {
+          eventStatus = _clientList[currentEvent->ident]->readSocket();
+          if (eventStatus == 1) { // when read done, change event status
+            newEvent(currentEvent->ident, EVFILT_READ, EV_ADD | EV_DISABLE, 0,
+                     0, NULL);
+            newEvent(currentEvent->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0,
+                     0, NULL);
+          }
+        } else if (currentEvent->filter == EVFILT_WRITE) {
+          eventStatus = _clientList[currentEvent->ident]->writeSocket();
+          if (eventStatus == 1) { // write finish, change status
+            newEvent(currentEvent->ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
+                     NULL);
+            newEvent(currentEvent->ident, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0,
+                     0, NULL);
+          }
+        }
 
         /* connection ended */
         if (eventStatus == 253) {
           newEvent(currentEvent->ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
           newEvent(currentEvent->ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-          delete _eventList[currentEvent->ident]; // allocation delete
-          _eventList[currentEvent->ident] = NULL;
-          _eventList.erase(currentEvent->ident);
+          delete _clientList[currentEvent->ident]; // allocation delete
+          _clientList[currentEvent->ident] = NULL;
+          _clientList.erase(currentEvent->ident);
           close(currentEvent->ident);
           std::cout << "disconnect: " << currentEvent->ident << "\n";
-          if (_eventList.find(currentEvent->ident) == _eventList.end())
+          if (_clientList.find(currentEvent->ident) == _clientList.end())
             std::cout << "disconnection successfully\n";
         } else if (eventStatus == 254) {
           /* Write Event Error Process */
           std::cout << "Write Error occurs\n";
         }
-        /* eventloop는 발생한 이벤트를 서버에 던져주기만 하고 동작에 대한 내부
-         * 구현은 이벤트 객체가 가리키는 서버에서 내부적으로 처리 */
-
         /* 서버 내부 동작 구현 */
         // timeout exception 먼저 처리 (Event객체 내부구현)
         // client socket event occurs (READ or WRITE)

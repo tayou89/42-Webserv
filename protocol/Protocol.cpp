@@ -28,6 +28,7 @@ Protocol &Protocol::operator=(const Protocol &ref) {
   _responseHeader = ref._responseHeader;
   _responseBody = ref._responseBody;
   _response = ref._response;
+  return (*this);
 }
 
 void Protocol::readStartLine(std::string startLine,

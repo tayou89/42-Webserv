@@ -1,8 +1,8 @@
 #include "../include/WebServer.hpp"
 #include <iostream> // test
 
-WebServer::WebServer(Config conf, Protocol prot, Convert conv, char **envp)
-    : _config(conf), _protocol(prot), _conv(convert) {
+WebServer::WebServer(Config conf, Protocol prot, char **envp)
+    : _config(conf), _protocol(prot) {
   _envp = envp;
   _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -33,3 +33,12 @@ int WebServer::getListenSocket() const { return (_listenSocket); }
 Config WebServer::getConfig() const { return (_config); }
 
 Protocol WebServer::getProtocol() const { return (_protocol); }
+
+// struct kevent WebServer::setEvent(uintptr_t ident, int16_t filter,
+//                                   uint16_t flags, uint32_t fflags,
+//                                   intptr_t data, void *udata) {
+//   struct kevent temp;
+
+//   EV_SET(&temp, ident, filter, flags, fflags, data, udata);
+//   return (temp);
+// }

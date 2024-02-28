@@ -9,23 +9,26 @@
 #define WRITEABLE 1
 #define BUFFERSIZE 1023
 
-class ClientStat {
+class ClientSocket {
 
 public:
-  ClientStat(int socket, IServer *acceptServer);
-  virtual ~ClientStat();
+  ClientSocket(int socket, IServer *acceptServer);
+  virtual ~ClientSocket();
 
   int readSocket();
   int writeSocket();
 
 private:
-  ClientStat();
-  ClientStat(const ClientStat &ref);
-  ClientStat &operator=(const ClientStat &ref);
+  ClientSocket();
+  ClientSocket(const ClientSocket &ref);
+  ClientSocket &operator=(const ClientSocket &ref);
 
   IServer *_routeServer;
   int _socket;
   int _status;
   char _buf[BUFFERSIZE + 1];
   std::string _str;
+  //   Request _req;
+  //   Response _res;
+  int _responseFile;
 };

@@ -1,21 +1,21 @@
-#include "../include/ClientStat.hpp"
+#include "../include/ClientSocket.hpp"
 
-ClientStat::ClientStat() {}
+ClientSocket::ClientSocket() {}
 
-ClientStat::ClientStat(const ClientStat &ref) { static_cast<void>(ref); }
+ClientSocket::ClientSocket(const ClientSocket &ref) { static_cast<void>(ref); }
 
-ClientStat &ClientStat::operator=(const ClientStat &ref) {
+ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
   if (this == &ref)
     return (*this);
 
   return (*this);
 }
 
-ClientStat::~ClientStat() {}
+ClientSocket::~ClientSocket() {}
 
 /* essential part */
 
-ClientStat::ClientStat(int socket, IServer *acceptServer)
+ClientSocket::ClientSocket(int socket, IServer *acceptServer)
     : _routeServer(acceptServer), _socket(socket) {
   this->_status = READABLE;
   memset(&_buf[0], 0, BUFFERSIZE + 1);
@@ -23,7 +23,7 @@ ClientStat::ClientStat(int socket, IServer *acceptServer)
   static_cast<void>(_routeServer); // remove after
 }
 
-int ClientStat::readSocket() {
+int ClientSocket::readSocket() {
   if (_status != READABLE)
     return (0);
 
@@ -37,11 +37,14 @@ int ClientStat::readSocket() {
     _status = WRITEABLE;
     // send to protocol
     // _routeServer->getProtocol();
+    // _req.setRequest(_str); // Requeset::setRequest(std::string &str);
+    // _res.setResponse(_req);
+    return (1);
   }
   return (0);
 }
 
-int ClientStat::writeSocket() {
+int ClientSocket::writeSocket() {
   if (_status != WRITEABLE)
     return (0);
 
@@ -50,5 +53,7 @@ int ClientStat::writeSocket() {
     return (254);
   _str.assign("");
   _status = READABLE;
-  return (0);
+  close(_responseFile);
+
+  return (1);
 }

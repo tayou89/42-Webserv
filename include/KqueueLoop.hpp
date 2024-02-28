@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ClientStat.hpp"
+#include "ClientSocket.hpp"
 #include "IEventLoop.hpp"
 #include "IServer.hpp"
 #include <fcntl.h>
@@ -34,6 +34,6 @@ private:
   /* accept 성공한 fd를 index로 사용해서 client socket descriptor의 current
    * status를 저장하여 이벤트 발생시 참조 */
   // 필요한 요소는 만들면서 하나씩 추가해야 할듯,,,
-  std::map<int, ClientStat *> _eventList;
+  std::map<int, ClientSocket *> _clientList;
   /* _eventList[currentEvent->ident]->eventExcute(struct kevent); */
 };
