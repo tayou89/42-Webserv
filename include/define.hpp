@@ -5,4 +5,4 @@
 #define CHUNKED 2
 #define WRITE 3
 
-#define BUFFERSIZE 4
+#define BUFFERSIZE 10

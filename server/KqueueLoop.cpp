@@ -88,8 +88,8 @@ void KqueueLoop::run() {
       } else {
         if (currentEvent->filter == EVFILT_READ) {
           eventStatus = _clientList[currentEvent->ident]->readSocket();
-          std::cout << "read\n";
           if (eventStatus == 1) { // when read done, change event status
+            std::cout << "write mode\n";
             newEvent(currentEvent->ident, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
             newEvent(currentEvent->ident, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
           }

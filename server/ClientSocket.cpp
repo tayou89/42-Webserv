@@ -13,8 +13,6 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
 
 ClientSocket::~ClientSocket() {}
 
-/* essential part */
-
 ClientSocket::ClientSocket(int socket, IServer *acceptServer)
     : _routeServer(acceptServer), _socket(socket) {
   this->_status = HEADREAD;
@@ -23,6 +21,7 @@ ClientSocket::ClientSocket(int socket, IServer *acceptServer)
   _header.assign("");
   _body.assign("");
   _bodySize = 0;
+  _responseFile = 0;
   static_cast<void>(_routeServer); // remove after
 }
 
@@ -35,9 +34,13 @@ int ClientSocket::readHead() {
   _tmp += tmp;
 
   /* header의 끝 찾기 */
+  /* 버퍼 크기에 따라 종료순간이 이상하게 꼬이고있어서 수정해야함 왜이래
+   * 도대체ㅠㅠ */
   //   size_t pos = _header.find("\\r\\n\\r\\n");
+  std::cout << "head\n";
   size_t pos = _tmp.find("  "); // test spliter
   if (pos != std::string::npos) {
+    std::cout << pos << " " << readSize << " ~head\n";
     _header = _tmp.substr(0, pos);
     _body = _tmp.substr(pos + 2);
     _tmp.clear();
@@ -61,6 +64,7 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
   _body += tmp;
 
   /* Body size check */
+  //   if (readSize < BUFFERSIZE) { // temp option
   if (_body.size() >= _bodySize) {
     // make response instance
     _status = WRITE; // body read 상태로 변경
@@ -83,14 +87,24 @@ int ClientSocket::writeSocket() {
   if (_status != WRITE)
     return (0);
 
-  size_t writeSize =
-      write(_socket, (_header + _body).c_str(), _header.size() + _body.size());
-  if (writeSize != _header.size() + _body.size())
+  //   if (_responseFile == 0) {
+  //     // _responseFile = _res.set(_req); // set response fd
+  //     return (0);
+  //   } else {
+  //     // send response to client
+  //   }
+  size_t writeSize = write(_socket, _header.c_str(), _header.size());
+  if (writeSize != _header.size())
+    return (254);
+  write(_socket, "\n", 1);
+  writeSize = write(_socket, _body.c_str(), _body.size());
+  if (writeSize != _body.size())
     return (254);
   _header.clear();
   _body.clear();
   _status = HEADREAD;
   close(_responseFile);
+  _responseFile = 0;
 
   return (1);
 }
