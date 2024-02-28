@@ -1,4 +1,3 @@
-#include "../include/Protocol.hpp"
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -7,7 +6,6 @@
 
 int main(int argc, char **argv, char **envp)
 {
-    Protocol protocol;
     Server server;
     int fd;
 
@@ -19,12 +17,10 @@ int main(int argc, char **argv, char **envp)
         std::cout << "open error" << std::endl;
         return 1;
     }
-    try 
+    try
     {
         server.setEnvp(envp);
-        server.getRequest(fd);
-        server.checkValidity();
-        server.sendResponse(fd);
+        server.startServer(fd);
     }
     catch (std::string &e)
     {
