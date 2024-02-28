@@ -71,6 +71,7 @@ void	response::checkValidity()
 			//if not, throw 401 response
 		}
 		this->executeMethod();
+		//check for cookie
 	}
 }
 
@@ -91,11 +92,6 @@ void	response::executeMethod()
 	else
 		throw (this->_errorResponse.create405Response());
 }
-
-// void	response::sendResponse(int fd)
-// {
-
-// }
 
 void	response::setEnvp(char **envp)
 {
