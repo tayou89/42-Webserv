@@ -37,4 +37,5 @@ private:
   std::string _body;
   Request _req;
   Response _res;
+  std::string _responseString;
 };

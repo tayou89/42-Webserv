@@ -14,15 +14,14 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
 ClientSocket::~ClientSocket() {}
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
-    : _routeServer(acceptServer), _socket(socket), _req(), _res() {
+    : _routeServer(acceptServer), _socket(socket), _req(),
+      _res(envp, _routeServer->getConfig()) {
   this->_status = HEADREAD;
   memset(&_buf[0], 0, BUFFERSIZE + 1);
   _tmp.assign("");
   _header.assign("");
   _body.assign("");
   _bodySize = 0;
-  _res.setEnvp(envp);
-  _res.setConfig(_routeServer->getConfig());
 }
 
 int ClientSocket::readHead() {
@@ -42,7 +41,13 @@ int ClientSocket::readHead() {
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos);
-    _req.setRequest(_header);
+    try {
+      _req.setRequest(_header);
+    } catch (std::string &res) {
+      _responseString = res;
+      _status = WRITE;
+      return (1);
+    }
     _status = _req.checkBodyExistence();
     if (_status == BODYREAD) {
       _body = _tmp.substr(pos + 4);
@@ -69,7 +74,11 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
   //   }
   if (_body.size() == _bodySize) {
     // make response instance
-    _req.readBody(_body);
+    try {
+      _req.readBody(_body);
+    } catch (std::string &res) {
+      _responseString = res;
+    }
     _status = WRITE; // body read 상태로 변경
     return (1);
   }
@@ -90,14 +99,21 @@ int ClientSocket::writeSocket() {
   if (_status != WRITE)
     return (0);
 
-  if (_res.getResponseFile() == 0)
-    _res.setResponse(_req);
+  if (_responseString.size() == 0) {
+    try {
+      _res.setResponse(_req);
+      _responseString = _res.getResponse();
+    } catch (std::string &res) {
+      _responseString = res;
+      return (0);
+    }
+  }
 
   size_t writeSize =
-      write(_socket, _res.getResponse().c_str(), _res.getResponse().size());
+      write(_socket, _responseString.c_str(), _responseString.size());
   // 버퍼사이즈 정하고 나눠서 쓰는걸로 바꿔야됨
 
-  if (writeSize != _res.getResponse().size())
+  if (writeSize != _responseString.size())
     return (254);
   close(_res.getResponseFile());
 

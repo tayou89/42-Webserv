@@ -6,15 +6,13 @@
 
 class Response {
 public:
-  Response();
+  Response(char **envp, Config conf);
   ~Response();
 
   std::string setResponse(Request _request);
   void checkValidity();
   void executeMethod();
 
-  void setEnvp(char **envp);
-  void setConfig(Config conf);
   char **getEnvp() const;
   std::string getPath(char **envp, std::string cmd);
 
@@ -34,6 +32,7 @@ public:
   std::string getResponse() const;
 
 private:
+  Response();
   Response(const Response &copy);
   Response operator=(const Response &copy);
 
