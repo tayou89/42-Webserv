@@ -300,7 +300,7 @@ void ConfigUtil::freeStringArray(char **&stringArray)
     for (i = 0; stringArray[i] != NULL; i++)
     {
         delete[] stringArray[i];
-        stringArray[i] == NULL;
+        stringArray[i] = NULL;
     }
     delete[] stringArray;
     stringArray = NULL;

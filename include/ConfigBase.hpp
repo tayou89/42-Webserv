@@ -10,6 +10,7 @@ class	ConfigBase
 	public:
 		typedef std::set<std::string>	string_set;
 
+		ConfigBase(void);
 		virtual	~ConfigBase(void);
 		ConfigBase(const ConfigBase &object);
 		ConfigBase	&operator=(const ConfigBase &object);
@@ -18,7 +19,6 @@ class	ConfigBase
 		ConfigBase(const char *configFilePath, const string_set &directiveSet);
 
 	protected:
-		ConfigBase(void);
 		
 		virtual	string_set	_getDirectiveSet(void) const = 0;
 		void				_setConfigData(void);

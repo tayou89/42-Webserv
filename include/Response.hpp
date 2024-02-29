@@ -7,14 +7,13 @@
 class Response {
 public:
   Response();
+  Response(char **envp, Config conf);
   ~Response();
 
   std::string setResponse(Request _request);
   void checkValidity();
   void executeMethod();
 
-  void setEnvp(char **envp);
-  void setConfig(Config conf);
   char **getEnvp() const;
   std::string getPath(char **envp, std::string cmd);
 
