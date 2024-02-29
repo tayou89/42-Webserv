@@ -19,32 +19,42 @@ CGIExecutor &CGIExecutor::operator=(const CGIExecutor &object)
 {
     if (this == &object)
         return (*this);
-    _location = object._location;
-    _protocol = object._protocol;
+    _location      = object._location;
+    _protocol      = object._protocol;
+    _metaVariables = object._metaVariables;
+    _pipeFD[0]     = object._pipeFD[0];
+    _pipeFD[1]     = object._pipeFD[1];
+    _pid           = object._pid;
     return (*this);
 }
 
-CGIExecutor::CGIExecutor(const KqueueLoop &kqueueLoop, const Location &location,
-                         const Protocol &protocol)
-    : _kqueueLoop(kqueueLoop), _location(location), _protocol(protocol)
+CGIExecutor::CGIExecutor(const Location &location, const Protocol &protocol)
+    : _location(location), _protocol(protocol)
 {
     _setMetaVariables();
 }
 
-int CGIExecutor::execute(const std::string &fileName)
+int CGIExecutor::execute(void)
 {
     try
     {
         _createPipeFD();
         _createProcess();
         _setPipeFD();
+        _executeCGI();
     }
     catch (const std::exception &e)
     {
         std::cerr << "Error: " << e.what() << '\n';
-        return (1);
+        if (_pid == 0)
+            exit(1);
+        else
+            return (1);
     }
-    return (0);
+    if (_pid == 0)
+        exit(0);
+    else
+        return (0);
 }
 
 void CGIExecutor::_setMetaVariables(void)
@@ -111,12 +121,55 @@ void CGIExecutor::_setPipeFD(void)
     {
         close(_pipeFD[0]);
         if (dup2(_pipeFD[1], STDOUT_FILENO) == -1)
-        {
-            std::cerr << "Error: dup2: " << std::strerror(errno) << '\n';
-            exit(1);
-        }
+            throw(std::runtime_error(std::string("dup2: ") + std::strerror(errno)));
         close(_pipeFD[1]);
     }
     else
         close(_pipeFD[1]);
+}
+
+void CGIExecutor::_executeCGI(void)
+{
+    if (_pid == 0)
+    {
+        ConfigFile CGIFile = _location.getIndexFile();
+        char     **envp    = _getEnvp();
+        char      *argv[2] = {const_cast<char *>(CGIFile.getPath().c_str()), NULL};
+
+        if (execve(argv[0], argv, envp) == -1)
+        {
+            ConfigUtil::freeStringArray(envp);
+            throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
+        }
+    }
+}
+
+char **CGIExecutor::_getEnvp(void) const
+{
+    char                     **envp = new char *[_metaVariables.size() + 1];
+    string_map::const_iterator iterator;
+    string_map::const_iterator endPoint = _metaVariables.end();
+    std::string                envString;
+    size_t                     i = 0;
+
+    for (iterator = _metaVariables.begin(); iterator != endPoint; iterator++)
+    {
+        envString = iterator->first + '=' + iterator->second;
+        envp[i]   = new char[envString.size() + 1];
+        std::copy(envString.begin(), envString.end(), envp[i]);
+        envp[i][envString.size()] = '\0';
+        ++i;
+    }
+    envp[i] = NULL;
+    return (envp);
+}
+
+pid_t CGIExecutor::getPID(void) const
+{
+    return (_pid);
+}
+
+int CGIExecutor::getReadFD(void) const
+{
+    return (_pipeFD[0]);
 }

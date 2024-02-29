@@ -23,6 +23,7 @@ class ConfigUtil
         static int                      getStringCount(const std::string &string);
         static char                     getParameterTerminator(const std::string &directive);
         static void                     removeComments(std::string &text);
+        static void                     freeStringArray(char **&stringArray);
         static bool                     isHTTPMethod(const std::string &string);
         static bool                     isIPAddressFormat(const std::string &string);
         static bool                     isValidOctetNumber(const int &number);

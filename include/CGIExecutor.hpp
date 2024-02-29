@@ -1,8 +1,7 @@
 #ifndef CGI_EXECUTOR_HPP
 #define CGI_EXECUTOR_HPP
 
-#include "KqueueLoop.hpp"
-#include "Location.hpp"
+#include "Config.hpp"
 #include "Protocol.hpp"
 #include <map>
 #include <unistd.h>
@@ -11,14 +10,16 @@ class CGIExecutor
 {
     public:
         typedef std::map<std::string, std::string> string_map;
+
         ~CGIExecutor(void);
         CGIExecutor(const CGIExecutor &object);
         CGIExecutor &operator=(const CGIExecutor &object);
 
-        CGIExecutor(const KqueueLoop &kqueueLoop, const Location &location,
-                    const Protocol &protocol);
-        // 비정상 종료시 1반환, 정상종료시 0반환
-        int execute(const std::string &fileName);
+        CGIExecutor(const Location &location, const Protocol &protocol);
+        // 시스템 에러 발생시 1반환, 정상종료시 0반환
+        int   execute(void);
+        int   getReadFD(void) const;
+        pid_t getPID(void) const;
 
     private:
         CGIExecutor(void);
@@ -26,13 +27,14 @@ class CGIExecutor
         void        _createPipeFD(void);
         void        _createProcess(void);
         void        _setPipeFD(void);
+        void        _executeCGI(void);
+        char      **_getEnvp(void) const;
 
         std::string _getRequestMethod(void);
         std::string _getScriptName(void);
         std::string _getPathInfo(void);
         std::string _getRequestHeaderInfo(const std::string &infoName);
 
-        KqueueLoop  _kqueueLoop;
         Location    _location;
         Protocol    _protocol;
         string_map  _metaVariables;

@@ -14,6 +14,7 @@ class Location : public ConfigBase
         typedef void (Location::*LocationFunctionPTR)(void);
         typedef std::map<std::string, LocationFunctionPTR> location_function_map;
 
+        Location(void);
         ~Location(void);
         Location(const Location &object);
         Location &operator=(const Location &object);
@@ -35,7 +36,6 @@ class Location : public ConfigBase
         const error_page_map &getErrorPageMap(void) const;
 
     protected:
-        Location(void);
         virtual string_set    _getDirectiveSet(void) const;
         virtual void          _setFunctionPTRMap(void);
         virtual void          _setDirectiveData(void);

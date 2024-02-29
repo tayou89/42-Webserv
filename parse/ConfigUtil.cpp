@@ -290,6 +290,22 @@ bool ConfigUtil::isWritableFile(const std::string &filePath)
     else
         return (false);
 }
+
+void ConfigUtil::freeStringArray(char **&stringArray)
+{
+    size_t i;
+
+    if (stringArray == NULL)
+        return;
+    for (i = 0; stringArray[i] != NULL; i++)
+    {
+        delete[] stringArray[i];
+        stringArray[i] == NULL;
+    }
+    delete[] stringArray;
+    stringArray = NULL;
+}
+
 // # include <iostream>
 // # include "Config.hpp"
 
