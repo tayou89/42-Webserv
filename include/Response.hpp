@@ -6,6 +6,7 @@
 
 class Response {
 public:
+  Response();
   Response(char **envp, Config conf);
   ~Response();
 
@@ -32,7 +33,6 @@ public:
   std::string getResponse() const;
 
 private:
-  Response();
   Response(const Response &copy);
   Response operator=(const Response &copy);
 
