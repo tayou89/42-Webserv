@@ -1,9 +1,7 @@
 #include "../include/WebServer.hpp"
 #include <iostream> // test
 
-WebServer::WebServer(Config conf, Protocol prot, char **envp)
-    : _config(conf), _protocol(prot) {
-  _envp = envp;
+WebServer::WebServer(Config conf) : _config(conf) {
   _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 
   if (_listenSocket == -1)
@@ -31,8 +29,6 @@ WebServer::~WebServer() {}
 int WebServer::getListenSocket() const { return (_listenSocket); }
 
 Config WebServer::getConfig() const { return (_config); }
-
-Protocol WebServer::getProtocol() const { return (_protocol); }
 
 // struct kevent WebServer::setEvent(uintptr_t ident, int16_t filter,
 //                                   uint16_t flags, uint32_t fflags,

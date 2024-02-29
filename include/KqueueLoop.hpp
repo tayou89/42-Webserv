@@ -14,7 +14,7 @@ class ClientStat;
 
 class KqueueLoop : public IEventLoop {
 public:
-  KqueueLoop(std::map<int, IServer *> serverList);
+  KqueueLoop(std::map<int, IServer *> serverList, char **envp);
   virtual ~KqueueLoop();
   void initServerSocket(); // make listening socket and register at _changeList
   void newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
@@ -31,6 +31,7 @@ private:
   int _kqueue;
   std::vector<struct kevent> _changeList;
   std::map<int, IServer *> _serverList;
+  char **_envp;
 
   /* accept 성공한 fd를 index로 사용해서 client socket descriptor의 current
    * status를 저장하여 이벤트 발생시 참조 */

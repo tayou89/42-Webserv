@@ -1,12 +1,13 @@
 #include "../include/KqueueLoop.hpp"
 #include <iostream>
 
-KqueueLoop::KqueueLoop(std::map<int, IServer *> serverList)
+KqueueLoop::KqueueLoop(std::map<int, IServer *> serverList, char **envp)
     : _serverList(serverList) {
   this->_kqueue = kqueue();
   if (this->_kqueue == -1)
     exit(1); // exit when error occurs
   fcntl(_kqueue, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+  _envp = envp;
 }
 
 KqueueLoop::KqueueLoop() {}
@@ -78,8 +79,8 @@ void KqueueLoop::run() {
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
         fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        _clientList[newClient] =
-            new ClientSocket(newClient, _serverList[currentEvent->ident]);
+        _clientList[newClient] = new ClientSocket(
+            newClient, _serverList[currentEvent->ident], _envp);
         if (newClient == -1)
           exit(1); // accept error
         newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);

@@ -13,20 +13,21 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
 
 ClientSocket::~ClientSocket() {}
 
-ClientSocket::ClientSocket(int socket, IServer *acceptServer)
-    : _routeServer(acceptServer), _socket(socket) {
+ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
+    : _routeServer(acceptServer), _socket(socket), _req(), _res() {
   this->_status = HEADREAD;
   memset(&_buf[0], 0, BUFFERSIZE + 1);
   _tmp.assign("");
   _header.assign("");
   _body.assign("");
   _bodySize = 0;
-  _responseFile = 0;
+  _res.setEnvp(envp);
   static_cast<void>(_routeServer); // remove after
 }
 
 int ClientSocket::readHead() {
   memset(&_buf[0], 0, BUFFERSIZE + 1);
+  _bodySize = 0;
   size_t readSize = read(_socket, &_buf[0], BUFFERSIZE);
   if (readSize == 0)
     return (253);
@@ -41,12 +42,14 @@ int ClientSocket::readHead() {
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos);
-    // check header
-    _body = _tmp.substr(pos + 4); // 헤더 보고 바디 존재여부 판정
+    _req.setRequest(_header);
+    _status = _req.checkBodyExistence();
+    if (_status == BODYREAD) {
+      _body = _tmp.substr(pos + 4);
+      _bodySize = atoi(_req.getRequestHeader("Content-length").c_str());
+    }
     _tmp.clear();
-    _bodySize = _body.size(); // _req.getBodySize()로 수정
-    _status = WRITE; // 헤더 확인 후 BODYREAD, CHUNKED, WRITE 판정
-    return (1);      // 헤더의 상태에 따라서 달라짐
+    return (1); // 헤더의 상태에 따라서 달라짐
   }
   return (0);
 }
@@ -60,9 +63,13 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
   _body += tmp;
 
   /* Body ssdfize check */
-  //   if (readSize < BUFFERSIZE) { // temp option
+  //   if (_body.size() < _bodySize && readSize < BUFFERSIZE) {
+  // 	// body size error
+  // 	_req.getErrorResponse.create413Response()
+  //   }
   if (_body.size() == _bodySize) {
     // make response instance
+    _req.readBody(_body);
     _status = WRITE; // body read 상태로 변경
     return (1);
   }
@@ -83,24 +90,16 @@ int ClientSocket::writeSocket() {
   if (_status != WRITE)
     return (0);
 
-  //   if (_responseFile == 0) {
-  //     // _responseFile = _res.set(_req); // set response fd
-  //     return (0);
-  //   } else {
-  //     // send response to client
-  //   }
-  size_t writeSize = write(_socket, _header.c_str(), _header.size());
-  if (writeSize != _header.size())
+  if (_res.getResponseFile() == 0)
+    _res.setResponse(_req);
+
+  size_t writeSize =
+      write(_socket, _res.getResponse().c_str(), _res.getResponse().size());
+  // 버퍼사이즈 정하고 나눠서 쓰는걸로 바꿔야됨
+
+  if (writeSize != _res.getResponse().size())
     return (254);
-  write(_socket, "\n", 1);
-  writeSize = write(_socket, _body.c_str(), _body.size());
-  if (writeSize != _body.size())
-    return (254);
-  _header.clear();
-  _body.clear();
-  _status = HEADREAD;
-  close(_responseFile);
-  _responseFile = 0;
+  close(_res.getResponseFile());
 
   return (1);
 }

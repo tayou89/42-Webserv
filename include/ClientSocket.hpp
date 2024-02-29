@@ -3,14 +3,17 @@
 #pragma once
 
 #include "IServer.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
 #include "define.hpp"
+#include <cstdlib>
 #include <string>
 #include <unistd.h>
 
 class ClientSocket {
 
 public:
-  ClientSocket(int socket, IServer *acceptServer);
+  ClientSocket(int socket, IServer *acceptServer, char **envp);
   virtual ~ClientSocket();
 
   int readSocket();
@@ -32,7 +35,6 @@ private:
   std::string _header;
   size_t _bodySize;
   std::string _body;
-  //   Request _req;
-  //   Response _res;
-  int _responseFile; // request file fd or cgi pipe fd store
+  Request _req;
+  Response _res;
 };

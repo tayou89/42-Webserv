@@ -15,8 +15,9 @@ SRCS = main.cpp \
 	   server/ClientSocket.cpp \
 	   server/KqueueLoop.cpp \
 	   server/WebServer.cpp \
-	   protocol/executeMethod.cpp \
-	   protocol/Protocol.cpp \
+	   protocol/ErrorResponse.cpp \
+	   protocol/Request.cpp \
+	   protocol/Response.cpp \
 	   protocol/utils.cpp
 
 INCS = include/ClientSocket.hpp \
@@ -33,7 +34,9 @@ INCS = include/ClientSocket.hpp \
 	   include/Location.hpp \
 	   include/ParameterChecker.hpp \
 	   include/WebServer.hpp \
-	   include/Protocol.hpp \
+	   include/ErrorResponse.hpp \
+	   include/Request.hpp \
+	   include/Response.hpp \
 	   include/utils.hpp
 
 OBJS = $(SRCS:.cpp=.o)
