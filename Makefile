@@ -1,31 +1,64 @@
 CXX = c++
-NAME = webserv
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-SRCS = srcs/main.cpp srcs/Request.cpp srcs/Server.cpp srcs/Response.cpp srcs/utils.cpp srcs/ErrorResponse.cpp
-INCS = include
+NAME = webserv
+
+SRCS = main.cpp \
+	   parse/ConfigBase.cpp \
+	   parse/ConfigMain.cpp \
+	   parse/Config.cpp \
+	   parse/Location.cpp \
+	   parse/ConfigParser.cpp \
+	   parse/ConfigFile.cpp \
+	   parse/ConfigStream.cpp \
+	   parse/ConfigUtil.cpp \
+	   parse/ParameterChecker.cpp \
+	   server/ClientSocket.cpp \
+	   server/KqueueLoop.cpp \
+	   server/WebServer.cpp \
+	   protocol/ErrorResponse.cpp \
+	   protocol/Request.cpp \
+	   protocol/Response.cpp \
+	   protocol/utils.cpp
+
+INCS = include/ClientSocket.hpp \
+	   include/Config.hpp \
+	   include/ConfigBase.hpp \
+	   include/ConfigFile.hpp \
+	   include/ConfigMain.hpp \
+	   include/ConfigParser.hpp \
+	   include/ConfigStream.hpp \
+	   include/ConfigUtil.hpp \
+	   include/IEventLoop.hpp \
+	   include/IServer.hpp \
+	   include/KqueueLoop.hpp \
+	   include/Location.hpp \
+	   include/ParameterChecker.hpp \
+	   include/WebServer.hpp \
+	   include/ErrorResponse.hpp \
+	   include/Request.hpp \
+	   include/Response.hpp \
+	   include/utils.hpp
+
 OBJS = $(SRCS:.cpp=.o)
 
-.c.o :
-	$(CXX) -c $(CXXFLAGS) -o $@ $^ -I $(INCS)
+all: $(NAME)
 
-all : $(NAME)
+%.o:%.cpp $(INCS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(NAME) : $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
+$(NAME): $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-clean :
-	$(RM) $(OBJS)
+clean:
+	@rm -f $(OBJS)
+	@echo "All object files removed"
 
-fclean : clean
-	$(RM) $(NAME)
+fclean: clean
+	@rm -f $(NAME)
+	@echo "Executable file removed"
 
-re :
-	make fclean
-	make all
+re:
+	$(MAKE) fclean
+	$(MAKE) all
 
-only :
-	make fclean
-	make all
-	make clean
-
-.PHONY : all clean fclean re .c.o
+.PHONY: all clean fclean re
