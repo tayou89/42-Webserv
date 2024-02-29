@@ -82,6 +82,8 @@ void Response::executeMethod() {
 
 void Response::setEnvp(char **envp) { this->_envp = envp; }
 
+void Response::setConfig(Config conf) { _config = conf; }
+
 char **Response::getEnvp() const { return (this->_envp); }
 
 std::string Response::getPath(char **envp, std::string cmd) {

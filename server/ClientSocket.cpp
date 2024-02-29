@@ -22,7 +22,7 @@ ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
   _body.assign("");
   _bodySize = 0;
   _res.setEnvp(envp);
-  static_cast<void>(_routeServer); // remove after
+  _res.setConfig(_routeServer->getConfig());
 }
 
 int ClientSocket::readHead() {
