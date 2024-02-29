@@ -33,3 +33,4 @@
 
 # etc
 .DS_Store
+.clang-format
