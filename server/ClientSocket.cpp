@@ -40,7 +40,6 @@ int ClientSocket::readHead() {
   /* header의 끝 찾기 */
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
-    // partial read & body exist
     _header = _tmp.substr(0, pos);
     // check header
     _body = _tmp.substr(pos + 4); // 헤더 보고 바디 존재여부 판정
@@ -62,7 +61,7 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
 
   /* Body ssdfize check */
   //   if (readSize < BUFFERSIZE) { // temp option
-  if (_body.size() >= _bodySize) {
+  if (_body.size() == _bodySize) {
     // make response instance
     _status = WRITE; // body read 상태로 변경
     return (1);
