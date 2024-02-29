@@ -31,26 +31,23 @@ int ClientSocket::readHead() {
   if (readSize == 0)
     return (253);
   std::string tmp(_buf);
+  std::cout << tmp.size() << "\n";
   _tmp += tmp;
+  for (std::string::iterator iter = _tmp.begin(); iter != _tmp.end(); iter++)
+    std::cout << static_cast<int>(*iter) << " ";
+  std::cout << "\n";
 
   /* header의 끝 찾기 */
-  //   size_t pos = _header.find("\\r\\n\\r\\n");
-  std::cout << "head\n";
-  size_t pos = _tmp.find("  "); // test spliter
+  size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
-    std::cout << pos << " " << readSize << " ~head\n";
+    // partial read & body exist
     _header = _tmp.substr(0, pos);
-    _body = _tmp.substr(pos + 2);
+    // check header
+    _body = _tmp.substr(pos + 4); // 헤더 보고 바디 존재여부 판정
     _tmp.clear();
-    // header에 대한 유효성 검사 추가할 부분
-    _bodySize = _body.size(); // _req.getBodySize()로 수정할 예정
-    if (readSize < 0) {
-      _status = WRITE;
-      return (1);
-    }
-    _status = BODYREAD; // body read 또는 Chunked 상태로 변경
-  } else {
-    // 바디가 없는 경우에 대해서 처리해줄 코드 만들어야됨!!!!!!!
+    _bodySize = _body.size(); // _req.getBodySize()로 수정
+    _status = WRITE; // 헤더 확인 후 BODYREAD, CHUNKED, WRITE 판정
+    return (1);      // 헤더의 상태에 따라서 달라짐
   }
   return (0);
 }
@@ -63,7 +60,7 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
   std::string tmp(_buf);
   _body += tmp;
 
-  /* Body size check */
+  /* Body ssdfize check */
   //   if (readSize < BUFFERSIZE) { // temp option
   if (_body.size() >= _bodySize) {
     // make response instance
