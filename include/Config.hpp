@@ -15,6 +15,7 @@ public:
   typedef std::map<std::string, ConfigFunctionPTR> config_function_map;
   typedef std::map<std::string, std::string> location_block_map;
 
+  Config(void);
   Config(const std::string &serverBlock);
   virtual ~Config(void);
   Config(const Config &object);
@@ -29,8 +30,6 @@ public:
   const Location &getLocation(const std::string &urlPath) const;
 
 private:
-  Config(void);
-
   virtual string_set _getDirectiveSet(void) const;
   virtual void _setFunctionPTRSet(void);
   virtual void _setDirectiveData(void);

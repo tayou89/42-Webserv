@@ -1,18 +1,19 @@
 #pragma once
 
+#include "Config.hpp"
 #include "ErrorResponse.hpp"
 #include "Request.hpp"
 
 class Response {
 public:
   Response();
+  Response(char **envp, Config conf);
   ~Response();
 
   std::string setResponse(Request _request);
   void checkValidity();
   void executeMethod();
 
-  void setEnvp(char **envp);
   char **getEnvp() const;
   std::string getPath(char **envp, std::string cmd);
 
@@ -36,6 +37,7 @@ private:
   Response operator=(const Response &copy);
 
   char **_envp;
+  Config _config;
   int _responseFile;
   Request _request;
   std::map<std::string, std::string> _responseHeader;

@@ -2,6 +2,8 @@
 
 Response::Response() {}
 
+Response::Response(char **envp, Config conf) : _envp(envp), _config(conf) {}
+
 Response::~Response() {}
 
 Response::Response(const Response &copy) { *this = copy; }
@@ -79,8 +81,6 @@ void Response::executeMethod() {
   else
     throw(this->_errorResponse.create405Response());
 }
-
-void Response::setEnvp(char **envp) { this->_envp = envp; }
 
 char **Response::getEnvp() const { return (this->_envp); }
 
