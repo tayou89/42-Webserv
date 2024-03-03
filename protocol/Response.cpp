@@ -27,29 +27,29 @@ std::string Response::setResponse(Request _request) {
 void Response::checkValidity() {
   DIR *dir = opendir(this->_request.getRequestURI().c_str());
   if (dir != NULL) {
-    // // 1. check index directive in conf file
-    // if (index_directive == true)
+    // 1. check index directive in conf file
+    // if (this->_config.getIndex() == true)
     // {
     // 	//find index files in order, then put it in the response packet
     // }
 
-    // // 2. check if autoindex is enabled
-    // if (autoindex == true)
-    // {
-    // 	//read all files in the directory and put it in the response packet
-    // 	struct dirent *ent;
-    // 	std::string filelist = "";
-    // 	while ((ent = readdir(dir)) != NULL)
-    // 		filelist = filelist + ent->d_name + "\n";
-    // 	this->_protocol.setResponseBody(filelist);
-    // 	this->_protocol.setResponseHeader("Content-Length",
-    // std::to_string(filelist.size()));
-    // 	// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
-    // 	this->_protocol.setResponseHeader("Content-Type", "directory Listing");
-    // //need to change
-    // this->_protocol.setResponseHeader("Last-Modified", getCurrentHttpDate());
-    // this->_protocol.create200Response();
-    // }
+    // 2. check if autoindex is enabled
+    if (this->_config.getLocation(this->_request.getRequestURI()).getAutoIndex() == true)
+    {
+    	//read all files in the directory and put it in the response packet
+    	struct dirent *ent;
+    	std::string filelist = "";
+    	while ((ent = readdir(dir)) != NULL)
+    		filelist = filelist + ent->d_name + "\n";
+    	this->setResponseBody(filelist);
+    	this->setResponseHeader("Content-Length",
+    std::to_string(filelist.size()));
+    	// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
+    	this->setResponseHeader("Content-Type", "directory Listing");
+    //need to change
+    this->setResponseHeader("Last-Modified", getCurrentHttpDate());
+    this->_errorResponse.create200Response(getResponseHeader(), getResponseBody());
+    }
     closedir(dir);
   } else { // if URI is a file
     // 1. check if the method is allowed or executable
