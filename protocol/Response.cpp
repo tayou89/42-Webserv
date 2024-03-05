@@ -107,18 +107,22 @@ std::string Response::getPath(char **envp, std::string cmd) {
 }
 
 void Response::GET_HEAD() {
-  char readbuf[10000];
+  char readbuf[10240];
   _responseFile = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (_responseFile == -1)
     throw(this->_errorResponse.create404Response());
-  int readSize = read(_responseFile, readbuf, 10000);
+  int readSize = read(_responseFile, readbuf, 10240);
   if (readSize == -1)
     throw(this->_errorResponse.create500Response());
   readbuf[readSize] = '\0';
-  if (this->_request.getRequestMethod() == "GET")
-    this->setResponseBody(readbuf);
-  this->setResponseHeader("Content-Length", std::to_string(readSize));
-  // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
+  if (readSize < 10240) {
+    this->setResponseHeader("Content-Length", std::to_string(readSize));
+    if (this->_request.getRequestMethod() == "GET")
+      this->setResponseBody(readbuf);
+  } else {
+    this->setResponseHeader("Transfer-Encoding", "chunked");
+    // chunk transfer encoding
+  }
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());

@@ -87,7 +87,32 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
   return (CONTINUE);
 }
 
-int ClientSocket::readChunkedBody() { return (CONTINUE); }
+int ClientSocket::readChunkedBody() {
+  std::string chunk;
+  std::ostringstream oss;
+  size_t chunkSize;
+  int readSize = read(_socket, &_buf, BUFFER_SIZE);
+  if (readSize == 0) {
+  }
+  // read error 처리 추가
+
+  chunk.append(_buf, readSize);
+
+  std::istringstream iss(chunk);
+  iss >> std::hex >> chunkSize;
+  iss.ignore();
+
+  oss << iss.rdbuf();
+  chunk = oss.str();
+  chunk = chunk.substr(0, chunk.size() - 2);
+  if (chunk.size() < chunkSize) {
+    // read more data
+  }
+
+  _body += chunk;
+
+  return (CONTINUE);
+}
 
 int ClientSocket::readSocket() {
   if (_status == HEAD_READ)

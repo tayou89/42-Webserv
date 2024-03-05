@@ -7,6 +7,8 @@
 #include "Response.hpp"
 #include "define.hpp"
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 
