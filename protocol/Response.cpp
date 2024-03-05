@@ -28,10 +28,30 @@ void Response::checkValidity() {
   DIR *dir = opendir(this->_request.getRequestURI().c_str());
   if (dir != NULL) {
     // 1. check index directive in conf file
-    // if (this->_config.getIndex() == true)
-    // {
-    // 	//find index files in order, then put it in the response packet
-    // }
+    if (this->_config.getLocation(this->_request.getRequestURI()).getIndexFile().isAccessible() == true)
+    {
+    	//find index files in order, then put it in the response packet
+      if (this->_config.getLocation(this->_request.getRequestURI()).getIndexFile().isReadable() == true)
+      {
+        std::string path = this->_config.getLocation(this->_request.getRequestURI()).getIndexFile().getPath();
+        int fd = open(path.c_str(), O_RDONLY);
+        if (fd == -1)
+          throw (this->_errorResponse.create500Response());
+        char buf[1000]; //need to change buffer size
+        std::string body;
+        if (read(fd, buf, 1000) > 0)
+        {
+          std::string tmp_body(buf);
+          body = body + tmp_body;
+          memset(buf, 0, 1000);
+        }
+        close(fd);
+        this->setResponseBody(body);
+        this->setResponseHeader("Content-Length", std::to_string(body.size()));
+        this->setResponseHeader("Last-Modified", getCurrentHttpDate());
+        this->setResponse(this->_errorResponse.create200Response(getResponseHeader(), getResponseBody()));
+      }
+    }
 
     // 2. check if autoindex is enabled
     if (this->_config.getLocation(this->_request.getRequestURI()).getAutoIndex() == true)
@@ -48,7 +68,7 @@ void Response::checkValidity() {
     	this->setResponseHeader("Content-Type", "directory Listing");
     //need to change
     this->setResponseHeader("Last-Modified", getCurrentHttpDate());
-    this->_errorResponse.create200Response(getResponseHeader(), getResponseBody());
+    this->setResponse(this->_errorResponse.create200Response(getResponseHeader(), getResponseBody()));
     }
     closedir(dir);
   } else { // if URI is a file
