@@ -20,31 +20,33 @@
 class ConfigUtil
 {
     public:
-        static int                      getStringCount(const std::string &string);
-        static char                     getParameterTerminator(const std::string &directive);
-        static void                     removeComments(std::string &text);
-        static void                     freeStringArray(char **&stringArray);
-        static bool                     isHTTPMethod(const std::string &string);
-        static bool                     isIPAddressFormat(const std::string &string);
-        static bool                     isValidOctetNumber(const int &number);
-        static bool                     isNumberString(const std::string &string);
-        static bool                     isAlphabetNumberString(const std::string &string);
-        static bool                     isExtensionString(const std::string &string);
-        static bool                     isValidErrorStatusCode(const int &number);
-        static bool                     isValidPortNumber(const int &number);
-        static bool                     isDelimeter(const char &character);
-        static bool                     isBlockDirective(const std::string &directive);
-        static bool                     isConvertibleToSizeT(const std::string &string);
-        static bool                     isSizeString(const std::string &string);
-        static bool                     isSizeUnit(const char &character);
-        static bool                     isExistingFile(const std::string &filePath);
-        static bool                     isReadableFile(const std::string &filePath);
-        static bool                     isWritableFile(const std::string &filePath);
-        static bool                     isExecutableFile(const std::string &filePath);
-        static size_t                   convertToSizeT(const std::string &string);
-        static size_t                   convertByteUnit(const char &byteUnit);
-        static size_t                   findDelimeter(const std::string &string);
-        static std::string              convertIntToString(const int &integer);
+        static int         getStringCount(const std::string &string);
+        static char        getParameterTerminator(const std::string &directive);
+        static void        removeComments(std::string &text);
+        static void        freeStringArray(char **&stringArray);
+        static bool        isHTTPMethod(const std::string &string);
+        static bool        isIPAddressFormat(const std::string &string);
+        static bool        isValidOctetNumber(const int &number);
+        static bool        isNumberString(const std::string &string);
+        static bool        isAlphabetNumberString(const std::string &string);
+        static bool        isExtensionString(const std::string &string);
+        static bool        isValidErrorStatusCode(const int &number);
+        static bool        isValidPortNumber(const int &number);
+        static bool        isDelimeter(const char &character);
+        static bool        isBlockDirective(const std::string &directive);
+        static bool        isConvertibleToSizeT(const std::string &string);
+        static bool        isSizeString(const std::string &string);
+        static bool        isSizeUnit(const char &character);
+        static bool        isExistingFile(const std::string &filePath);
+        static bool        isReadableFile(const std::string &filePath);
+        static bool        isWritableFile(const std::string &filePath);
+        static bool        isExecutableFile(const std::string &filePath);
+        static bool        isURIDelimeter(const char &character);
+        static size_t      convertToSizeT(const std::string &string);
+        static size_t      convertByteUnit(const char &byteUnit);
+        static size_t      findDelimeter(const std::string &string);
+        static size_t      findURIDelimeter(const std::string &uri, const size_t &index);
+        static std::string convertIntToString(const int &integer);
         static std::vector<std::string> getStringVector(const std::string &string);
         static std::vector<std::string> splitString(const std::string &string,
                                                     const char        &delimeter);

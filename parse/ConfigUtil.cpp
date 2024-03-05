@@ -6,6 +6,55 @@
 #include <unistd.h>
 #include <vector>
 
+int ConfigUtil::getStringCount(const std::string &string)
+{
+    std::stringstream stringStream(string);
+    std::string       buffer;
+    int               stringCount = 0;
+
+    while (stringStream >> buffer)
+        ++stringCount;
+    return (stringCount);
+}
+
+char ConfigUtil::getParameterTerminator(const std::string &directive)
+{
+    if (isBlockDirective(directive) == true)
+        return ('{');
+    else
+        return (';');
+}
+
+void ConfigUtil::removeComments(std::string &text)
+{
+    std::stringstream stringStream(text);
+    std::string       nonCommentText;
+    std::string       nonCommentString;
+    std::string       commentString;
+
+    while (std::getline(stringStream, nonCommentString, '#'))
+    {
+        nonCommentText += nonCommentString;
+        std::getline(stringStream, commentString);
+    }
+    text = nonCommentText;
+}
+
+void ConfigUtil::freeStringArray(char **&stringArray)
+{
+    size_t i;
+
+    if (stringArray == NULL)
+        return;
+    for (i = 0; stringArray[i] != NULL; i++)
+    {
+        delete[] stringArray[i];
+        stringArray[i] = NULL;
+    }
+    delete[] stringArray;
+    stringArray = NULL;
+}
+
 bool ConfigUtil::isIPAddressFormat(const std::string &string)
 {
     std::vector<std::string> octetVector;
@@ -90,15 +139,6 @@ bool ConfigUtil::isExtensionString(const std::string &string)
     return (true);
 }
 
-size_t ConfigUtil::convertToSizeT(const std::string &string)
-{
-    std::stringstream stringStream(string);
-    size_t            size;
-
-    stringStream >> size;
-    return (size);
-}
-
 bool ConfigUtil::isConvertibleToSizeT(const std::string &string)
 {
     std::stringstream stringStream(string);
@@ -115,51 +155,6 @@ bool ConfigUtil::isConvertibleToSizeT(const std::string &string)
     return (true);
 }
 
-size_t ConfigUtil::convertByteUnit(const char &byteUnit)
-{
-    if (byteUnit == 'K')
-        return (1024);
-    else if (byteUnit == 'M')
-        return (1024 * 1024);
-    else if (byteUnit == 'G')
-        return (1024 * 1024 * 1024);
-    else
-        return (1);
-}
-
-int ConfigUtil::getStringCount(const std::string &string)
-{
-    std::stringstream stringStream(string);
-    std::string       buffer;
-    int               stringCount = 0;
-
-    while (stringStream >> buffer)
-        ++stringCount;
-    return (stringCount);
-}
-
-std::vector<std::string> ConfigUtil::splitString(const std::string &string, const char &delimeter)
-{
-    std::vector<std::string> splitStrings;
-    std::stringstream        stringStream(string);
-    std::string              buffer;
-
-    while (std::getline(stringStream, buffer, delimeter))
-        splitStrings.push_back(buffer);
-    return (splitStrings);
-}
-
-std::vector<std::string> ConfigUtil::getStringVector(const std::string &string)
-{
-    std::stringstream        stringStream(string);
-    std::vector<std::string> stringVector;
-    std::string              buffer;
-
-    while (stringStream >> buffer)
-        stringVector.push_back(buffer);
-    return (stringVector);
-}
-
 bool ConfigUtil::isDelimeter(const char &character)
 {
     if (character == '{' || character == '}' || character == ';')
@@ -168,43 +163,12 @@ bool ConfigUtil::isDelimeter(const char &character)
         return (false);
 }
 
-char ConfigUtil::getParameterTerminator(const std::string &directive)
-{
-    if (isBlockDirective(directive) == true)
-        return ('{');
-    else
-        return (';');
-}
-
 bool ConfigUtil::isBlockDirective(const std::string &directive)
 {
     if (directive == "server" || directive == "location")
         return (true);
     else
         return (false);
-}
-
-size_t ConfigUtil::findDelimeter(const std::string &string)
-{
-    size_t stringSize = string.size();
-    size_t i;
-
-    for (i = 0; i < stringSize; i++)
-    {
-        if (isDelimeter(string[i]) == true)
-            return (i);
-    }
-    return (std::string::npos);
-}
-
-std::string ConfigUtil::convertIntToString(const int &integer)
-{
-    std::stringstream stringStream;
-    std::string       string;
-
-    stringStream << integer;
-    stringStream >> string;
-    return (string);
 }
 
 bool ConfigUtil::isSizeString(const std::string &string)
@@ -229,21 +193,6 @@ bool ConfigUtil::isSizeUnit(const char &character)
         return (true);
     else
         return (false);
-}
-
-void ConfigUtil::removeComments(std::string &text)
-{
-    std::stringstream stringStream(text);
-    std::string       nonCommentText;
-    std::string       nonCommentString;
-    std::string       commentString;
-
-    while (std::getline(stringStream, nonCommentString, '#'))
-    {
-        nonCommentText += nonCommentString;
-        std::getline(stringStream, commentString);
-    }
-    text = nonCommentText;
 }
 
 bool ConfigUtil::isHTTPMethod(const std::string &string)
@@ -291,19 +240,92 @@ bool ConfigUtil::isWritableFile(const std::string &filePath)
         return (false);
 }
 
-void ConfigUtil::freeStringArray(char **&stringArray)
+bool ConfigUtil::isURIDelimeter(const char &character)
 {
+    if (character == ':' || character == '/' || character == '?' || character == '&' ||
+        character == '#')
+        return (true);
+    else
+        return (false);
+}
+
+size_t ConfigUtil::convertToSizeT(const std::string &string)
+{
+    std::stringstream stringStream(string);
+    size_t            size;
+
+    stringStream >> size;
+    return (size);
+}
+
+size_t ConfigUtil::convertByteUnit(const char &byteUnit)
+{
+    if (byteUnit == 'K')
+        return (1024);
+    else if (byteUnit == 'M')
+        return (1024 * 1024);
+    else if (byteUnit == 'G')
+        return (1024 * 1024 * 1024);
+    else
+        return (1);
+}
+
+size_t ConfigUtil::findDelimeter(const std::string &string)
+{
+    size_t stringSize = string.size();
     size_t i;
 
-    if (stringArray == NULL)
-        return;
-    for (i = 0; stringArray[i] != NULL; i++)
+    for (i = 0; i < stringSize; i++)
     {
-        delete[] stringArray[i];
-        stringArray[i] = NULL;
+        if (isDelimeter(string[i]) == true)
+            return (i);
     }
-    delete[] stringArray;
-    stringArray = NULL;
+    return (std::string::npos);
+}
+
+size_t ConfigUtil::findURIDelimeter(const std::string &uri, const size_t &index)
+{
+    size_t uriSize = uri.size();
+    size_t i;
+
+    for (i = index; i < uriSize; i++)
+    {
+        if (isURIDelimeter(uri[i]) == true)
+            return (i);
+    }
+    return (std::string::npos);
+}
+
+std::vector<std::string> ConfigUtil::splitString(const std::string &string, const char &delimeter)
+{
+    std::vector<std::string> splitStrings;
+    std::stringstream        stringStream(string);
+    std::string              buffer;
+
+    while (std::getline(stringStream, buffer, delimeter))
+        splitStrings.push_back(buffer);
+    return (splitStrings);
+}
+
+std::vector<std::string> ConfigUtil::getStringVector(const std::string &string)
+{
+    std::stringstream        stringStream(string);
+    std::vector<std::string> stringVector;
+    std::string              buffer;
+
+    while (stringStream >> buffer)
+        stringVector.push_back(buffer);
+    return (stringVector);
+}
+
+std::string ConfigUtil::convertIntToString(const int &integer)
+{
+    std::stringstream stringStream;
+    std::string       string;
+
+    stringStream << integer;
+    stringStream >> string;
+    return (string);
 }
 
 // # include <iostream>
