@@ -115,14 +115,9 @@ void Response::GET_HEAD() {
   if (readSize == -1)
     throw(this->_errorResponse.create500Response());
   readbuf[readSize] = '\0';
-  if (readSize < 10240) {
-    this->setResponseHeader("Content-Length", std::to_string(readSize));
-    if (this->_request.getRequestMethod() == "GET")
-      this->setResponseBody(readbuf);
-  } else {
-    this->setResponseHeader("Transfer-Encoding", "chunked");
-    // chunk transfer encoding
-  }
+  this->setResponseHeader("Content-Length", std::to_string(readSize));
+  if (this->_request.getRequestMethod() == "GET")
+    this->setResponseBody(readbuf);
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());

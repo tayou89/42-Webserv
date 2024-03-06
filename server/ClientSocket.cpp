@@ -54,7 +54,7 @@ int ClientSocket::readHead() {
       _bodySize = atoi(_req.getRequestHeader("Content-length").c_str());
       _tmp.clear();
       return (CONTINUE);
-    } else if (_status == CHUNKED) { // read chunked body
+    } else if (_status == CHUNKED_READ) { // read chunked body
       _tmp.clear();
       return (CONTINUE);
     } else                 // body not existence
@@ -115,7 +115,8 @@ int ClientSocket::readChunkedBody() {
     iss.ignore(2);
 
     if (chunkSize == 0) {
-      _status == WRITE;
+      std::cout << _body << "\n";
+      _status = WRITE;
       return (WRITE_MODE);
     }
     chunk.resize(chunkSize);
@@ -133,7 +134,7 @@ int ClientSocket::readSocket() {
     return (readHead());
   else if (_status == BODY_READ)
     return (readContentBody());
-  else if (_status == CHUNKED)
+  else if (_status == CHUNKED_READ)
     return (readChunkedBody());
   return (CONTINUE);
 }
