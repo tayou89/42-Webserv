@@ -7,6 +7,7 @@ if (isset($_SERVER['PATH_INFO'])) {
 }
 #$targetDirectory = "/tmp/";
 $targetDirectory = $_SERVER['PATH_INFO'] . '/';
+#$targetDirectory = $_SERVER['PATH_INFO'];
 $targetFile = $targetDirectory . uniqid() . '_' . basename($_FILES["fileToUpload"]["name"]);
 
 if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $targetFile)) {
