@@ -2,6 +2,7 @@
 
 #include "ErrorResponse.hpp"
 #include "define.hpp"
+#include "Config.hpp"
 #include <dirent.h>
 #include <fcntl.h>
 #include <iostream>
@@ -33,6 +34,7 @@ public:
   void setRequestHeader(std::string key, std::string value);
 
 private:
+  Config      _config;
   std::string _request;
   std::map<std::string, std::string> _requestHeader;
   std::string _requestBody;
