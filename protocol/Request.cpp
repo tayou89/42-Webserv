@@ -195,3 +195,19 @@ std::string Request::getRequestHeader(std::string key) const {
 void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
+
+void Request::convertURI() {
+  //   std::map<std::string, Location> location = _config.getLocationMap();
+  //   std::map<std::string, Location>::iterator target =
+  //   location.find(_requestURI);
+  Location target = _config.getLocation(_requestURI);
+
+  /* URI가 존재하지 않으면 404 not found throw */
+  //   if (target == location.end())
+  // 	throw _errorResponse.create404Response();
+
+  //   _requestURI = target->second.getIndexFile().getPath();
+  std::cout << target.getRootDirectory() << "-> ROOT\n";
+  std::cout << target.getIndexFile().getPath() << "-> File PATH\n";
+  _requestURI = target.getRootDirectory() + "/" + "index.html";
+}
