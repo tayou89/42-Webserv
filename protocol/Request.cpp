@@ -201,13 +201,13 @@ void Request::convertURI() {
   //   std::map<std::string, Location>::iterator target =
   //   location.find(_requestURI);
   Location target = _config.getLocation(_requestURI);
+  target.setIndexFile();
 
-  /* URI가 존재하지 않으면 404 not found throw */
-  //   if (target == location.end())
-  // 	throw _errorResponse.create404Response();
+  std::string temp = target.getIndexFile().getPath();
+  /* URI가 존재하지 않으면 404 not found or 403 forbidden */
+  //   if (temp.size() == 0)
+  //     throw _errorResponse.create404Response();
 
   //   _requestURI = target->second.getIndexFile().getPath();
-  std::cout << target.getRootDirectory() << "-> ROOT\n";
-  std::cout << target.getIndexFile().getPath() << "-> File PATH\n";
-  _requestURI = target.getRootDirectory() + "/" + "index.html";
+  _requestURI = temp;
 }
