@@ -27,29 +27,49 @@ std::string Response::setResponse(Request _request) {
 void Response::checkValidity() {
   DIR *dir = opendir(this->_request.getRequestURI().c_str());
   if (dir != NULL) {
-    // // 1. check index directive in conf file
-    // if (index_directive == true)
-    // {
-    // 	//find index files in order, then put it in the response packet
-    // }
+    // 1. check index directive in conf file
+    if (this->_config.getLocation(this->_request.getRequestURI()).getIndexFile().isAccessible() == true)
+    {
+    	//find index files in order, then put it in the response packet
+      if (this->_config.getLocation(this->_request.getRequestURI()).getIndexFile().isReadable() == true)
+      {
+        std::string path = this->_config.getLocation(this->_request.getRequestURI()).getIndexFile().getPath();
+        int fd = open(path.c_str(), O_RDONLY);
+        if (fd == -1)
+          throw (this->_errorResponse.create500Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
+        char buf[1000]; //need to change buffer size
+        std::string body;
+        if (read(fd, buf, 1000) > 0)
+        {
+          std::string tmp_body(buf);
+          body = body + tmp_body;
+          memset(buf, 0, 1000);
+        }
+        close(fd);
+        this->setResponseBody(body);
+        this->setResponseHeader("Content-Length", std::to_string(body.size()));
+        this->setResponseHeader("Last-Modified", getCurrentHttpDate());
+        this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(), getResponseHeader(), getResponseBody()));
+      }
+    }
 
-    // // 2. check if autoindex is enabled
-    // if (autoindex == true)
-    // {
-    // 	//read all files in the directory and put it in the response packet
-    // 	struct dirent *ent;
-    // 	std::string filelist = "";
-    // 	while ((ent = readdir(dir)) != NULL)
-    // 		filelist = filelist + ent->d_name + "\n";
-    // 	this->_protocol.setResponseBody(filelist);
-    // 	this->_protocol.setResponseHeader("Content-Length",
-    // std::to_string(filelist.size()));
-    // 	// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
-    // 	this->_protocol.setResponseHeader("Content-Type", "directory Listing");
-    // //need to change
-    // this->_protocol.setResponseHeader("Last-Modified", getCurrentHttpDate());
-    // this->_protocol.create200Response();
-    // }
+    // 2. check if autoindex is enabled
+    if (this->_config.getLocation(this->_request.getRequestURI()).getAutoIndex() == true)
+    {
+    	//read all files in the directory and put it in the response packet
+    	struct dirent *ent;
+    	std::string filelist = "";
+    	while ((ent = readdir(dir)) != NULL)
+    		filelist = filelist + ent->d_name + "\n";
+    	this->setResponseBody(filelist);
+    	this->setResponseHeader("Content-Length",
+    std::to_string(filelist.size()));
+    	// this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
+    	this->setResponseHeader("Content-Type", "directory Listing");
+    //need to change
+    this->setResponseHeader("Last-Modified", getCurrentHttpDate());
+    this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(), getResponseHeader(), getResponseBody()));
+    }
     closedir(dir);
   } else { // if URI is a file
     // 1. check if the method is allowed or executable
@@ -79,7 +99,7 @@ void Response::executeMethod() {
   else if (this->_request.getRequestMethod() == "TRACE")
     TRACE();
   else
-    throw(this->_errorResponse.create405Response());
+    throw(this->_errorResponse.create405Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
 }
 
 char **Response::getEnvp() const { return (this->_envp); }
@@ -102,26 +122,27 @@ std::string Response::getPath(char **envp, std::string cmd) {
     path = splitAfterColon(path);
   }
   // cannot find cmd, so 500 internal server error
-  throw(this->_errorResponse.create500Response());
+  throw(this->_errorResponse.create500Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
   return ("");
 }
 
 void Response::GET_HEAD() {
-  char readbuf[10240];
+  char readbuf[10000];
   _responseFile = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (_responseFile == -1)
-    throw(this->_errorResponse.create404Response());
-  int readSize = read(_responseFile, readbuf, 10240);
+    throw(this->_errorResponse.create404Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
+  int readSize = read(_responseFile, readbuf, 10000);
   if (readSize == -1)
-    throw(this->_errorResponse.create500Response());
+    throw(this->_errorResponse.create500Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
   readbuf[readSize] = '\0';
-  this->setResponseHeader("Content-Length", std::to_string(readSize));
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(readbuf);
+  this->setResponseHeader("Content-Length", std::to_string(readSize));
+  // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
-  this->setResponse(this->_errorResponse.create200Response(
+  this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(),
       this->getResponseHeader(), this->getResponseBody()));
 }
 
@@ -137,7 +158,7 @@ void Response::DELETE() {
   fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (fd == -1)
     throw(this->_errorResponse
-              .create204Response()); // file does not exist, thus cannot be
+              .create204Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName())); // file does not exist, thus cannot be
                                      // deleted, 204 No Content
   close(fd);
   std::string rmPath = getPath(this->getEnvp(), "rm");
@@ -145,7 +166,7 @@ void Response::DELETE() {
   // leak warning
   int pid = fork();
   if (pid < 0)
-    throw(this->_errorResponse.create500Response());
+    throw(this->_errorResponse.create500Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
   else if (pid == 0) {
     char **option = (char **)malloc(sizeof(char *) * 3);
     option[0] = strdup("rm\0");
@@ -162,7 +183,7 @@ void Response::DELETE() {
   // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
-  this->setResponse(this->_errorResponse.create200Response(
+  this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(),
       this->getResponseHeader(), this->getResponseBody()));
 }
 
@@ -171,22 +192,22 @@ void Response::PUT() {
 
   fd = open(this->_request.getRequestURI().c_str(), O_WRONLY | O_TRUNC);
   if (fd == -1)
-    throw(this->_errorResponse.create404Response());
+    throw(this->_errorResponse.create404Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
   write(fd, this->_request.getRequestBody().c_str(),
         this->_request.getRequestBody().size());
-  this->setResponse(this->_errorResponse.create200Response(
+  this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(),
       this->getResponseHeader(), this->getResponseBody()));
 }
 
 void Response::OPTIONS() {
   if (this->_request.getRequestHeader("Origins") == "")
-    throw(this->_errorResponse.create400Response());
+    throw(this->_errorResponse.create400Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
   int fd = open(this->_request.getRequestHeader("Origins").c_str(), O_RDONLY);
   if (fd == -1)
-    throw(this->_errorResponse.create400Response());
+    throw(this->_errorResponse.create400Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName()));
   this->setResponseHeader("Access-Control-Allow-Origin",
                           this->_request.getRequestHeader("Origins"));
-  this->setResponse(this->_errorResponse.create200Response(
+  this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(),
       this->getResponseHeader(), this->getResponseBody()));
 }
 
@@ -203,7 +224,7 @@ void Response::TRACE() {
   }
   body = body + this->_request.getRequestBody();
   this->setResponseBody(body);
-  this->setResponse(this->_errorResponse.create200Response(
+  this->setResponse(this->_errorResponse.create200Response(this->_config.getLocation(this->_request.getRequestURI()), this->_config.getServerName(),
       this->getResponseHeader(), this->getResponseBody()));
 }
 
