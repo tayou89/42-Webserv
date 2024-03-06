@@ -173,6 +173,7 @@ int ClientSocket::writeSocket() {
     return (WRITE_ERROR);
   close(_res.getResponseFile());
 
+  /* 이거 왜 동작 안됨!!!!!!!!!!!!!!! */
   std::cout << _req.getRequestHeader("Connection") << std::endl;
   if (_req.getRequestHeader("Connection") == "close") {
     std::cout << "Disconnect after send\n";
