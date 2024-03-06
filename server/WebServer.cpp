@@ -19,8 +19,8 @@ WebServer::WebServer(Config conf) : _config(conf) {
     exit(1); // bind error
   }
 
-  if (listen(_listenSocket, 5) == -1) // siege test 수행 후 backlog 사이즈 변경
-    exit(1);                          // listen error
+  if (listen(_listenSocket, 64) == -1) // siege test 수행 후 backlog 사이즈 변경
+    exit(1);                           // listen error
   fcntl(_listenSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 

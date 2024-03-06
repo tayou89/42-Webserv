@@ -60,12 +60,12 @@ void KqueueLoop::disconnect(int socket) {
 void KqueueLoop::run() {
   int eventCount;
   int eventStatus;
-  struct kevent newEvents[8];
+  struct kevent newEvents[1024];
   struct kevent *currentEvent;
 
   while (1) {
     eventCount = kevent(_kqueue, &_changeList[0], _changeList.size(), newEvents,
-                        8, NULL);
+                        1024, NULL);
     if (eventCount == -1)
       exit(1);           // kevent error exit
     _changeList.clear(); // clear list of new register events
@@ -78,6 +78,8 @@ void KqueueLoop::run() {
 
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
+        if (newClient == 0)
+          continue;
         fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
         _clientList[newClient] = new ClientSocket(
             newClient, _serverList[currentEvent->ident], _envp);
@@ -97,6 +99,7 @@ void KqueueLoop::run() {
         } else if (currentEvent->filter == EVFILT_WRITE) {
           eventStatus = _clientList[currentEvent->ident]->writeSocket();
           if (eventStatus == READ_MODE) { // write finish, change status
+            std::cout << "read mode\n";
             _clientList[currentEvent->ident]->clearSocket();
             newEvent(currentEvent->ident, EVFILT_READ, EV_ENABLE, 0, 0, NULL);
             newEvent(currentEvent->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
