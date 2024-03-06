@@ -152,8 +152,9 @@ int ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       std::cout << _req.getRequestMethod() << std::endl;
-      std::cout << _req.getRequestURI() << std::endl;
-
+      std::cout << _req.getRequestURI() << "-> BEFORE\n";
+      _req.convertURI();
+      std::cout << _req.getRequestURI() << "-> CONVERTED\n";
       _res.setResponse(_req);
       _responseString = _res.getResponse();
       std::cout << "make response\n";

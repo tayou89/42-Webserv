@@ -2,6 +2,7 @@
 
 #include "Config.hpp"
 #include "ErrorResponse.hpp"
+#include "Location.hpp"
 #include "define.hpp"
 #include <dirent.h>
 #include <fcntl.h>
@@ -33,6 +34,8 @@ public:
   std::map<std::string, std::string> getRequestHeader() const;
   std::string getRequestHeader(std::string key) const;
   void setRequestHeader(std::string key, std::string value);
+
+  void convertURI();
 
 private:
   Config _config;
