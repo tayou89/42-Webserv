@@ -45,8 +45,10 @@ int ClientSocket::readHead() {
     std::cout << _header << std::endl;
     try {
       _req.setRequest(_header);
+      std::cout << "header success\n";
     } catch (std::string &res) {
       std::cout << "Head read error\n";
+      std::cout << res << std::endl;
       _responseString = res;
       _status = WRITE;
       return (WRITE_MODE);
@@ -149,8 +151,13 @@ int ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
+      std::cout << _req.getRequestMethod() << std::endl;
+      std::cout << _req.getRequestURI() << std::endl;
+
       _res.setResponse(_req);
       _responseString = _res.getResponse();
+      std::cout << "make response\n";
+      std::cout << _responseString << std::endl;
     } catch (std::string &res) {
       std::cout << "Write error\n";
       _responseString = res;
@@ -164,6 +171,12 @@ int ClientSocket::writeSocket() {
   if (writeSize != _responseString.size())
     return (WRITE_ERROR);
   close(_res.getResponseFile());
+
+  std::cout << _req.getRequestHeader("Connection") << std::endl;
+  if (_req.getRequestHeader("Connection") == "close") {
+    std::cout << "Disconnect after send\n";
+    return (DISCONNECT);
+  }
 
   return (READ_MODE);
 }
