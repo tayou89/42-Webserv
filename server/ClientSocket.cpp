@@ -33,17 +33,20 @@ int ClientSocket::readHead() {
   std::string tmp(_buf);
   std::cout << tmp.size() << "\n";
   _tmp += tmp;
-  for (std::string::iterator iter = _tmp.begin(); iter != _tmp.end(); iter++)
-    std::cout << static_cast<int>(*iter) << " ";
-  std::cout << "\n";
+  //   for (std::string::iterator iter = _tmp.begin(); iter != _tmp.end();
+  //   iter++)
+  //     std::cout << static_cast<int>(*iter) << " ";
+  //   std::cout << "\n";
 
   /* header의 끝 찾기 */
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos);
+    std::cout << _header << std::endl;
     try {
       _req.setRequest(_header);
     } catch (std::string &res) {
+      std::cout << "Head read error\n";
       _responseString = res;
       _status = WRITE;
       return (WRITE_MODE);
@@ -79,6 +82,7 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
     try {
       _req.readBody(_body);
     } catch (std::string &res) {
+      std::cout << "Body read error\n";
       _responseString = res;
     }
     _status = WRITE; // write 상태로 변경
@@ -148,6 +152,7 @@ int ClientSocket::writeSocket() {
       _res.setResponse(_req);
       _responseString = _res.getResponse();
     } catch (std::string &res) {
+      std::cout << "Write error\n";
       _responseString = res;
       return (CONTINUE);
     }
