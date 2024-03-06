@@ -3,6 +3,7 @@
 #include "ClientSocket.hpp"
 #include "IEventLoop.hpp"
 #include "IServer.hpp"
+#include "define.hpp"
 #include <fcntl.h>
 #include <map>
 #include <sys/event.h>

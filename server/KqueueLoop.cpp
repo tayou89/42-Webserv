@@ -89,23 +89,24 @@ void KqueueLoop::run() {
       } else {
         if (currentEvent->filter == EVFILT_READ) {
           eventStatus = _clientList[currentEvent->ident]->readSocket();
-          if (eventStatus == 1) { // when read done, change event status
+          if (eventStatus == WRITE_MODE) { // change event status
             std::cout << "write mode\n";
             newEvent(currentEvent->ident, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
             newEvent(currentEvent->ident, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
           }
         } else if (currentEvent->filter == EVFILT_WRITE) {
           eventStatus = _clientList[currentEvent->ident]->writeSocket();
-          if (eventStatus == 1) { // write finish, change status
+          if (eventStatus == READ_MODE) { // write finish, change status
+            _clientList[currentEvent->ident]->clearSocket();
             newEvent(currentEvent->ident, EVFILT_READ, EV_ENABLE, 0, 0, NULL);
             newEvent(currentEvent->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
           }
         }
 
         /* connection ended */
-        if (eventStatus == 253) {
+        if (eventStatus == DISCONNECT) {
           disconnect(currentEvent->ident);
-        } else if (eventStatus == 254) {
+        } else if (eventStatus == WRITE_ERROR) {
           /* Write Event Error Process */
           std::cout << "Write Error occurs\n";
         }

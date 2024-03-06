@@ -7,6 +7,8 @@
 #include "Response.hpp"
 #include "define.hpp"
 #include <cstdlib>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 
@@ -19,8 +21,9 @@ public:
   int readSocket();
   int readHead();
   int readContentBody();
-  //   int readChunkedBody();
+  int readChunkedBody();
   int writeSocket();
+  void clearSocket();
 
 private:
   ClientSocket();
@@ -30,7 +33,7 @@ private:
   IServer *_routeServer;
   int _socket;
   int _status;
-  char _buf[BUFFERSIZE + 1];
+  char _buf[BUFFER_SIZE + 1];
   std::string _tmp;
   std::string _header;
   size_t _bodySize;

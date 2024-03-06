@@ -30,10 +30,14 @@ class CGIExecutor
         void        _executeCGI(void);
         char      **_getEnvp(void) const;
 
-        std::string _getRequestMethod(void);
-        std::string _getScriptName(void);
-        std::string _getPathInfo(void);
-        std::string _getRequestHeaderInfo(const std::string &infoName);
+        std::string _getRequestMethod(void) const;
+        std::string _getDocumentRoot(void) const;
+        std::string _getScriptName(void) const;
+        std::string _getScriptFileName(void) const;
+        std::string _getPathInfo(void) const;
+        std::string _getQueryString(void) const;
+        std::string _getContentType(void) const;
+        std::string _getContentLength(void) const;
 
         Location    _location;
         Protocol    _protocol;

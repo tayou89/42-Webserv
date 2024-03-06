@@ -55,6 +55,11 @@ void ConfigFile::_openFile(void)
         throw(std::runtime_error("Opening file failed: " + _path));
 }
 
+std::string ConfigFile::getPath(void) const
+{
+    return (_path);
+}
+
 std::string ConfigFile::getString(void)
 {
     typedef std::istreambuf_iterator<char> buf_iterator;

@@ -59,43 +59,86 @@ int CGIExecutor::execute(void)
 
 void CGIExecutor::_setMetaVariables(void)
 {
-    _metaVariables["REQUEST_METHOD"] = _getRequestMethod();
-    _metaVariables["SCRIPT_NAME"]    = _getScriptName();
-    _metaVariables["PATH_INFO"]      = _getPathInfo();
-    _metaVariables["CONTENT_TYPE"]   = _getRequestHeaderInfo("Content-Type");
-    _metaVariables["CONTENT_LENGTH"] = _getRequestHeaderInfo("Content-Length");
+    _metaVariables["REQUEST_METHOD"]  = _getRequestMethod();
+    _metaVariables["DOCUMENT_ROOT"]   = _getDocumentRoot();
+    _metaVariables["SCRIPT_NAME"]     = _getScriptName();
+    _metaVariables["SCRIPT_FILENAME"] = _getScriptFileName();
+    _metaVariables["PATH_INFO"]       = _getPathInfo();
+    _metaVariables["QUERY_STRING"]    = _getQueryString();
+    _metaVariables["CONTENT_TYPE"]    = _getContentType();
+    _metaVariables["CONTENT_LENGTH"]  = _getContentLength();
 }
 
-std::string CGIExecutor::_getRequestMethod(void)
+std::string CGIExecutor::_getRequestMethod(void) const
 {
     return (_protocol.getRequestMethod());
 }
 
-std::string CGIExecutor::_getScriptName(void)
+std::string CGIExecutor::_getDocumentRoot(void) const
+{
+    return (_location.getRootDirectory());
+}
+
+std::string CGIExecutor::_getScriptName(void) const
 {
     std::string locationPath = (_location.getLocationPath()).substr(1);
     std::string uri          = _protocol.getRequestURI();
-    size_t      scriptEnd    = uri.find(locationPath) + locationPath.size();
+    size_t      startIndex   = uri.find(locationPath) + locationPath.size();
+    size_t      scriptEnd    = ConfigUtil::findURIDelimeter(uri, startIndex);
 
-    return (uri.substr(0, scriptEnd));
+    if (scriptEnd == std::string::npos)
+        return (uri);
+    else
+        return (uri.substr(0, scriptEnd));
 }
 
-std::string CGIExecutor::_getPathInfo(void)
+std::string CGIExecutor::_getScriptFileName(void) const
 {
-    std::string locationPath = (_location.getLocationPath()).substr(1);
-    std::string uri          = _protocol.getRequestURI();
-    size_t      scriptEnd    = uri.find(locationPath) + locationPath.size();
-
-    return (uri.substr(scriptEnd));
+    return (_metaVariables.at("DOCUMENT_ROOT") + _metaVariables.at("SCRIPT_NAME"));
 }
 
-std::string CGIExecutor::_getRequestHeaderInfo(const std::string &infoName)
+std::string CGIExecutor::_getPathInfo(void) const
+{
+    std::string uri           = _protocol.getRequestURI();
+    size_t      scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
+
+    if (uri[scriptNameEnd] == '/')
+        return (uri.substr(scriptNameEnd));
+    else
+        return ("");
+}
+
+std::string CGIExecutor::_getQueryString(void) const
+{
+    std::string uri           = _protocol.getRequestURI();
+    size_t      scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
+
+    if (uri[scriptNameEnd] == '?')
+        return (uri.substr(scriptNameEnd));
+    else
+        return ("");
+}
+
+std::string CGIExecutor::_getContentType(void) const
 {
     std::map<std::string, std::string>           headerEntry;
     std::map<std::string, std::string>::iterator iterator;
 
     headerEntry = _protocol.getRequestHeader();
-    iterator    = headerEntry.find(infoName);
+    iterator    = headerEntry.find("Content-Type");
+    if (iterator == headerEntry.end())
+        return ("");
+    else
+        return (iterator->second);
+}
+
+std::string CGIExecutor::_getContentLength(void) const
+{
+    std::map<std::string, std::string>           headerEntry;
+    std::map<std::string, std::string>::iterator iterator;
+
+    headerEntry = _protocol.getRequestHeader();
+    iterator    = headerEntry.find("Content-Length");
     if (iterator == headerEntry.end())
         return ("");
     else
