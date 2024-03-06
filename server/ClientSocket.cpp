@@ -14,8 +14,8 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
 ClientSocket::~ClientSocket() {}
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
-    : _routeServer(acceptServer), _socket(socket), _req(),
-      _res(envp, _routeServer->getConfig()) {
+    : _routeServer(acceptServer), _socket(socket),
+      _req(_routeServer->getConfig()), _res(envp, _routeServer->getConfig()) {
   this->_status = HEAD_READ;
   memset(&_buf[0], 0, BUFFER_SIZE + 1);
   _tmp.assign("");
