@@ -27,14 +27,14 @@ Request &Request::operator=(const Request &copy) {
 }
 
 void Request::setRequest(std::string packet) {
-  //   if (packet.find("\\r\\n\\r\\n") == std::string::npos ||
-  //       packet.find("\\r\\n") == std::string::npos)
+  //   if (packet.find("\r\n\r\n") == std::string::npos ||
+  //       packet.find("\r\n") == std::string::npos)
   //     throw(this->_errorResponse.create400Response());
-  std::string firstLine = packet.substr(0, packet.find("\\r\\n"));
+  std::string firstLine = packet.substr(0, packet.find("\r\n"));
   this->readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
 
-  std::string header = packet.substr(packet.find("\\r\\n") + 2);
-  // packet.find("\\r\\n\\r\\n") - packet.find("\\r\\n") - 2);
+  std::string header = packet.substr(packet.find("\r\n") + 2);
+  // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/
   this->readHeader(header);
 
   this->checkContentLength(MAX_BODY_SIZE);
@@ -46,30 +46,33 @@ void Request::readStartLine(std::string startLine,
   std::string::size_type pos1 = startLine.find(" ");
   std::string::size_type pos2 = startLine.find(" ", pos1 + 1);
 
-  if (pos1 == std::string::npos || pos2 == std::string::npos)
+  if (pos1 == std::string::npos || pos2 == std::string::npos) {
     throw(this->_errorResponse.create400Response(
         this->_config.getLocation(this->getRequestURI()),
         this->_config.getServerName()));
+  }
   this->_requestMethod = startLine.substr(0, pos1);
   this->_requestURI = startLine.substr(pos1 + 1, pos2 - pos1 - 1);
   requestHTTPVersion = startLine.substr(pos2 + 1, startLine.size() - pos2);
 
   // if it is not method sp URI sp HTTP-Version, create 400 response
   if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
-      requestHTTPVersion.size() == 0)
+      requestHTTPVersion.size() == 0) {
     throw(this->_errorResponse.create400Response(
         this->_config.getLocation(this->getRequestURI()),
         this->_config.getServerName()));
+  }
 
   // if it is not GET, HEAD, DELETE, OPTIONS, POST, PUT, TRACE, create 400
   // response
   if (!(this->_requestMethod == "GET" || this->_requestMethod == "HEAD" ||
         this->_requestMethod == "DELETE" || this->_requestMethod == "OPTIONS" ||
         this->_requestMethod == "POST" || this->_requestMethod == "PUT" ||
-        this->_requestMethod == "TRACE"))
+        this->_requestMethod == "TRACE")) {
     throw(this->_errorResponse.create400Response(
         this->_config.getLocation(this->getRequestURI()),
         this->_config.getServerName()));
+  }
 
   // if the requestURI is longer than large_client_header_buffers, create 414
   // response
@@ -87,10 +90,11 @@ void Request::readStartLine(std::string startLine,
       throw(this->_errorResponse.create505Response(
           this->_config.getLocation(this->getRequestURI()),
           this->_config.getServerName()));
-    else
+    else {
       throw(this->_errorResponse.create400Response(
           this->_config.getLocation(this->getRequestURI()),
           this->_config.getServerName()));
+    }
   }
 }
 
@@ -101,14 +105,14 @@ void Request::readHeader(std::string header) {
   std::string tmp;
 
   while (1) {
-    index = header.find("\\r\\n", pos + 2);
+    index = header.find("\r\n", pos + 2);
     if (index == std::string::npos)
       break;
     tmp = header.substr(pos + 2, index - pos - 2);
     std::string key = splitBeforeColon(tmp);
     std::string value = splitAfterColon(tmp);
     this->_requestHeader.insert(std::make_pair(key, value));
-    if (header.find("\\r\\n", index + 2) == index + 2)
+    if (header.find("\r\n", index + 2) == index + 2)
       break;
     pos = index + 2;
   }
@@ -120,19 +124,22 @@ void Request::readHeader(std::string header) {
 }
 
 int Request::checkBodyExistence() const {
-  if (_requestHeader.find("Transfer-encoding")->second == "chunked")
+  if (_requestHeader.find("Transfer-encoding") != _requestHeader.end() &&
+      _requestHeader.find("Transfer-encoding")->second == "chunked")
     return (CHUNKED_READ);
-  else if (_requestHeader.find("Content-length")->second != "0")
+  else if (_requestHeader.find("Content-length") != _requestHeader.end() &&
+           _requestHeader.find("Content-length")->second != "0")
     return (BODY_READ);
   else
     return (WRITE);
 }
 
 void Request::checkValidHeader(std::string key, std::string value) {
-  if (key.empty() || value.empty())
+  if (key.empty() || value.empty()) {
     throw(this->_errorResponse.create400Response(
         this->_config.getLocation(this->getRequestURI()),
         this->_config.getServerName()));
+  }
 
   // check validity of mandatory headers??
 }
@@ -140,10 +147,11 @@ void Request::checkValidHeader(std::string key, std::string value) {
 void Request::checkContentLength(int client_max_body_size) {
   if (this->_requestHeader.find("Content-Length") !=
       this->_requestHeader.end()) {
-    if (this->_requestHeader["Content-Length"].size() > 10)
+    if (this->_requestHeader["Content-Length"].size() > 10) {
       throw(this->_errorResponse.create400Response(
           this->_config.getLocation(this->getRequestURI()),
           this->_config.getServerName()));
+    }
     if (std::stoi(this->_requestHeader["Content-Length"]) >
         client_max_body_size)
       throw(this->_errorResponse.create413Response(
@@ -153,7 +161,6 @@ void Request::checkContentLength(int client_max_body_size) {
 }
 
 void Request::readBody(std::string body) {
-  // std::cout << "body is:" << body << std::endl;
   if (body.size() > static_cast<unsigned long>(
                         std::stol(this->_requestHeader["Content-Length"])))
     throw(this->_errorResponse.create413Response(
