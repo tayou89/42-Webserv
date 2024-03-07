@@ -107,9 +107,9 @@ void KqueueLoop::run() {
         }
 
         /* connection ended */
-        if (eventStatus == DISCONNECT) {
+        if (eventStatus == DISCONNECT)
           disconnect(currentEvent->ident);
-        } else if (eventStatus == WRITE_ERROR) {
+        else if (eventStatus == WRITE_ERROR) {
           /* Write Event Error Process */
           std::cout << "Write Error occurs\n";
         }

@@ -159,17 +159,14 @@ int ClientSocket::writeSocket() {
       std::cout << _req.getRequestURI() << "-> CONVERTED\n";
       _res.setResponse(_req);
       _responseString = _res.getResponse();
-      std::cout << "Connection header:" << _req.getRequestHeader("Connection")
-                << std::endl;
-      std::cout << "make response\n";
-      std::cout << _responseString << std::endl;
     } catch (std::string &res) {
-      std::cout << "Write error\n";
+      std::cout << "Error status throw\n";
       _responseString = res;
       return (CONTINUE);
     }
   }
 
+  std::cout << _responseString << std::endl;
   size_t writeSize =
       write(_socket, _responseString.c_str(), _responseString.size());
 
@@ -177,7 +174,6 @@ int ClientSocket::writeSocket() {
     return (WRITE_ERROR);
   close(_res.getResponseFile());
 
-  std::cout << _req.getRequestHeader("Connection") << std::endl;
   if (_req.getRequestHeader("Connection") == "close") {
     std::cout << "Disconnect after send\n";
     return (DISCONNECT);
@@ -195,5 +191,6 @@ void ClientSocket::clearSocket() {
   _body.clear();
   _responseString.clear();
   _req = Request();
+  std::cout << "Socket Clear\n";
   //   _res = Response();
 }

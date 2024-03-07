@@ -201,7 +201,7 @@ void Request::convertURI() {
     Location target = _config.getLocation(_requestURI);
     target.setIndexFile();
     _requestURI = target.getIndexFile().getPath();
-  } catch (std::exception &e) {
-    throw _errorResponse.create404Response();
+  } catch (std::string &e) {
+    throw (_errorResponse.create404Response(_config, _config.getServerName()));
   }
 }

@@ -2,7 +2,7 @@
 #include <iostream> // test
 
 WebServer::WebServer(Config conf) : _config(conf) {
-  _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+  _listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
   if (_listenSocket == -1)
     exit(1); // socket error
