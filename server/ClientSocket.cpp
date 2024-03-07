@@ -157,6 +157,7 @@ int ClientSocket::writeSocket() {
       std::cout << _req.getRequestURI() << "-> CONVERTED\n";
       _res.setResponse(_req);
       _responseString = _res.getResponse();
+      std::cout << "Connection header:" << _req.getRequestHeader("Connection") << std::endl;
       std::cout << "make response\n";
       std::cout << _responseString << std::endl;
     } catch (std::string &res) {

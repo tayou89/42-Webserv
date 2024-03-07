@@ -105,14 +105,14 @@ void Request::readHeader(std::string header) {
   std::string tmp;
 
   while (1) {
-    index = header.find("\r\n", pos + 2);
+    index = header.find("\r\n", pos + 1);
     if (index == std::string::npos)
       break;
-    tmp = header.substr(pos + 2, index - pos - 2);
+    tmp = header.substr(pos, index - pos);
     std::string key = splitBeforeColon(tmp);
     std::string value = splitAfterColon(tmp);
     this->_requestHeader.insert(std::make_pair(key, value));
-    if (header.find("\r\n", index + 2) == index + 2)
+    if (header.find("\r\n", index + 1) == index + 1)
       break;
     pos = index + 2;
   }
