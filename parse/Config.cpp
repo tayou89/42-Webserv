@@ -61,6 +61,7 @@ const Location &Config::getLocation(const std::string &urlPath) const
     const_location_iterator iterator;
     const_location_iterator endPoint = _locations.end();
     std::string             key;
+    size_t                  startIndex, endIndex;
 
     iterator = _locations.find(urlPath);
     if (iterator != endPoint)
@@ -68,8 +69,17 @@ const Location &Config::getLocation(const std::string &urlPath) const
     for (iterator = _locations.begin(); iterator != endPoint; iterator++)
     {
         key = iterator->first;
-        if (key[0] == '~' && urlPath.find(key.substr(1)) != std::string::npos)
-            return (iterator->second);
+        if (key[0] == '~')
+        {
+            key        = key.substr(1);
+            startIndex = urlPath.find(key);
+            if (startIndex != std::string::npos)
+            {
+                endIndex = startIndex + key.size();
+                if (urlPath[endIndex] == '/' || urlPath.size() == endIndex)
+                    return (iterator->second);
+            }
+        }
     }
     if (urlPath == "/")
         return (*this);
