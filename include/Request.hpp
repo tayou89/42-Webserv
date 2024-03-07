@@ -1,8 +1,9 @@
 #pragma once
 
-#include "ErrorResponse.hpp"
-#include "define.hpp"
 #include "Config.hpp"
+#include "ErrorResponse.hpp"
+#include "Location.hpp"
+#include "define.hpp"
 #include <dirent.h>
 #include <fcntl.h>
 #include <iostream>
@@ -12,6 +13,7 @@
 class Request {
 public:
   Request();
+  Request(Config conf);
   ~Request();
   Request &operator=(const Request &copy);
   Request(const Request &copy);
@@ -33,8 +35,10 @@ public:
   std::string getRequestHeader(std::string key) const;
   void setRequestHeader(std::string key, std::string value);
 
+  void convertURI();
+
 private:
-  Config      _config;
+  Config _config;
   std::string _request;
   std::map<std::string, std::string> _requestHeader;
   std::string _requestBody;

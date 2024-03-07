@@ -14,8 +14,8 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
 ClientSocket::~ClientSocket() {}
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
-    : _routeServer(acceptServer), _socket(socket), _req(),
-      _res(envp, _routeServer->getConfig()) {
+    : _routeServer(acceptServer), _socket(socket),
+      _req(_routeServer->getConfig()), _res(envp, _routeServer->getConfig()) {
   this->_status = HEAD_READ;
   memset(&_buf[0], 0, BUFFER_SIZE + 1);
   _tmp.assign("");
@@ -33,17 +33,24 @@ int ClientSocket::readHead() {
   std::string tmp(_buf);
   std::cout << tmp.size() << "\n";
   _tmp += tmp;
-  for (std::string::iterator iter = _tmp.begin(); iter != _tmp.end(); iter++)
-    std::cout << static_cast<int>(*iter) << " ";
-  std::cout << "\n";
+  //   for (std::string::iterator iter = _tmp.begin(); iter != _tmp.end();
+  //   iter++)
+  //     std::cout << static_cast<int>(*iter) << " ";
+  //   std::cout << "\n";
 
   /* header의 끝 찾기 */
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
-    _header = _tmp.substr(0, pos);
+    _header = _tmp.substr(0, pos + 2);
+    std::cout << _header << std::endl;
     try {
       _req.setRequest(_header);
+      std::cout << "connection header" << _req.getRequestHeader("Connection")
+                << std::endl;
+      std::cout << "header success\n";
     } catch (std::string &res) {
+      std::cout << "Head read error\n";
+      std::cout << res << std::endl;
       _responseString = res;
       _status = WRITE;
       return (WRITE_MODE);
@@ -79,6 +86,7 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
     try {
       _req.readBody(_body);
     } catch (std::string &res) {
+      std::cout << "Body read error\n";
       _responseString = res;
     }
     _status = WRITE; // write 상태로 변경
@@ -145,9 +153,18 @@ int ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
+      std::cout << _req.getRequestMethod() << std::endl;
+      std::cout << _req.getRequestURI() << "-> BEFORE\n";
+      _req.convertURI();
+      std::cout << _req.getRequestURI() << "-> CONVERTED\n";
       _res.setResponse(_req);
       _responseString = _res.getResponse();
+      std::cout << "Connection header:" << _req.getRequestHeader("Connection")
+                << std::endl;
+      std::cout << "make response\n";
+      std::cout << _responseString << std::endl;
     } catch (std::string &res) {
+      std::cout << "Write error\n";
       _responseString = res;
       return (CONTINUE);
     }
@@ -159,6 +176,12 @@ int ClientSocket::writeSocket() {
   if (writeSize != _responseString.size())
     return (WRITE_ERROR);
   close(_res.getResponseFile());
+
+  std::cout << _req.getRequestHeader("Connection") << std::endl;
+  if (_req.getRequestHeader("Connection") == "close") {
+    std::cout << "Disconnect after send\n";
+    return (DISCONNECT);
+  }
 
   return (READ_MODE);
 }
