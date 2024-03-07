@@ -197,17 +197,11 @@ void Request::setRequestHeader(std::string key, std::string value) {
 }
 
 void Request::convertURI() {
-  //   std::map<std::string, Location> location = _config.getLocationMap();
-  //   std::map<std::string, Location>::iterator target =
-  //   location.find(_requestURI);
-  Location target = _config.getLocation(_requestURI);
-  target.setIndexFile();
-
-  std::string temp = target.getIndexFile().getPath();
-  /* URI가 존재하지 않으면 404 not found or 403 forbidden */
-  //   if (temp.size() == 0)
-  //     throw _errorResponse.create404Response();
-
-  //   _requestURI = target->second.getIndexFile().getPath();
-  _requestURI = temp;
+  try {
+    Location target = _config.getLocation(_requestURI);
+    target.setIndexFile();
+    _requestURI = target.getIndexFile().getPath();
+  } catch (std::exception &e) {
+    throw _errorResponse.create404Response();
+  }
 }
