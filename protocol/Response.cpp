@@ -45,6 +45,7 @@ void Response::checkValidity() {
               this->_config.getLocation(this->_request.getRequestURI()),
               this->_config.getServerName()));
         char buf[1000]; // need to change buffer size
+        memset(buf, 0, 1000);
         std::string body;
         if (read(fd, buf, 1000) > 0) {
           std::string tmp_body(buf);
@@ -279,3 +280,11 @@ std::map<std::string, std::string> Response::getResponseHeader() const {
 std::string Response::getResponseBody() const { return (this->_responseBody); }
 
 std::string Response::getResponse() const { return (this->_response); }
+
+void Response::initResponse() {
+  _responseFile = 0;
+  _request = Request();
+  _responseHeader.clear();
+  _responseBody.clear();
+  _response.clear();
+}

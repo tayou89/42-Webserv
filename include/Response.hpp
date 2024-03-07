@@ -32,6 +32,8 @@ public:
   std::string getResponseBody() const;
   std::string getResponse() const;
 
+  void initResponse();
+
 private:
   Response(const Response &copy);
   Response operator=(const Response &copy);
