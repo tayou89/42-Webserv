@@ -41,10 +41,12 @@ int ClientSocket::readHead() {
   /* header의 끝 찾기 */
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
-    _header = _tmp.substr(0, pos);
+    _header = _tmp.substr(0, pos + 2);
     std::cout << _header << std::endl;
     try {
       _req.setRequest(_header);
+      std::cout << "connection header" << _req.getRequestHeader("Connection")
+                << std::endl;
       std::cout << "header success\n";
     } catch (std::string &res) {
       std::cout << "Head read error\n";
@@ -157,7 +159,8 @@ int ClientSocket::writeSocket() {
       std::cout << _req.getRequestURI() << "-> CONVERTED\n";
       _res.setResponse(_req);
       _responseString = _res.getResponse();
-      std::cout << "Connection header:" << _req.getRequestHeader("Connection") << std::endl;
+      std::cout << "Connection header:" << _req.getRequestHeader("Connection")
+                << std::endl;
       std::cout << "make response\n";
       std::cout << _responseString << std::endl;
     } catch (std::string &res) {
@@ -174,7 +177,6 @@ int ClientSocket::writeSocket() {
     return (WRITE_ERROR);
   close(_res.getResponseFile());
 
-  /* 이거 왜 동작 안됨!!!!!!!!!!!!!!! */
   std::cout << _req.getRequestHeader("Connection") << std::endl;
   if (_req.getRequestHeader("Connection") == "close") {
     std::cout << "Disconnect after send\n";
