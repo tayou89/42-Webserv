@@ -106,15 +106,11 @@ void Request::readHeader(std::string header) {
 
   while (1) {
     index = header.find("\r\n", pos + 1);
-    std::cout << "///////////HEADER///////////\n";
-    std::cout << header << "\n";
     if (index == std::string::npos)
       break;
     tmp = header.substr(pos, index - pos);
     std::string key = splitBeforeColon(tmp);
-    std::cout << key << " -> key\n";
     std::string value = splitAfterColon(tmp);
-    std::cout << value << " -> value\n";
     this->_requestHeader.insert(std::make_pair(key, value));
     if (header.find("\r\n", index + 1) == index + 1)
       break;
