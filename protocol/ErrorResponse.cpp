@@ -85,6 +85,9 @@ std::string errorResponse::create404Response(Config conf,
   ss << contentLength;
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
+  std::cout << "2close: " << fd << std::endl;
+  if (fd != 0)
+    close(fd);
   return (response);
 }
 

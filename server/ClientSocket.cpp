@@ -31,7 +31,6 @@ int ClientSocket::readHead() {
   if (readSize == 0)
     return (DISCONNECT);
   std::string tmp(_buf);
-  std::cout << tmp.size() << "\n";
   _tmp += tmp;
   //   for (std::string::iterator iter = _tmp.begin(); iter != _tmp.end();
   //   iter++)
@@ -42,14 +41,13 @@ int ClientSocket::readHead() {
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos + 2);
-    std::cout << _header << std::endl;
+    // std::cout << "///////////////////START///////////////////\n";
+    // std::cout << _socket << " : SOCKET NUMBER\n";
+    // std::cout << _header << std::endl;
+    // std::cout << "///////////////////////////////////////////\n";
     try {
       _req.setRequest(_header);
-      std::cout << "connection header" << _req.getRequestHeader("Connection")
-                << std::endl;
-      std::cout << "header success\n";
     } catch (std::string &res) {
-      std::cout << "Head read error\n";
       std::cout << res << std::endl;
       _responseString = res;
       _status = WRITE;
@@ -86,7 +84,6 @@ int ClientSocket::readContentBody() { // chunked encoding는 별도의 함수로
     try {
       _req.readBody(_body);
     } catch (std::string &res) {
-      std::cout << "Body read error\n";
       _responseString = res;
     }
     _status = WRITE; // write 상태로 변경
@@ -123,7 +120,6 @@ int ClientSocket::readChunkedBody() {
     iss.ignore(2);
 
     if (chunkSize == 0) {
-      std::cout << _body << "\n";
       _status = WRITE;
       return (WRITE_MODE);
     }
@@ -153,29 +149,32 @@ int ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
-      std::cout << _req.getRequestMethod() << std::endl;
-      std::cout << _req.getRequestURI() << "-> BEFORE\n";
       _req.convertURI();
-      std::cout << _req.getRequestURI() << "-> CONVERTED\n";
       _res.setResponse(_req);
       _responseString = _res.getResponse();
     } catch (std::string &res) {
-      std::cout << "Error status throw\n";
       _responseString = res;
       return (CONTINUE);
     }
   }
 
-  std::cout << _responseString << std::endl;
+  //   std::cout << "///////////////////////////////////////////\n";
+  //   std::cout << _responseString;
+  //   std::cout << _socket << " : SOCKET NUMBER\n";
+  //   std::cout << "///////////////////END/////////////////////\n";
+
   size_t writeSize =
       write(_socket, _responseString.c_str(), _responseString.size());
 
   if (writeSize != _responseString.size())
     return (WRITE_ERROR);
-  close(_res.getResponseFile());
+
+  /* getResponseFile()에서 이상한 fd가 반환되는 현상이 있음!!!!!!!!!!!!! */
+  //   std::cout << "5close: " << _res.getResponseFile() << std::endl;
+  //   if (_res.getResponseFile() != 0)
+  //     close(_res.getResponseFile());
 
   if (_req.getRequestHeader("Connection") == "close") {
-    std::cout << "Disconnect after send\n";
     return (DISCONNECT);
   }
 
@@ -192,6 +191,5 @@ void ClientSocket::clearSocket() {
   _responseString.clear();
   _req = Request();
   _res.initResponse();
-  std::cout << "Socket Clear\n";
   //   _res = Response();
 }
