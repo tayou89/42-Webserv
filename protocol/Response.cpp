@@ -52,6 +52,7 @@ void Response::checkValidity() {
           body = body + tmp_body;
           memset(buf, 0, 1000);
         }
+        std::cout << "3close: " << fd << std::endl;
         close(fd);
         this->setResponseBody(body);
         this->setResponseHeader("Content-Length", std::to_string(body.size()));
@@ -182,6 +183,7 @@ void Response::DELETE() {
         this->_config.getLocation(this->_request.getRequestURI()),
         this->_config.getServerName())); // file does not exist, thus cannot be
                                          // deleted, 204 No Content
+  std::cout << "4close: " << fd << std::endl;
   close(fd);
   std::string rmPath = getPath(this->getEnvp(), "rm");
 
