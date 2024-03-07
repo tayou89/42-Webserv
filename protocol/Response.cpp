@@ -161,11 +161,9 @@ void Response::GET_HEAD() {
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
-  std::cout << "get_head\n";
   this->setResponse(this->_errorResponse.create200Response(
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
-  std::cout << "get_head\n";
 }
 
 void Response::POST() {
