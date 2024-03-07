@@ -191,6 +191,7 @@ void ClientSocket::clearSocket() {
   _body.clear();
   _responseString.clear();
   _req = Request();
+  _res.initResponse();
   std::cout << "Socket Clear\n";
   //   _res = Response();
 }
