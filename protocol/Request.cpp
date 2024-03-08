@@ -196,12 +196,79 @@ void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
 
-void Request::convertURI() {
-  try {
-    Location target = _config.getLocation(_requestURI);
-    target.setIndexFile();
-    _requestURI = target.getIndexFile().getPath();
-  } catch (std::string &e) {
-    throw (_errorResponse.create404Response(_config, _config.getServerName()));
+// int Request::extensionURI(std::string location) const {}
+
+size_t Request::generalURI(std::string location) const {
+  std::vector<std::string> loc = splitString(location, '/');
+  std::vector<std::string> url = splitString(_requestURI, '/');
+  std::vector<std::string>::iterator locIter = loc.begin();
+  std::vector<std::string>::iterator urlIter = url.begin();
+  size_t score = 0;
+
+  /* general location */
+  for (; locIter != loc.end() && urlIter != url.end(); locIter++, urlIter++) {
+    if (*locIter == *urlIter)
+      score++;
   }
+  if (score == loc.size())
+    return (score);
+  else
+    return (0);
+}
+
+std::string Request::combinePATH(Location target, size_t rate) const {
+  std::vector<std::string> split = splitString(_requestURI, '/');
+  std::stringstream ss;
+  std::string path;
+
+  for (; rate < split.size(); rate++) {
+    ss << "/" << split[rate];
+  }
+  if (ss.str().empty()) {
+    std::vector<std::string> index = target.getIndexes();
+    std::vector<std::string>::iterator iter = index.begin();
+    for (; iter != index.end(); iter++) {
+      path = target.getRootDirectory() + "/" + *iter;
+      if (access(path.c_str(), F_OK) == 0)
+        return (path);
+    }
+  } else
+    path = target.getRootDirectory() + ss.str();
+  return (path);
+}
+
+void Request::convertURI() {
+  //   try {
+  //     Location target = _config.getLocation(_requestURI);
+  //     target.setIndexFile();
+  //     _requestURI = target.getIndexFile().getPath();
+  //   } catch (std::string &e) {
+  //     throw (_errorResponse.create404Response(_config,
+  //     _config.getServerName()));
+  //   }
+  std::map<std::string, Location> locationMap = _config.getLocationMap();
+  std::map<std::string, Location>::iterator iter = locationMap.begin();
+  Location *target = NULL;
+  int rate = 0;
+  int tmp = 0;
+
+  /* calculate similarity */
+  for (; iter != locationMap.end(); iter++) {
+    /* cgi extension location */
+    // if (iter->first.find('.') != std::string::npos)
+    //   tmp = extensionURI(iter->first);
+    // else
+    tmp = generalURI(iter->first);
+    if (tmp > rate) {
+      rate = tmp;
+      target = &iter->second;
+    }
+  }
+
+  /* check default location */
+  if (rate == 0 && locationMap.find("/") != locationMap.end())
+    target = &locationMap["/"];
+
+  /* convert URI to real path */
+  _requestURI = combinePATH(*target, rate);
 }

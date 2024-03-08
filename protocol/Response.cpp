@@ -284,7 +284,7 @@ std::string Response::getResponseBody() const { return (this->_responseBody); }
 std::string Response::getResponse() const { return (this->_response); }
 
 void Response::initResponse() {
-  _responseFile = 0;
+  _responseFile = -1;
   _request = Request();
   _responseHeader.clear();
   _responseBody.clear();

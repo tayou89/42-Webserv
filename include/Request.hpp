@@ -5,8 +5,8 @@
 #include "Location.hpp"
 #include "define.hpp"
 #include <dirent.h>
-#include <fcntl.h>
 #include <exception>
+#include <fcntl.h>
 #include <iostream>
 #include <map>
 #include <unistd.h>
@@ -36,6 +36,9 @@ public:
   std::string getRequestHeader(std::string key) const;
   void setRequestHeader(std::string key, std::string value);
 
+  //   int extensionURI(std::string location) const;
+  size_t generalURI(std::string location) const;
+  std::string combinePATH(Location target, size_t rate) const;
   void convertURI();
 
 private:
