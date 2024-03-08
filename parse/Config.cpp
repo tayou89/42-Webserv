@@ -28,6 +28,15 @@ Config &Config::operator=(const Config &object)
     return (*this);
 }
 
+Config::Config(const std::string &serverBlock)
+    : Location(serverBlock, _getDirectiveSet()), _portNumber(0)
+{
+    _setFunctionPTRSet();
+    _setConfigData();
+    _checkConfigValidation();
+    _setLocation();
+}
+
 const std::string &Config::getServerName(void) const
 {
     return (_serverName);
@@ -85,15 +94,6 @@ const Location &Config::getLocation(const std::string &urlPath) const
         return (*this);
     else
         throw(std::runtime_error("Error: Can't find locaiton for: " + urlPath));
-}
-
-Config::Config(const std::string &serverBlock)
-    : Location(serverBlock, _getDirectiveSet()), _portNumber(0)
-{
-    _setFunctionPTRSet();
-    _setConfigData();
-    _checkConfigValidation();
-    _setLocation();
 }
 
 std::set<std::string> Config::_getDirectiveSet(void) const
