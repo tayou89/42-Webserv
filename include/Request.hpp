@@ -6,6 +6,7 @@
 #include "define.hpp"
 #include <dirent.h>
 #include <fcntl.h>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <unistd.h>

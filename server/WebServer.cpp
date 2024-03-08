@@ -7,6 +7,15 @@ WebServer::WebServer(Config conf) : _config(conf) {
   if (_listenSocket == -1)
     exit(1); // socket error
 
+  /* set socket option */
+  int optval = 1;
+  if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &optval,
+                 sizeof(optval)) < 0) {
+    std::cout << "7close: " << _listenSocket << std::endl;
+    close(_listenSocket); // 소켓 닫기
+    exit(1);
+  }
+
   memset(&_serverAddress, 0, sizeof(_serverAddress));
   _serverAddress.sin_family = AF_INET;
   _serverAddress.sin_port = htons(conf.getPortNumber());

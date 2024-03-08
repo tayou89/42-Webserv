@@ -45,18 +45,19 @@ void Response::checkValidity() {
               this->_config.getLocation(this->_request.getRequestURI()),
               this->_config.getServerName()));
         char buf[1000]; // need to change buffer size
+        memset(buf, 0, 1000);
         std::string body;
         if (read(fd, buf, 1000) > 0) {
           std::string tmp_body(buf);
           body = body + tmp_body;
           memset(buf, 0, 1000);
         }
+        std::cout << "3close: " << fd << std::endl;
         close(fd);
         this->setResponseBody(body);
         this->setResponseHeader("Content-Length", std::to_string(body.size()));
         this->setResponseHeader("Last-Modified", getCurrentHttpDate());
         this->setResponse(this->_errorResponse.create200Response(
-            this->_config.getLocation(this->_request.getRequestURI()),
             this->_config.getServerName(), getResponseHeader(),
             getResponseBody()));
       }
@@ -78,7 +79,6 @@ void Response::checkValidity() {
       // need to change
       this->setResponseHeader("Last-Modified", getCurrentHttpDate());
       this->setResponse(this->_errorResponse.create200Response(
-          this->_config.getLocation(this->_request.getRequestURI()),
           this->_config.getServerName(), getResponseHeader(),
           getResponseBody()));
     }
@@ -143,13 +143,13 @@ std::string Response::getPath(char **envp, std::string cmd) {
 }
 
 void Response::GET_HEAD() {
-  std::cout << "get_head\n";
   char readbuf[10000];
   _responseFile = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (_responseFile == -1)
-    throw(this->_errorResponse.create404Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create404Response(_config,
+                                                 _config.getServerName()));
+  // this->_config.getLocation(this->_request.getRequestURI()),
+  // this->_config.getServerName()));
   int readSize = read(_responseFile, readbuf, 10000);
   if (readSize == -1)
     throw(this->_errorResponse.create500Response(
@@ -164,7 +164,6 @@ void Response::GET_HEAD() {
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
   this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getLocation(this->_request.getRequestURI()),
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
 }
@@ -184,6 +183,7 @@ void Response::DELETE() {
         this->_config.getLocation(this->_request.getRequestURI()),
         this->_config.getServerName())); // file does not exist, thus cannot be
                                          // deleted, 204 No Content
+  std::cout << "4close: " << fd << std::endl;
   close(fd);
   std::string rmPath = getPath(this->getEnvp(), "rm");
 
@@ -210,7 +210,6 @@ void Response::DELETE() {
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getLocation(this->_request.getRequestURI()),
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
 }
@@ -220,13 +219,13 @@ void Response::PUT() {
 
   fd = open(this->_request.getRequestURI().c_str(), O_WRONLY | O_TRUNC);
   if (fd == -1)
-    throw(this->_errorResponse.create404Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create404Response(_config,
+                                                 _config.getServerName()));
+  // this->_config.getLocation(this->_request.getRequestURI()),
+  // this->_config.getServerName()));
   write(fd, this->_request.getRequestBody().c_str(),
         this->_request.getRequestBody().size());
   this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getLocation(this->_request.getRequestURI()),
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
 }
@@ -244,7 +243,6 @@ void Response::OPTIONS() {
   this->setResponseHeader("Access-Control-Allow-Origin",
                           this->_request.getRequestHeader("Origins"));
   this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getLocation(this->_request.getRequestURI()),
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
 }
@@ -263,7 +261,6 @@ void Response::TRACE() {
   body = body + this->_request.getRequestBody();
   this->setResponseBody(body);
   this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getLocation(this->_request.getRequestURI()),
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
 }
@@ -285,3 +282,11 @@ std::map<std::string, std::string> Response::getResponseHeader() const {
 std::string Response::getResponseBody() const { return (this->_responseBody); }
 
 std::string Response::getResponse() const { return (this->_response); }
+
+void Response::initResponse() {
+  _responseFile = 0;
+  _request = Request();
+  _responseHeader.clear();
+  _responseBody.clear();
+  _response.clear();
+}
