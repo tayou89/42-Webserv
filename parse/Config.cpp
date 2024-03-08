@@ -93,7 +93,7 @@ const Location &Config::getLocation(const std::string &urlPath) const
     if (urlPath == "/")
         return (*this);
     else
-        throw(std::runtime_error("Error: Can't find locaiton for: " + urlPath));
+        throw(std::string("Error: Can't find locaiton for: " + urlPath));
 }
 
 std::set<std::string> Config::_getDirectiveSet(void) const
