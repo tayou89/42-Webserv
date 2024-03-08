@@ -24,6 +24,7 @@ class Location : public ConfigBase
         bool                  isAcceptedHTTPMethod(const std::string &HTTPMethod);
         void                  setIndexFile(void);
         const bool           &getAutoIndex(void) const;
+        const bool           &getCGIPass(void) const;
         std::string           getErrorPage(const int &errorPageNumber) const;
         const size_t         &getClientBodyMax(void) const;
         const size_t         &getClientHeaderMax(void) const;
@@ -48,6 +49,7 @@ class Location : public ConfigBase
         void                  _setClientBodyMax(void);
         void                  _setClientHeaderMax(void);
         void                  _setAcceptedMethods(void);
+        void                  _setCGIPass(void);
 
         std::string           _path;
         bool                  _autoindex;
@@ -58,6 +60,7 @@ class Location : public ConfigBase
         string_vector         _indexes;
         error_page_map        _errorPages;
         string_vector         _acceptedMethods;
+        bool                  _cgiPass;
 
         location_function_map _locationFunctions;
         string_vector         _parameters;
