@@ -109,8 +109,8 @@ void Request::readHeader(std::string header) {
     if (index == std::string::npos)
       break;
     tmp = header.substr(pos, index - pos);
-    std::string key = splitBeforeColon(tmp);
-    std::string value = splitAfterColon(tmp);
+    std::string key = splitBefore(tmp, ":");
+    std::string value = splitAfter(tmp, ":");
     this->_requestHeader.insert(std::make_pair(key, value));
     if (header.find("\r\n", index + 1) == index + 1)
       break;

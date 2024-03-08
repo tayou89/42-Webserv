@@ -19,13 +19,13 @@ std::string getCurrentHttpDate()
     return (str);
 }
 
-std::string splitBeforeColon(std::string sentence)
+std::string splitBefore(std::string sentence, std::string splitString)
 {
     size_t    split_index;
     size_t i = 1;
     std::string key;
 
-    split_index = sentence.find(":", 0);
+    split_index = sentence.find(splitString, 0);
     if (split_index == std::string::npos)
         return ("");
     while (i < split_index)
@@ -39,13 +39,13 @@ std::string splitBeforeColon(std::string sentence)
     return (key);
 }
 
-std::string splitAfterColon(std::string sentence)
+std::string splitAfter(std::string sentence, std::string splitString)
 {
     size_t    split_index;
     size_t i = 1;
     std::string value;
 
-    split_index = sentence.find(":", 0);
+    split_index = sentence.find(splitString, 0);
     if (split_index == std::string::npos)
         return ("");
     while (i < sentence.size() - split_index)

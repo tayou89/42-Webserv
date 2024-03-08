@@ -1,26 +1,28 @@
 #include "../include/Cookie.hpp"
 
-cookie::cookie()
+Cookie::Cookie()
 {
-    
+    std::string sessionID = "defaultSession";
+    std::string lang = "null";
+    _sessionList.push_back(createSession(sessionID, lang));
 }
 
-cookie::~cookie()
-{
-
-}
-
-cookie::cookie(const cookie &copy)
+Cookie::~Cookie()
 {
 
 }
 
-cookie cookie::operator=(const cookie &copy)
+Cookie::Cookie(const Cookie &copy)
 {
 
 }
 
-time_t cookie::getCookieTime(int day, int hour, int min)
+Cookie Cookie::operator=(const Cookie &copy)
+{
+
+}
+
+time_t Cookie::getCookieTime(int day, int hour, int min)
 {
     time_t  rawtime;
     time(&rawtime);
@@ -29,7 +31,7 @@ time_t cookie::getCookieTime(int day, int hour, int min)
     return (rawtime);
 }
 
-std::string cookie::convertIntoRealTime(time_t rawtime)
+std::string Cookie::convertIntoRealTime(time_t rawtime)
 {
     struct tm   *timeinfo = gmtime(&rawtime);
 
@@ -39,7 +41,7 @@ std::string cookie::convertIntoRealTime(time_t rawtime)
     return (cookieTime);
 }
 
-std::string cookie::makeNewCookie()
+std::string Cookie::makeNewSID()
 {
     char	random_name[8];
 	int		random_fd;
@@ -61,37 +63,97 @@ std::string cookie::makeNewCookie()
     return (cookieName);
 }
 
-void    cookie::eraseCookies()
+std::string Cookie::controlCookies(std::map<std::string, std::string> header)
 {
-    std::vector<std::string> eraseList;
-
-   for (std::map<std::string, time_t>::iterator itr = this->cookieList.begin(); itr != this->cookieList.end(); ++itr)
-   {
-        if (this->getCookieTime(0, 0, 0) > itr->second)
-            eraseList.push_back(itr->first);
-   }
-   for (std::vector<std::string>::iterator itr = eraseList.begin(); itr != eraseList.end(); ++itr)
-   {
-        this->cookieList.erase(this->cookieList.find(*itr));
-   }
-}
-
-std::string cookie::controlCookies(std::map<std::string, time_t> header)
-{
-    std::map<std::string, time_t>::iterator itr = header.find("Cookie");
+    std::map<std::string, std::string>::iterator itr = header.find("Cookie");
     
-    eraseCookies();
     if (itr == header.end())
     {
         //cookie header does not exist -> make new cookie, write it, return it
-        std::string newCookieName = this->makeNewCookie();
-        time_t      newCookieDate = getCookieTime(1, 0, 0);
-        this->cookieList.insert(std::make_pair(newCookieName, newCookieDate));
-        //return set-Cookie header field
-        return ("SID=" + newCookieName + "; Expires=" + convertIntoRealTime(newCookieDate));
+        std::string newSID = this->makeNewSID();
+        //return set-Cookie header field with private information?
+        return ("SID=" + newSID);
     }
     else
     {
-        //what action should it make??
+        std::string sid = "";
+        //read the cookie header, then make user specified response with that information
+        setCookieHeader(itr->second);
+        std::map<std::string, std::string>::iterator itr = _reqCookieHeader.begin();
+        for (; itr != _reqCookieHeader.end(); ++itr)
+        {
+            if (itr->first == "SID")
+                sid = itr->second;
+            else
+                _resCookieHeader.insert(std::make_pair(itr->first, itr->second));
+        }
+        if (sid != "")
+        {
+            std::map<std::string, std::string> ses = getSession(sid).getSessionMap();
+            std::map<std::string, std::string>::iterator sesItr = ses.begin();
+            for (; itr != ses.end(); ++itr)
+                _resCookieHeader[itr->first] = itr->second; //중복될 경우 덮어씌워야해서 []
+        }
+        //go through _resCookieHeader to make user friendly response
     }
+}
+
+void    Cookie::setCookieHeader(std::string rawCookie)
+{
+    size_t index = 0;
+    size_t pos = 0;
+    std::string tmp;
+
+    while (1)
+    {
+        index = rawCookie.find(";", pos);
+        if (index == std::string::npos)
+            break;
+        tmp = rawCookie.substr(pos, index - pos);
+        std::string key = splitBefore(tmp, "=");
+        std::string value = splitAfter(tmp, "=");
+        this->_reqCookieHeader.insert(std::make_pair(key, value));
+        if (rawCookie.find(";", index + 1) == index + 1)
+            break;
+        pos = index + 1;
+    }
+}
+
+Session Cookie::getSession(std::string sessionID)
+{
+    std::vector<Session>::iterator itr = _sessionList.begin();
+
+    for (; itr != _sessionList.end(); ++itr)
+    {
+        if (itr->getSessionID() == sessionID)
+            return (*itr);
+    }
+    return (*(_sessionList.begin()));
+}
+
+void    Cookie::deleteSession(std::string sessionID)
+{
+    std::vector<Session>::iterator itr = _sessionList.begin();
+
+    for (; itr != _sessionList.end(); ++itr)
+    {
+        if (itr->getSessionID() == sessionID)
+        {
+            _sessionList.erase(itr);
+            return ;
+        }
+    }
+    return ;
+}
+
+void    Cookie::controlSession(std::map<std::string, std::string> header)
+{
+
+}
+
+Session Cookie::createSession(std::string sessionID, std::string lang)
+{
+    //or heap allocation?
+    Session newSession(sessionID);
+    return (newSession);
 }

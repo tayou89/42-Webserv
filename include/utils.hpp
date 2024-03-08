@@ -12,5 +12,5 @@
 // # endif
 
 std::string getCurrentHttpDate();
-std::string splitBeforeColon(std::string sentence);
-std::string splitAfterColon(std::string sentence);
+std::string splitBefore(std::string sentence, std::string splitString);
+std::string splitAfter(std::string sentence, std::string splitString);
