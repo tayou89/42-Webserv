@@ -51,10 +51,8 @@ void KqueueLoop::disconnect(int socket) {
   delete _clientList[socket]; // allocation delete
   _clientList[socket] = NULL;
   _clientList.erase(socket);
+  std::cout << "6close: " << socket << std::endl;
   close(socket);
-  std::cout << "disconnect: " << socket << "\n";
-  if (_clientList.find(socket) == _clientList.end())
-    std::cout << "successfully disconnected\n";
 }
 
 void KqueueLoop::run() {
@@ -73,33 +71,31 @@ void KqueueLoop::run() {
     for (int idx = 0; idx < eventCount; idx++) {
       currentEvent = &newEvents[idx];
       eventStatus = 0;
-      if (currentEvent->flags & EV_ERROR)
+      if (currentEvent->flags & EV_ERROR) {
         continue; // skip the error event
+      }
 
       if (_serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
-        if (newClient == 0)
+        if (newClient == 0 || newClient == -1) {
+          std::cout << newClient << ": invalid client fd\n";
           continue;
-        fcntl(newClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        }
         _clientList[newClient] = new ClientSocket(
             newClient, _serverList[currentEvent->ident], _envp);
-        if (newClient == -1)
-          exit(1); // accept error
         newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
-        std::cout << "hello " << newClient << std::endl;
+        // std::cout << "hello " << newClient << std::endl;
       } else {
         if (currentEvent->filter == EVFILT_READ) {
           eventStatus = _clientList[currentEvent->ident]->readSocket();
           if (eventStatus == WRITE_MODE) { // change event status
-            std::cout << "write mode\n";
             newEvent(currentEvent->ident, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
             newEvent(currentEvent->ident, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
           }
         } else if (currentEvent->filter == EVFILT_WRITE) {
           eventStatus = _clientList[currentEvent->ident]->writeSocket();
           if (eventStatus == READ_MODE) { // write finish, change status
-            std::cout << "read mode\n";
             _clientList[currentEvent->ident]->clearSocket();
             newEvent(currentEvent->ident, EVFILT_READ, EV_ENABLE, 0, 0, NULL);
             newEvent(currentEvent->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
@@ -107,12 +103,12 @@ void KqueueLoop::run() {
         }
 
         /* connection ended */
-        if (eventStatus == DISCONNECT) {
+        if (eventStatus == DISCONNECT)
           disconnect(currentEvent->ident);
-        } else if (eventStatus == WRITE_ERROR) {
-          /* Write Event Error Process */
-          std::cout << "Write Error occurs\n";
-        }
+        // else if (eventStatus == WRITE_ERROR) {
+        //   /* Write Event Error Process */
+        //   std::cout << "Write Error occurs\n";
+        // }
         /* 서버 내부 동작 구현 */
         // timeout exception 먼저 처리 (Event객체 내부구현)
         // client socket event occurs (READ or WRITE)

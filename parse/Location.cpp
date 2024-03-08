@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 Location::Location(void)
-    : _autoindex(false), _clientBodyMax(1024 * 1024), _clientHeaderMax(32 * 1024)
+    : _autoindex(false), _clientBodyMax(1024 * 1024), _clientHeaderMax(32 * 1024), _cgiPass(false)
 {
 }
 
@@ -34,6 +34,7 @@ Location &Location::operator=(const Location &object)
     _indexes           = object._indexes;
     _errorPages        = object._errorPages;
     _acceptedMethods   = object._acceptedMethods;
+    _cgiPass           = object._cgiPass;
     return (*this);
 }
 
@@ -48,6 +49,7 @@ Location::Location(const std::string &path, const std::string &text, const Locat
     _return          = location._return;
     _indexes         = location._indexes;
     _errorPages      = location._errorPages;
+    _cgiPass         = location._cgiPass;
     _setFunctionPTRMap();
     _setConfigData();
 }
@@ -56,7 +58,8 @@ Location::Location(const std::string &configText, const string_set &directiveSet
     : ConfigBase(configText, directiveSet),
       _autoindex(false),
       _clientBodyMax(1024 * 1024),
-      _clientHeaderMax(32 * 1024)
+      _clientHeaderMax(32 * 1024),
+      _cgiPass(false)
 {
     _setFunctionPTRMap();
 }
@@ -84,6 +87,11 @@ const size_t &Location::getClientHeaderMax(void) const
 const bool &Location::getAutoIndex(void) const
 {
     return (_autoindex);
+}
+
+const bool &Location::getCGIPass(void) const
+{
+    return (_cgiPass);
 }
 
 const std::vector<std::string> &Location::getIndexes(void) const
@@ -159,6 +167,7 @@ std::set<std::string> Location::_getDirectiveSet(void) const
     directiveSet.insert(CLIENT_MAX_DIRECTIVE);
     directiveSet.insert(HEADER_MAX_DIRECTIVE);
     directiveSet.insert(LIMIT_EXCEPT_DIRECTIVE);
+    directiveSet.insert(CGI_PASS_DIRECTIVE);
     return (directiveSet);
 }
 
@@ -172,6 +181,7 @@ void Location::_setFunctionPTRMap(void)
     _locationFunctions[CLIENT_MAX_DIRECTIVE]   = &Location::_setClientBodyMax;
     _locationFunctions[HEADER_MAX_DIRECTIVE]   = &Location::_setClientHeaderMax;
     _locationFunctions[LIMIT_EXCEPT_DIRECTIVE] = &Location::_setAcceptedMethods;
+    _locationFunctions[CGI_PASS_DIRECTIVE]     = &Location::_setCGIPass;
 }
 
 void Location::_setDirectiveData(void)
@@ -240,4 +250,12 @@ void Location::_setClientHeaderMax(void)
 void Location::_setAcceptedMethods(void)
 {
     _acceptedMethods = _parameters;
+}
+
+void Location::_setCGIPass(void)
+{
+    if (_parameters[0] == "on")
+        _cgiPass = true;
+    else
+        _cgiPass = false;
 }

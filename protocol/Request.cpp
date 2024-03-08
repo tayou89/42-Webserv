@@ -106,15 +106,11 @@ void Request::readHeader(std::string header) {
 
   while (1) {
     index = header.find("\r\n", pos + 1);
-    std::cout << "///////////HEADER///////////\n";
-    std::cout << header << "\n";
     if (index == std::string::npos)
       break;
     tmp = header.substr(pos, index - pos);
     std::string key = splitBeforeColon(tmp);
-    std::cout << key << " -> key\n";
     std::string value = splitAfterColon(tmp);
-    std::cout << value << " -> value\n";
     this->_requestHeader.insert(std::make_pair(key, value));
     if (header.find("\r\n", index + 1) == index + 1)
       break;
@@ -201,17 +197,11 @@ void Request::setRequestHeader(std::string key, std::string value) {
 }
 
 void Request::convertURI() {
-  //   std::map<std::string, Location> location = _config.getLocationMap();
-  //   std::map<std::string, Location>::iterator target =
-  //   location.find(_requestURI);
-  Location target = _config.getLocation(_requestURI);
-  target.setIndexFile();
-
-  std::string temp = target.getIndexFile().getPath();
-  /* URI가 존재하지 않으면 404 not found or 403 forbidden */
-  //   if (temp.size() == 0)
-  //     throw _errorResponse.create404Response();
-
-  //   _requestURI = target->second.getIndexFile().getPath();
-  _requestURI = temp;
+  try {
+    Location target = _config.getLocation(_requestURI);
+    target.setIndexFile();
+    _requestURI = target.getIndexFile().getPath();
+  } catch (std::string &e) {
+    throw (_errorResponse.create404Response(_config, _config.getServerName()));
+  }
 }

@@ -28,6 +28,15 @@ Config &Config::operator=(const Config &object)
     return (*this);
 }
 
+Config::Config(const std::string &serverBlock)
+    : Location(serverBlock, _getDirectiveSet()), _portNumber(0)
+{
+    _setFunctionPTRSet();
+    _setConfigData();
+    _checkConfigValidation();
+    _setLocation();
+}
+
 const std::string &Config::getServerName(void) const
 {
     return (_serverName);
@@ -61,6 +70,7 @@ const Location &Config::getLocation(const std::string &urlPath) const
     const_location_iterator iterator;
     const_location_iterator endPoint = _locations.end();
     std::string             key;
+    size_t                  startIndex, endIndex;
 
     iterator = _locations.find(urlPath);
     if (iterator != endPoint)
@@ -68,22 +78,22 @@ const Location &Config::getLocation(const std::string &urlPath) const
     for (iterator = _locations.begin(); iterator != endPoint; iterator++)
     {
         key = iterator->first;
-        if (key[0] == '~' && urlPath.find(key.substr(1)) != std::string::npos)
-            return (iterator->second);
+        if (key[0] == '~')
+        {
+            key        = key.substr(1);
+            startIndex = urlPath.find(key);
+            if (startIndex != std::string::npos)
+            {
+                endIndex = startIndex + key.size();
+                if (urlPath[endIndex] == '/' || urlPath.size() == endIndex)
+                    return (iterator->second);
+            }
+        }
     }
     if (urlPath == "/")
         return (*this);
     else
-        throw(std::runtime_error("Error: Can't find locaiton for: " + urlPath));
-}
-
-Config::Config(const std::string &serverBlock)
-    : Location(serverBlock, _getDirectiveSet()), _portNumber(0)
-{
-    _setFunctionPTRSet();
-    _setConfigData();
-    _checkConfigValidation();
-    _setLocation();
+        throw(std::string("Error: Can't find locaiton for: " + urlPath));
 }
 
 std::set<std::string> Config::_getDirectiveSet(void) const
