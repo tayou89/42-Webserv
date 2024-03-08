@@ -196,12 +196,47 @@ void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
 
+int Request::rateURI(std::string location) const {
+  std::vector<std::string> loc = splitString(location, '/');
+  std::vector<std::string> url = splitString(_requestURI, '/');
+  std::vector<std::string>::iterator locIter = loc.begin();
+  std::vector<std::string>::iterator urlIter = url.begin();
+  int score = 0;
+
+  for (; locIter != loc.end() && urlIter != url.end(); locIter++, urlIter++) {
+    if (*locIter == *urlIter)
+      score++;
+  }
+  if (score == loc.size())
+    return (score);
+  else
+    return (0);
+}
+
 void Request::convertURI() {
-  try {
-    Location target = _config.getLocation(_requestURI);
-    target.setIndexFile();
-    _requestURI = target.getIndexFile().getPath();
-  } catch (std::string &e) {
-    throw (_errorResponse.create404Response(_config, _config.getServerName()));
+  //   try {
+  //     Location target = _config.getLocation(_requestURI);
+  //     target.setIndexFile();
+  //     _requestURI = target.getIndexFile().getPath();
+  //   } catch (std::string &e) {
+  //     throw (_errorResponse.create404Response(_config,
+  //     _config.getServerName()));
+  //   }
+  std::map<std::string, Location> locationMap = _config.getLocationMap();
+  std::map<std::string, Location>::iterator iter = locationMap.begin();
+  Location target;
+  int rate = 0;
+  int tmp = 0;
+
+  for (; iter != locationMap.end(); iter++) {
+    tmp = rateURI(iter->first);
+    if (tmp > rate) {
+      rate = tmp;
+      target = iter->second;
+    }
+  }
+  if (rate == 0 && locationMap.find("/") != locationMap.end()) {
+    rate = 1;
+    target = locationMap["/"];
   }
 }

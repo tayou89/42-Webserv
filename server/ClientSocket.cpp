@@ -191,5 +191,4 @@ void ClientSocket::clearSocket() {
   _responseString.clear();
   _req = Request();
   _res.initResponse();
-  //   _res = Response();
 }
