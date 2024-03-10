@@ -10,4 +10,4 @@
 #define DISCONNECT 253
 #define WRITE_ERROR 254
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 1023

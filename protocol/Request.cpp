@@ -15,6 +15,7 @@ Request::Request(const Request &copy) {
   this->_requestBody = copy._requestBody;
   this->_requestMethod = copy._requestMethod;
   this->_requestURI = copy._requestURI;
+  this->_location = copy._location;
 }
 
 Request &Request::operator=(const Request &copy) {
@@ -23,6 +24,7 @@ Request &Request::operator=(const Request &copy) {
   this->_requestBody = copy._requestBody;
   this->_requestMethod = copy._requestMethod;
   this->_requestURI = copy._requestURI;
+  this->_location = copy._location;
   return (*this);
 }
 
@@ -170,6 +172,8 @@ std::string Request::getRequestHeader(std::string key) const {
     return ("");
 }
 
+Location Request::getLocation() const { return (_location); }
+
 void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
@@ -225,7 +229,7 @@ void Request::convertURI() {
   //   }
   std::map<std::string, Location> locationMap = _config.getLocationMap();
   std::map<std::string, Location>::iterator iter = locationMap.begin();
-  Location *target = NULL;
+  Location *target;
   int rate = 0;
   int tmp = 0;
 
@@ -247,5 +251,13 @@ void Request::convertURI() {
     target = &locationMap["/"];
 
   /* convert URI to real path */
-  _requestURI = combinePATH(*target, rate);
+  if (target) {
+    // std::cout << target->getRootDirectory() << std::endl;
+    _requestURI = combinePATH(*target, rate);
+    // std::cout << _requestURI << "\n";
+    _location = *target;
+  } else {
+    // no matching location
+    // URI를 서버의 default root + 입력된 URI 또는 defalult index로 변경
+  }
 }

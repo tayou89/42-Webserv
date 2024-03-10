@@ -3,6 +3,7 @@
 #include "Config.hpp"
 #include "ErrorResponse.hpp"
 #include "Request.hpp"
+#include "define.hpp"
 
 class Response {
 public:
@@ -27,7 +28,6 @@ public:
   void setResponseHeader(std::string key, std::string value);
   void setResponseBody(std::string body);
   void setResponse(std::string response);
-  int getResponseFile() const;
   std::map<std::string, std::string> getResponseHeader() const;
   std::string getResponseBody() const;
   std::string getResponse() const;
@@ -40,7 +40,6 @@ private:
 
   char **_envp;
   Config _config;
-  int _responseFile;
   Request _request;
   std::map<std::string, std::string> _responseHeader;
   std::string _responseBody;

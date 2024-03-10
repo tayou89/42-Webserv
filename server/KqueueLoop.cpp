@@ -37,21 +37,12 @@ void KqueueLoop::newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
   _changeList.push_back(temp);
 }
 
-// void KqueueLoop::deleteEvent(struct kevent *event) {
-//   struct kevent temp;
-
-//   EV_SET(&temp, event->ident, event->filter, event->flags, event->fflags,
-//          event->data, event->udata);
-//   _changeList.push_back(temp);
-// }
-
 void KqueueLoop::disconnect(int socket) {
   newEvent(socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
   newEvent(socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
   delete _clientList[socket]; // allocation delete
   _clientList[socket] = NULL;
   _clientList.erase(socket);
-  std::cout << "6close: " << socket << std::endl;
   close(socket);
 }
 

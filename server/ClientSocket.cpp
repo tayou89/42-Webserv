@@ -169,11 +169,6 @@ int ClientSocket::writeSocket() {
   if (writeSize != _responseString.size())
     return (WRITE_ERROR);
 
-  /* getResponseFile()에서 이상한 fd가 반환되는 현상이 있음!!!!!!!!!!!!! */
-  //   std::cout << "5close: " << _res.getResponseFile() << std::endl;
-  //   if (_res.getResponseFile() != 0)
-  //     close(_res.getResponseFile());
-
   if (_req.getRequestHeader("Connection") == "close") {
     return (DISCONNECT);
   }

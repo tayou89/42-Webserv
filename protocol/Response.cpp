@@ -13,7 +13,6 @@ Response Response::operator=(const Response &copy) {
   this->_request = copy._request;
   this->_responseHeader = copy._responseHeader;
   this->_response = copy._response;
-  // this->_errorResponse = copy._errorResponse;
   return (*this);
 }
 
@@ -27,57 +26,57 @@ void Response::checkValidity() {
   DIR *dir = opendir(this->_request.getRequestURI().c_str());
   if (dir != NULL) {
     // 1. check index directive in conf file
-    if (this->_config.getLocation(this->_request.getRequestURI())
-            .getIndexFile()
-            .isAccessible() == true) {
-      // find index files in order, then put it in the response packet
-      if (this->_config.getLocation(this->_request.getRequestURI())
-              .getIndexFile()
-              .isReadable() == true) {
-        std::string path =
-            this->_config.getLocation(this->_request.getRequestURI())
-                .getIndexFile()
-                .getPath();
-        int fd = open(path.c_str(), O_RDONLY);
-        if (fd == -1)
-          throw(this->_errorResponse.create500Response(this->_config));
-        char buf[1000]; // need to change buffer size
-        memset(buf, 0, 1000);
-        std::string body;
-        if (read(fd, buf, 1000) > 0) {
-          std::string tmp_body(buf);
-          body = body + tmp_body;
-          memset(buf, 0, 1000);
-        }
-        std::cout << "3close: " << fd << std::endl;
-        close(fd);
-        this->setResponseBody(body);
-        this->setResponseHeader("Content-Length", std::to_string(body.size()));
-        this->setResponseHeader("Last-Modified", getCurrentHttpDate());
-        this->setResponse(this->_errorResponse.create200Response(
-            this->_config.getServerName(), getResponseHeader(),
-            getResponseBody()));
-      }
-    }
+    // if (this->_request.getLocation().getIndexFile().isAccessible() == true) {
+    //   // find index files in order, then put it in the response packet
+    //   //   if (this->_config.getLocation(this->_request.getRequestURI())
+    //   //           .getIndexFile()
+    //   //           .isReadable() == true) {
+    //   std::string path =
+    //       this->_config.getLocation(this->_request.getRequestURI())
+    //           .getIndexFile()
+    //           .getPath();
+    //   int fd = open(path.c_str(), O_RDONLY);
+    //   if (fd == -1)
+    //     throw(this->_errorResponse.create500Response(this->_config));
+    //   char buf[1000]; // need to change buffer size
+    //   memset(buf, 0, 1000);
+    //   std::string body;
+    //   if (read(fd, buf, 1000) > 0) {
+    //     std::string tmp_body(buf);
+    //     body = body + tmp_body;
+    //     memset(buf, 0, 1000);
+    //   }
+    //   close(fd);
+    //   this->setResponseBody(body);
+    //   this->setResponseHeader("Content-Length", std::to_string(body.size()));
+    //   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
+    //   this->setResponse(this->_errorResponse.create200Response(
+    //       this->_config.getServerName(), getResponseHeader(),
+    //       getResponseBody()));
+    //   //   }
+    // }
 
     // 2. check if autoindex is enabled
-    if (this->_config.getLocation(this->_request.getRequestURI())
-            .getAutoIndex() == true) {
+    if (this->_request.getLocation().getAutoIndex() == true) {
       // read all files in the directory and put it in the response packet
       struct dirent *ent;
       std::string filelist = "";
       while ((ent = readdir(dir)) != NULL)
         filelist = filelist + ent->d_name + "\n";
       this->setResponseBody(filelist);
-      this->setResponseHeader("Content-Length",
-                              std::to_string(filelist.size()));
-      // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
-      this->setResponseHeader("Content-Type", "directory Listing");
+
+      std::stringstream ss;
+      ss << filelist.size();
+      this->setResponseHeader("Content-Length", ss.str());
+      this->setResponseHeader("Content-Type", "text/html");
       // need to change
       this->setResponseHeader("Last-Modified", getCurrentHttpDate());
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
           getResponseBody()));
+    } else {
+      // auto index not available
+      throw _errorResponse.create403Response(_config);
     }
     closedir(dir);
   } else { // if URI is a file
@@ -136,17 +135,32 @@ std::string Response::getPath(char **envp, std::string cmd) {
 }
 
 void Response::GET_HEAD() {
-  char readbuf[10000];
-  _responseFile = open(this->_request.getRequestURI().c_str(), O_RDONLY);
-  if (_responseFile == -1)
+  char readbuf[BUFFER_SIZE + 1];
+  int readSize = BUFFER_SIZE;
+  std::string body;
+
+  int fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
+  if (fd == -1)
     throw(this->_errorResponse.create404Response(_config));
-  int readSize = read(_responseFile, readbuf, 10000);
-  if (readSize == -1)
-    throw(this->_errorResponse.create500Response(this->_config));
-  readbuf[readSize] = '\0';
+
+  body.clear();
+  while (readSize == BUFFER_SIZE) {
+    memset(readbuf, 0, BUFFER_SIZE + 1);
+    readSize = read(fd, readbuf, BUFFER_SIZE);
+    if (readSize < 0) {
+      close(fd);
+      throw _errorResponse.create500Response(this->_config);
+    }
+    std::string tmp(readbuf);
+    body += tmp;
+  }
+  close(fd);
   if (this->_request.getRequestMethod() == "GET")
-    this->setResponseBody(readbuf);
-  this->setResponseHeader("Content-Length", std::to_string(readSize));
+    this->setResponseBody(body);
+
+  std::stringstream ss;
+  ss << body.size();
+  this->setResponseHeader("Content-Length", ss.str());
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
@@ -169,7 +183,6 @@ void Response::DELETE() {
     throw(this->_errorResponse.create204Response(
         this->_config)); // file does not exist, thus cannot be
                          // deleted, 204 No Content
-  std::cout << "4close: " << fd << std::endl;
   close(fd);
   std::string rmPath = getPath(this->getEnvp(), "rm");
 
@@ -252,8 +265,6 @@ void Response::setResponseBody(std::string body) { this->_responseBody = body; }
 
 void Response::setResponse(std::string response) { this->_response = response; }
 
-int Response::getResponseFile() const { return (_responseFile); }
-
 std::map<std::string, std::string> Response::getResponseHeader() const {
   return (this->_responseHeader);
 }
@@ -263,7 +274,6 @@ std::string Response::getResponseBody() const { return (this->_responseBody); }
 std::string Response::getResponse() const { return (this->_response); }
 
 void Response::initResponse() {
-  _responseFile = -1;
   _request = Request();
   _responseHeader.clear();
   _responseBody.clear();
