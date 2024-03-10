@@ -11,7 +11,6 @@ WebServer::WebServer(Config conf) : _config(conf) {
   int optval = 1;
   if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &optval,
                  sizeof(optval)) < 0) {
-    std::cout << "7close: " << _listenSocket << std::endl;
     close(_listenSocket); // 소켓 닫기
     exit(1);
   }

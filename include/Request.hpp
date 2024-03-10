@@ -34,6 +34,7 @@ public:
   std::string getRequestBody() const;
   std::map<std::string, std::string> getRequestHeader() const;
   std::string getRequestHeader(std::string key) const;
+  Location getLocation() const;
   void setRequestHeader(std::string key, std::string value);
 
   //   int extensionURI(std::string location) const;
@@ -48,6 +49,7 @@ private:
   std::string _requestBody;
   std::string _requestMethod;
   std::string _requestURI;
+  Location _location;
 
   errorResponse _errorResponse;
 };

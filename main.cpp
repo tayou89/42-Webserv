@@ -13,7 +13,6 @@ void signalHandler(int signal) {
 
   std::map<int, IServer *>::iterator iter = serverMap.begin();
   for (; iter != serverMap.end(); iter++) {
-    std::cout << "1close: " << iter->second->getListenSocket() << std::endl;
     close(iter->second->getListenSocket());
     delete iter->second;
   }
