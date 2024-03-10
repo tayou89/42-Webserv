@@ -3,8 +3,7 @@
 Cookie::Cookie()
 {
     std::string sessionID = "defaultSession";
-    std::string lang = "null";
-    _sessionList.push_back(createSession(sessionID, lang));
+    _sessionList.push_back(createSession(sessionID));
 }
 
 Cookie::~Cookie()
@@ -65,9 +64,9 @@ std::string Cookie::makeNewSID()
 
 std::string Cookie::controlCookies(std::map<std::string, std::string> header)
 {
-    std::map<std::string, std::string>::iterator itr = header.find("Cookie");
+    std::map<std::string, std::string>::iterator itrHeader = header.find("Cookie");
     
-    if (itr == header.end())
+    if (itrHeader == header.end())
     {
         //cookie header does not exist -> make new cookie, write it, return it
         std::string newSID = this->makeNewSID();
@@ -78,21 +77,25 @@ std::string Cookie::controlCookies(std::map<std::string, std::string> header)
     {
         std::string sid = "";
         //read the cookie header, then make user specified response with that information
-        setCookieHeader(itr->second);
-        std::map<std::string, std::string>::iterator itr = _reqCookieHeader.begin();
-        for (; itr != _reqCookieHeader.end(); ++itr)
+        setCookieHeader(itrHeader->second);
+        std::map<std::string, std::string>::iterator itrReq = _reqCookieHeader.begin();
+        for (; itrReq != _reqCookieHeader.end(); ++itrReq)
         {
-            if (itr->first == "SID")
-                sid = itr->second;
+            if (itrReq->first == "SID")
+                sid = itrReq->second;
             else
-                _resCookieHeader.insert(std::make_pair(itr->first, itr->second));
+                _resCookieHeader.insert(std::make_pair(itrReq->first, itrReq->second));
         }
         if (sid != "")
         {
-            std::map<std::string, std::string> ses = getSession(sid).getSessionMap();
-            std::map<std::string, std::string>::iterator sesItr = ses.begin();
-            for (; itr != ses.end(); ++itr)
-                _resCookieHeader[itr->first] = itr->second; //중복될 경우 덮어씌워야해서 []
+            Session tmpSession = getSession(sid);
+            if (tmpSession.getSessionID() != "defaultSession")
+            {
+                std::map<std::string, std::string> ses = tmpSession.getSessionMap();
+                std::map<std::string, std::string>::iterator itrSes = ses.begin();
+                for (; itrSes != ses.end(); ++itrSes)
+                    _resCookieHeader[itrSes->first] = itrSes->second; //중복될 경우 덮어씌워야해서 []
+            }
         }
         //go through _resCookieHeader to make user friendly response
     }
@@ -107,15 +110,13 @@ void    Cookie::setCookieHeader(std::string rawCookie)
     while (1)
     {
         index = rawCookie.find(";", pos);
-        if (index == std::string::npos)
-            break;
         tmp = rawCookie.substr(pos, index - pos);
         std::string key = splitBefore(tmp, "=");
         std::string value = splitAfter(tmp, "=");
         this->_reqCookieHeader.insert(std::make_pair(key, value));
-        if (rawCookie.find(";", index + 1) == index + 1)
+        if (index == std::string::npos)
             break;
-        pos = index + 1;
+        pos = index + 2;
     }
 }
 
@@ -151,7 +152,7 @@ void    Cookie::controlSession(std::map<std::string, std::string> header)
 
 }
 
-Session Cookie::createSession(std::string sessionID, std::string lang)
+Session Cookie::createSession(std::string sessionID)
 {
     //or heap allocation?
     Session newSession(sessionID);

@@ -23,7 +23,7 @@ class Cookie
         Session getSession(std::string sessionID);
         void    deleteSession(std::string sessionID);
         void    controlSession(std::map<std::string, std::string> header);
-        Session createSession(std::string sessionID, std::string lang);
+        Session createSession(std::string sessionID);
         void    setCookieHeader(std::string rawCookie);
     private :
         Cookie(const Cookie &copy);
