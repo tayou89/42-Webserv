@@ -14,14 +14,14 @@ class errorResponse
         ~errorResponse();
 
         std::string     create200Response(std::string serverName, std::map<std::string, std::string> responseHeader, std::string responseBody);
-        std::string		create204Response(Location loc, std::string serverName);
-		std::string		create400Response(Location loc, std::string serverName);
-		std::string		create404Response(Config conf, std::string serverName);
-		std::string		create405Response(Location loc, std::string serverName);
-		std::string 	create413Response(Location loc, std::string serverName);
-		std::string		create414Response(Location loc, std::string serverName);
-		std::string		create500Response(Location loc, std::string serverName);
-		std::string 	create505Response(Location loc, std::string serverName);
+        std::string		create204Response(Config conf);
+		std::string		create400Response(Config conf);
+		std::string		create404Response(Config conf);
+		std::string		create405Response(Config conf);
+		std::string 	create413Response(Config conf);
+		std::string		create414Response(Config conf);
+		std::string		create500Response(Config conf);
+		std::string 	create505Response(Config conf);
     private:
         errorResponse(const errorResponse& copy);
         errorResponse operator=(const errorResponse& copy);

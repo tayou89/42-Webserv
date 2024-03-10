@@ -41,9 +41,7 @@ void Response::checkValidity() {
                 .getPath();
         int fd = open(path.c_str(), O_RDONLY);
         if (fd == -1)
-          throw(this->_errorResponse.create500Response(
-              this->_config.getLocation(this->_request.getRequestURI()),
-              this->_config.getServerName()));
+          throw(this->_errorResponse.create500Response(this->_config));
         char buf[1000]; // need to change buffer size
         memset(buf, 0, 1000);
         std::string body;
@@ -111,9 +109,7 @@ void Response::executeMethod() {
   else if (this->_request.getRequestMethod() == "TRACE")
     TRACE();
   else
-    throw(this->_errorResponse.create405Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create405Response(this->_config));
 }
 
 char **Response::getEnvp() const { return (this->_envp); }
@@ -136,9 +132,7 @@ std::string Response::getPath(char **envp, std::string cmd) {
     path = splitAfterColon(path);
   }
   // cannot find cmd, so 500 internal server error
-  throw(this->_errorResponse.create500Response(
-      this->_config.getLocation(this->_request.getRequestURI()),
-      this->_config.getServerName()));
+  throw(this->_errorResponse.create500Response(this->_config));
   return ("");
 }
 
@@ -146,15 +140,12 @@ void Response::GET_HEAD() {
   char readbuf[10000];
   _responseFile = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (_responseFile == -1)
-    throw(this->_errorResponse.create404Response(_config,
-                                                 _config.getServerName()));
+    throw(this->_errorResponse.create404Response(_config));
   // this->_config.getLocation(this->_request.getRequestURI()),
   // this->_config.getServerName()));
   int readSize = read(_responseFile, readbuf, 10000);
   if (readSize == -1)
-    throw(this->_errorResponse.create500Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create500Response(this->_config));
   readbuf[readSize] = '\0';
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(readbuf);
@@ -179,9 +170,7 @@ void Response::DELETE() {
 
   fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (fd == -1)
-    throw(this->_errorResponse.create204Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName())); // file does not exist, thus cannot be
+    throw(this->_errorResponse.create204Response(this->_config)); // file does not exist, thus cannot be
                                          // deleted, 204 No Content
   std::cout << "4close: " << fd << std::endl;
   close(fd);
@@ -190,9 +179,7 @@ void Response::DELETE() {
   // leak warning
   int pid = fork();
   if (pid < 0)
-    throw(this->_errorResponse.create500Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create500Response(this->_config));
   else if (pid == 0) {
     char **option = (char **)malloc(sizeof(char *) * 3);
     option[0] = strdup("rm\0");
@@ -219,8 +206,7 @@ void Response::PUT() {
 
   fd = open(this->_request.getRequestURI().c_str(), O_WRONLY | O_TRUNC);
   if (fd == -1)
-    throw(this->_errorResponse.create404Response(_config,
-                                                 _config.getServerName()));
+    throw(this->_errorResponse.create404Response(_config));
   // this->_config.getLocation(this->_request.getRequestURI()),
   // this->_config.getServerName()));
   write(fd, this->_request.getRequestBody().c_str(),
@@ -232,14 +218,10 @@ void Response::PUT() {
 
 void Response::OPTIONS() {
   if (this->_request.getRequestHeader("Origins") == "")
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   int fd = open(this->_request.getRequestHeader("Origins").c_str(), O_RDONLY);
   if (fd == -1)
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->_request.getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   this->setResponseHeader("Access-Control-Allow-Origin",
                           this->_request.getRequestHeader("Origins"));
   this->setResponse(this->_errorResponse.create200Response(
