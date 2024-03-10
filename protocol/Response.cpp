@@ -20,7 +20,6 @@ Response Response::operator=(const Response &copy) {
 std::string Response::setResponse(Request _request) {
   this->_request = _request;
   this->checkValidity();
-  // this->sendResponse();
   return (this->getResponse());
 }
 
@@ -141,8 +140,6 @@ void Response::GET_HEAD() {
   _responseFile = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (_responseFile == -1)
     throw(this->_errorResponse.create404Response(_config));
-  // this->_config.getLocation(this->_request.getRequestURI()),
-  // this->_config.getServerName()));
   int readSize = read(_responseFile, readbuf, 10000);
   if (readSize == -1)
     throw(this->_errorResponse.create500Response(this->_config));
@@ -150,7 +147,6 @@ void Response::GET_HEAD() {
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(readbuf);
   this->setResponseHeader("Content-Length", std::to_string(readSize));
-  // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
@@ -170,8 +166,9 @@ void Response::DELETE() {
 
   fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (fd == -1)
-    throw(this->_errorResponse.create204Response(this->_config)); // file does not exist, thus cannot be
-                                         // deleted, 204 No Content
+    throw(this->_errorResponse.create204Response(
+        this->_config)); // file does not exist, thus cannot be
+                         // deleted, 204 No Content
   std::cout << "4close: " << fd << std::endl;
   close(fd);
   std::string rmPath = getPath(this->getEnvp(), "rm");

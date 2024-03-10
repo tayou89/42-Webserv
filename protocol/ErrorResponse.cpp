@@ -50,8 +50,7 @@ std::string errorResponse::create204Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
@@ -77,8 +76,7 @@ std::string errorResponse::create400Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
@@ -105,15 +103,14 @@ std::string errorResponse::create404Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
 std::string errorResponse::create405Response(Config conf) {
   std::string response = "HTTP/1.1 405 Method Not Allowed\r\n" +
-                         getCurrentHttpDate() + "Server: " + conf.getServerName() +
-                         "\r\n";
+                         getCurrentHttpDate() +
+                         "Server: " + conf.getServerName() + "\r\n";
   std::string body;
   int readSize;
   int contentLength = 0;
@@ -133,15 +130,14 @@ std::string errorResponse::create405Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
 std::string errorResponse::create413Response(Config conf) {
   std::string response = "HTTP/1.1 413 Request Entity Too Large\r\n" +
-                         getCurrentHttpDate() + "Server: " + conf.getServerName() +
-                         "\r\n";
+                         getCurrentHttpDate() +
+                         "Server: " + conf.getServerName() + "\r\n";
   std::string body;
   int readSize;
   int contentLength = 0;
@@ -161,15 +157,14 @@ std::string errorResponse::create413Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
 std::string errorResponse::create414Response(Config conf) {
   std::string response = "HTTP/1.1 414 URI Too Long\r\n" +
-                         getCurrentHttpDate() + "Server: " + conf.getServerName() +
-                         "\r\n";
+                         getCurrentHttpDate() +
+                         "Server: " + conf.getServerName() + "\r\n";
   std::string body;
   int readSize;
   int contentLength = 0;
@@ -189,16 +184,15 @@ std::string errorResponse::create414Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
 std::string errorResponse::create500Response(Config conf) {
   std::string response = "HTTP/1.1 500 Internal Server Error\r\n" +
-                         getCurrentHttpDate() + "Server: " + conf.getServerName() +
-                         "\r\n";
- std::string body;
+                         getCurrentHttpDate() +
+                         "Server: " + conf.getServerName() + "\r\n";
+  std::string body;
   int readSize;
   int contentLength = 0;
 
@@ -217,15 +211,14 @@ std::string errorResponse::create500Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
 
 std::string errorResponse::create505Response(Config conf) {
   std::string response = "HTTP/1.1 505 HTTP Version Not Supported\r\n" +
-                         getCurrentHttpDate() + "Server: " + conf.getServerName() +
-                         "\r\n";
+                         getCurrentHttpDate() +
+                         "Server: " + conf.getServerName() + "\r\n";
   std::string body;
   int readSize;
   int contentLength = 0;
@@ -245,7 +238,6 @@ std::string errorResponse::create505Response(Config conf) {
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
   response = response + body;
   std::cout << "2close: " << fd << std::endl;
-  if (fd != 0)
-    close(fd);
+  close(fd);
   return (response);
 }
