@@ -124,10 +124,10 @@ std::string Response::getPath(char **envp, std::string cmd) {
     envp++;
   }
   while (path.size() > 0) {
-    std::string RmPath = splitBeforeColon(path) + "/" + cmd;
+    std::string RmPath = splitBefore(path, ":") + "/" + cmd;
     if (access(RmPath.c_str(), X_OK) != -1)
       return (RmPath);
-    path = splitAfterColon(path);
+    path = splitAfter(path, ":");
   }
   // cannot find cmd, so 500 internal server error
   throw(this->_errorResponse.create500Response(this->_config));

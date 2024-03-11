@@ -15,6 +15,6 @@
 // # endif
 
 std::string getCurrentHttpDate();
-std::string splitBeforeColon(std::string sentence);
-std::string splitAfterColon(std::string sentence);
+std::string splitBefore(std::string sentence, std::string splitWord);
+std::string splitAfter(std::string sentence, std::string splitWord);
 std::vector<std::string> splitString(const std::string &input, char delimiter);

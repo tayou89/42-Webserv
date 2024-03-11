@@ -34,7 +34,6 @@ void Request::setRequest(std::string packet) {
   //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
   this->readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
-  std::cout << "this is method:" << getRequestMethod() << std::endl;
   std::string header = packet.substr(packet.find("\r\n") + 2);
   // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/
   this->readHeader(header);
@@ -99,8 +98,8 @@ void Request::readHeader(std::string header) {
     if (index == std::string::npos)
       break;
     tmp = header.substr(pos, index - pos);
-    std::string key = splitBeforeColon(tmp);
-    std::string value = splitAfterColon(tmp);
+    std::string key = splitBefore(tmp, ":");
+    std::string value = splitAfter(tmp, ":");
     this->_requestHeader.insert(std::make_pair(key, value));
     if (header.find("\r\n", index + 1) == index + 1)
       break;
