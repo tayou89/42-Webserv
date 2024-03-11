@@ -16,6 +16,7 @@
 #define AUTOINDEX_DIRECTIVE    "autoindex"
 #define REDIRECTION_DIRECTIVE  "return"
 #define LIMIT_EXCEPT_DIRECTIVE "limit_except"
+#define CGI_PASS_DIRECTIVE     "cgi_pass"
 
 class ConfigUtil
 {

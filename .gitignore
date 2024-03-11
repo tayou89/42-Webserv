@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# etc
+.DS_Store
+.clang-format

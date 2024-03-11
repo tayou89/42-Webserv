@@ -1,7 +1,10 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <unistd.h>
+#include <vector>
 
 #ifndef OPEN_MAX
 #define OPEN_MAX 256
@@ -12,5 +15,6 @@
 // # endif
 
 std::string getCurrentHttpDate();
-std::string splitBefore(std::string sentence, std::string splitString);
-std::string splitAfter(std::string sentence, std::string splitString);
+std::string splitBeforeColon(std::string sentence);
+std::string splitAfterColon(std::string sentence);
+std::vector<std::string> splitString(const std::string &input, char delimiter);

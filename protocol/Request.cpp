@@ -15,6 +15,7 @@ Request::Request(const Request &copy) {
   this->_requestBody = copy._requestBody;
   this->_requestMethod = copy._requestMethod;
   this->_requestURI = copy._requestURI;
+  this->_location = copy._location;
 }
 
 Request &Request::operator=(const Request &copy) {
@@ -23,13 +24,14 @@ Request &Request::operator=(const Request &copy) {
   this->_requestBody = copy._requestBody;
   this->_requestMethod = copy._requestMethod;
   this->_requestURI = copy._requestURI;
+  this->_location = copy._location;
   return (*this);
 }
 
 void Request::setRequest(std::string packet) {
   //   if (packet.find("\r\n\r\n") == std::string::npos ||
   //       packet.find("\r\n") == std::string::npos)
-  //     throw(this->_errorResponse.create400Response());
+  //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
   this->readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
 
@@ -47,9 +49,7 @@ void Request::readStartLine(std::string startLine,
   std::string::size_type pos2 = startLine.find(" ", pos1 + 1);
 
   if (pos1 == std::string::npos || pos2 == std::string::npos) {
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   }
   this->_requestMethod = startLine.substr(0, pos1);
   this->_requestURI = startLine.substr(pos1 + 1, pos2 - pos1 - 1);
@@ -58,9 +58,7 @@ void Request::readStartLine(std::string startLine,
   // if it is not method sp URI sp HTTP-Version, create 400 response
   if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
       requestHTTPVersion.size() == 0) {
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   }
 
   // if it is not GET, HEAD, DELETE, OPTIONS, POST, PUT, TRACE, create 400
@@ -69,31 +67,23 @@ void Request::readStartLine(std::string startLine,
         this->_requestMethod == "DELETE" || this->_requestMethod == "OPTIONS" ||
         this->_requestMethod == "POST" || this->_requestMethod == "PUT" ||
         this->_requestMethod == "TRACE")) {
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   }
 
   // if the requestURI is longer than large_client_header_buffers, create 414
   // response
   if (this->_requestURI.size() >
       static_cast<unsigned long>(large_client_header_buffers))
-    throw(this->_errorResponse.create414Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create414Response(this->_config));
 
   // if the HTTP-Version is not HTTP/1.1, create 505 response, else create 400
   // response
   if (requestHTTPVersion != "HTTP/1.1") {
     if (requestHTTPVersion == "HTTP/0.9" || requestHTTPVersion == "HTTP/1.0" ||
         requestHTTPVersion == "HTTP/2.0" || requestHTTPVersion == "HTTP/3.0")
-      throw(this->_errorResponse.create505Response(
-          this->_config.getLocation(this->getRequestURI()),
-          this->_config.getServerName()));
+      throw(this->_errorResponse.create505Response(this->_config));
     else {
-      throw(this->_errorResponse.create400Response(
-          this->_config.getLocation(this->getRequestURI()),
-          this->_config.getServerName()));
+      throw(this->_errorResponse.create400Response(this->_config));
     }
   }
 }
@@ -109,8 +99,8 @@ void Request::readHeader(std::string header) {
     if (index == std::string::npos)
       break;
     tmp = header.substr(pos, index - pos);
-    std::string key = splitBefore(tmp, ":");
-    std::string value = splitAfter(tmp, ":");
+    std::string key = splitBeforeColon(tmp);
+    std::string value = splitAfterColon(tmp);
     this->_requestHeader.insert(std::make_pair(key, value));
     if (header.find("\r\n", index + 1) == index + 1)
       break;
@@ -136,9 +126,7 @@ int Request::checkBodyExistence() const {
 
 void Request::checkValidHeader(std::string key, std::string value) {
   if (key.empty() || value.empty()) {
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   }
 
   // check validity of mandatory headers??
@@ -148,29 +136,21 @@ void Request::checkContentLength(int client_max_body_size) {
   if (this->_requestHeader.find("Content-Length") !=
       this->_requestHeader.end()) {
     if (this->_requestHeader["Content-Length"].size() > 10) {
-      throw(this->_errorResponse.create400Response(
-          this->_config.getLocation(this->getRequestURI()),
-          this->_config.getServerName()));
+      throw(this->_errorResponse.create400Response(this->_config));
     }
     if (std::stoi(this->_requestHeader["Content-Length"]) >
         client_max_body_size)
-      throw(this->_errorResponse.create413Response(
-          this->_config.getLocation(this->getRequestURI()),
-          this->_config.getServerName()));
+      throw(this->_errorResponse.create413Response(this->_config));
   }
 }
 
 void Request::readBody(std::string body) {
   if (body.size() > static_cast<unsigned long>(
                         std::stol(this->_requestHeader["Content-Length"])))
-    throw(this->_errorResponse.create413Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create413Response(this->_config));
   else if (body.size() < static_cast<unsigned long>(
                              std::stol(this->_requestHeader["Content-Length"])))
-    throw(this->_errorResponse.create400Response(
-        this->_config.getLocation(this->getRequestURI()),
-        this->_config.getServerName()));
+    throw(this->_errorResponse.create400Response(this->_config));
   else
     this->_requestBody = body;
 }
@@ -192,16 +172,92 @@ std::string Request::getRequestHeader(std::string key) const {
     return ("");
 }
 
+Location Request::getLocation() const { return (_location); }
+
 void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
 
+// int Request::extensionURI(std::string location) const {}
+
+size_t Request::generalURI(std::string location) const {
+  std::vector<std::string> loc = splitString(location, '/');
+  std::vector<std::string> url = splitString(_requestURI, '/');
+  std::vector<std::string>::iterator locIter = loc.begin();
+  std::vector<std::string>::iterator urlIter = url.begin();
+  size_t score = 0;
+
+  /* general location */
+  for (; locIter != loc.end() && urlIter != url.end(); locIter++, urlIter++) {
+    if (*locIter == *urlIter)
+      score++;
+  }
+  if (score == loc.size())
+    return (score);
+  else
+    return (0);
+}
+
+std::string Request::combinePATH(Location target, size_t rate) const {
+  std::vector<std::string> split = splitString(_requestURI, '/');
+  std::stringstream ss;
+  std::string path;
+
+  for (; rate < split.size(); rate++) {
+    ss << "/" << split[rate];
+  }
+  if (ss.str().empty()) {
+    std::vector<std::string> index = target.getIndexes();
+    std::vector<std::string>::iterator iter = index.begin();
+    for (; iter != index.end(); iter++) {
+      path = target.getRootDirectory() + "/" + *iter;
+      if (access(path.c_str(), F_OK) == 0)
+        return (path);
+    }
+  } else
+    path = target.getRootDirectory() + ss.str();
+  return (path);
+}
+
 void Request::convertURI() {
-  try {
-    Location target = _config.getLocation(_requestURI);
-    target.setIndexFile();
-    _requestURI = target.getIndexFile().getPath();
-  } catch (std::string &e) {
-    throw (_errorResponse.create404Response(_config, _config.getServerName()));
+  //   try {
+  //     Location target = _config.getLocation(_requestURI);
+  //     target.setIndexFile();
+  //     _requestURI = target.getIndexFile().getPath();
+  //   } catch (std::string &e) {
+  //     throw (_errorResponse.create404Response(_config));
+  //   }
+  std::map<std::string, Location> locationMap = _config.getLocationMap();
+  std::map<std::string, Location>::iterator iter = locationMap.begin();
+  Location *target;
+  int rate = 0;
+  int tmp = 0;
+
+  /* calculate similarity */
+  for (; iter != locationMap.end(); iter++) {
+    /* cgi extension location */
+    // if (iter->first.find('.') != std::string::npos)
+    //   tmp = extensionURI(iter->first);
+    // else
+    tmp = generalURI(iter->first);
+    if (tmp > rate) {
+      rate = tmp;
+      target = &iter->second;
+    }
+  }
+
+  /* check default location */
+  if (rate == 0 && locationMap.find("/") != locationMap.end())
+    target = &locationMap["/"];
+
+  /* convert URI to real path */
+  if (target) {
+    // std::cout << target->getRootDirectory() << std::endl;
+    _requestURI = combinePATH(*target, rate);
+    // std::cout << _requestURI << "\n";
+    _location = *target;
+  } else {
+    // no matching location
+    // URI를 서버의 default root + 입력된 URI 또는 defalult index로 변경
   }
 }

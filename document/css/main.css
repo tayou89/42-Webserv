@@ -1,11 +1,24 @@
 h1 {
 	text-align: center;
 	vertical-align: middle;
-	font-size: 60px;
-	padding-top: 300px;
+	font-size: 70px;
+	padding-top: 360px;
 }
 
 h2 {
-	font-size: 30px;
+	font-size: 50px;
 	text-align: center;
+
+}
+
+a {
+	text-decoration: underline;
+}
+
+a:link {
+	color: black;
+}
+
+a:visited {
+	color: rgba(102, 102, 102, 0.781);
 }
