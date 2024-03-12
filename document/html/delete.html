@@ -1,52 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Delete Request Example</title>
-</head>
-<body>
-  <h2>Delete page</h2>
-  <div>
-    <input type="file" files name="fileToDelete" id="fileToDelete"><br>
-    <label for="fileToDelete">Select</label><br>
-    <button onclick="doAction()">click me</button>
-
-    <script>
-      let selectedFile;
-
-      function doAction() {
-        if (selectedFile) {
-          alert("File selected: " + selectedFile.name);
-          var filepath = "uploaded/" + selectedFile.name 
-          fetch(filepath, {
-          method: 'DELETE',
-          headers: {'Content-Type': 'application/json',},
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json(); // Process the response body if needed
-        })
-        .then(data => {
-          console.log('DELETE request successful:', data);
-          // Handle the response data or perform additional actions as needed
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          // Handle errors or display an error message to the user
-        });
-        } else {
-          alert("No file selected");
-        }
-      }
-
-      const fileInput = document.getElementById("fileToDelete");
-      fileInput.onchange = () => {
-        selectedFile = fileInput.files[0];
-      };
-    </script>
-  </div>
-</body>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Delete</title>
+	</head>
+	<body>
+		<div>
+			{fileList}
+		</div>
+		<div>
+			{deleteButtonList}
+		</div>
+	</body>
 </html>
+<div>
+	<input type="file" files name="fileToDelete" id="fileToDelete"><br>
+		<label for="fileToDelete">Select</label><br>
+		<button onclick="doAction()">click me</button>
+	</div>
+<script>
+				function doAction(fileName) 
+				{
+				  if (fileName) {
+				    alert("File selected: " + fileName);
+				    var filepath = "uploaded/" + fileName; 
+				    fetch(filepath, { method: 'DELETE', headers: {'Content-Type': 'application/json',},})
+				  .then(response => {
+				    if (!response.ok) {
+				      throw new Error(`HTTP error! Status: ${response.status}`);
+				    }
+				    return response.json(); // Process the response body if needed
+				  })
+				  .then(data => {
+				    console.log('DELETE request successful:', data);
+				    // Handle the response data or perform additional actions as needed
+				  })
+				  .catch(error => {
+				    console.error('Error:', error);
+				    // Handle errors or display an error message to the user
+				  });
+				  } else {
+				    alert("No file selected");
+				  }
+				  location.href="delete.html";
+				}
+		    </script> 

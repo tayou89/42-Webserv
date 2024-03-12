@@ -28,8 +28,8 @@ CGIExecutor &CGIExecutor::operator=(const CGIExecutor &object)
     return (*this);
 }
 
-CGIExecutor::CGIExecutor(const Location &location, const Request &request)
-    : _location(location), _request(request)
+CGIExecutor::CGIExecutor(const Request &request)
+    : _location(request.getLocation()), _request(request)
 {
     _setMetaVariables();
 }
