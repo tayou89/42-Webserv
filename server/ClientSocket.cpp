@@ -151,7 +151,10 @@ int ClientSocket::writeSocket() {
     try {
       //   std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
       _req.convertURI();
-      _res.setResponse(_req);
+      if (_req.getLocation().getCGIPass())
+        ; // cgi execute case
+      else
+        _res.setResponse(_req);
       //   std::cout << "this is method:" << _req.getRequestMethod() <<
       //   std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
       //   std::endl;

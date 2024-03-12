@@ -177,7 +177,21 @@ void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
 
-// int Request::extensionURI(std::string location) const {}
+bool Request::extensionURI(std::string location) const {
+  std::vector<std::string> url = splitString(_requestURI, '/');
+  std::vector<std::string>::iterator urlIter = url.begin();
+  std::string extension = location.substr(location.find("."));
+
+  if (extension.size() == 0)
+    return (false);
+  for (; urlIter != url.end(); urlIter++) {
+    if ((*urlIter).size() > extension.size() &&
+        (*urlIter).compare((*urlIter).size() - extension.size(),
+                           extension.length(), extension) == 0)
+      return (true);
+  }
+  return (false);
+}
 
 size_t Request::generalURI(std::string location) const {
   std::vector<std::string> loc = splitString(location, '/');
@@ -227,11 +241,13 @@ void Request::convertURI() {
 
   /* calculate similarity */
   for (; iter != locationMap.end(); iter++) {
-    /* cgi extension location */
-    // if (iter->first.find('.') != std::string::npos)
-    //   tmp = extensionURI(iter->first);
-    // else
-    tmp = generalURI(iter->first);
+    if (*(iter->first.begin()) == '~' && *(iter->first.begin() + 1) == '.') {
+      if (extensionURI(iter->first)) {
+        _location = iter->second;
+        return;
+      }
+    } else
+      tmp = generalURI(iter->first);
     if (tmp > rate) {
       rate = tmp;
       target = &iter->second;
