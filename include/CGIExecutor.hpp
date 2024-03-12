@@ -15,7 +15,7 @@ class CGIExecutor
         CGIExecutor(const CGIExecutor &object);
         CGIExecutor &operator=(const CGIExecutor &object);
 
-        CGIExecutor(const Location &location, const Request &request);
+        CGIExecutor(const Request &request);
         // 시스템 에러 발생시 1반환, 정상종료시 0반환
         int   execute(void);
         int   getReadFD(void) const;
