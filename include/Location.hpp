@@ -40,6 +40,8 @@ class Location : public ConfigBase
         virtual string_set    _getDirectiveSet(void) const;
         virtual void          _setFunctionPTRMap(void);
         virtual void          _setDirectiveData(void);
+        void                  _inheritUnconditionalData(const Location &location);
+        void                  _inheritConditionalData(const Location &location);
         void                  _setParameters(void);
         void                  _setRootDirectory(void);
         void                  _setIndexes(void);

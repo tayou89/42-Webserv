@@ -2,7 +2,7 @@
 #define CGI_EXECUTOR_HPP
 
 #include "Config.hpp"
-#include "Protocol.hpp"
+#include "Request.hpp"
 #include <map>
 #include <unistd.h>
 
@@ -15,7 +15,7 @@ class CGIExecutor
         CGIExecutor(const CGIExecutor &object);
         CGIExecutor &operator=(const CGIExecutor &object);
 
-        CGIExecutor(const Location &location, const Protocol &protocol);
+        CGIExecutor(const Location &location, const Request &request);
         // 시스템 에러 발생시 1반환, 정상종료시 0반환
         int   execute(void);
         int   getReadFD(void) const;
@@ -40,7 +40,7 @@ class CGIExecutor
         std::string _getContentLength(void) const;
 
         Location    _location;
-        Protocol    _protocol;
+        Request     _request;
         string_map  _metaVariables;
         int         _pipeFD[2];
         pid_t       _pid;
