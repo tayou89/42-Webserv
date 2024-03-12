@@ -1,5 +1,5 @@
 def	getButtonStringList(fileList):
 	buttonStringList = ''
 	for fileName in fileList:
-		buttonStringList +=  "<button onclick=\"doAction(" + fileName + ")\">delete</button>"
+		buttonStringList +=  "<button onclick=\"doAction('{}')\">delete</button>".format(fileName)
 	return (buttonStringList)
