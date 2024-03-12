@@ -219,16 +219,9 @@ std::string Request::combinePATH(Location target, size_t rate) const {
 }
 
 void Request::convertURI() {
-  //   try {
-  //     Location target = _config.getLocation(_requestURI);
-  //     target.setIndexFile();
-  //     _requestURI = target.getIndexFile().getPath();
-  //   } catch (std::string &e) {
-  //     throw (_errorResponse.create404Response(_config));
-  //   }
   std::map<std::string, Location> locationMap = _config.getLocationMap();
   std::map<std::string, Location>::iterator iter = locationMap.begin();
-  Location *target;
+  Location *target = NULL;
   int rate = 0;
   int tmp = 0;
 
@@ -251,12 +244,10 @@ void Request::convertURI() {
 
   /* convert URI to real path */
   if (target) {
-    // std::cout << target->getRootDirectory() << std::endl;
-    _requestURI = combinePATH(*target, rate);
-    // std::cout << _requestURI << "\n";
     _location = *target;
   } else {
-    // no matching location
-    // URI를 서버의 default root + 입력된 URI 또는 defalult index로 변경
+    target = &_config;
+    _location = _config;
   }
+  _requestURI = combinePATH(*target, rate);
 }

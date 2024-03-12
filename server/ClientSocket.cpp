@@ -148,12 +148,13 @@ int ClientSocket::writeSocket() {
     return (CONTINUE);
 
   if (_responseString.size() == 0) {
-    try {      
-      std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
+    try {
+      //   std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
       _req.convertURI();
       _res.setResponse(_req);
-      std::cout << "this is method:" << _req.getRequestMethod() << std::endl;
-      std::cout << "this is URI 2:" << _req.getRequestURI() << std::endl;
+      //   std::cout << "this is method:" << _req.getRequestMethod() <<
+      //   std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
+      //   std::endl;
       _responseString = _res.getResponse();
     } catch (std::string &res) {
       _responseString = res;
