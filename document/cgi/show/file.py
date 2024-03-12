@@ -25,8 +25,10 @@
 #except Exception as e:
 #	print("Content-Type: text/html\n")
 #	print()
-
-import cgi, cgitb, os, file_util, sys
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from util import util
+import cgi, cgitb, os, sys
 
 cgitb.enable()
 
@@ -36,7 +38,7 @@ filePath = '/Users/tayou/Desktop/tayou/42_webserv/document/uploaded' + '/' + fil
 
 try:
     if os.path.isfile(filePath):
-        mimeType = file_util.getMIMEType(fileName)
+        mimeType = util.getMIMEType(fileName)
         if mimeType is None:
             mimeType = 'application/octet-stream'
         
