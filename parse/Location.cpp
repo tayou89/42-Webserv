@@ -41,17 +41,11 @@ Location &Location::operator=(const Location &object)
 Location::Location(const std::string &path, const std::string &text, const Location &location)
     : ConfigBase(text, _getDirectiveSet())
 {
-    _path            = path;
-    _autoindex       = location._autoindex;
-    _clientBodyMax   = location._clientBodyMax;
-    _clientHeaderMax = location._clientHeaderMax;
-    _rootDirectory   = location._rootDirectory;
-    _return          = location._return;
-    _indexes         = location._indexes;
-    _errorPages      = location._errorPages;
-    _cgiPass         = location._cgiPass;
+    _path = path;
+    _inheritUnconditionalData(location);
     _setFunctionPTRMap();
     _setConfigData();
+    _inheritConditionalData(location);
 }
 
 Location::Location(const std::string &configText, const string_set &directiveSet)
@@ -188,6 +182,23 @@ void Location::_setDirectiveData(void)
 {
     _setParameters();
     (this->*_locationFunctions[_configParser.getDirective()])();
+}
+
+void Location::_inheritUnconditionalData(const Location &location)
+{
+    _rootDirectory   = location._rootDirectory;
+    _autoindex       = location._autoindex;
+    _clientBodyMax   = location._clientBodyMax;
+    _clientHeaderMax = location._clientHeaderMax;
+    _return          = location._return;
+    _errorPages      = location._errorPages;
+    _cgiPass         = location._cgiPass;
+}
+
+void Location::_inheritConditionalData(const Location &location)
+{
+    if (_indexes.size() == 0 && _autoindex == false)
+        _indexes = location._indexes;
 }
 
 void Location::_setParameters(void)

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os, cgi, cgitb, sys, html, upload_util
+import os, cgitb, upload_util
 
 cgitb.enable()
 

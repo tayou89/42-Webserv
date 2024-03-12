@@ -20,7 +20,7 @@ CGIExecutor &CGIExecutor::operator=(const CGIExecutor &object)
     if (this == &object)
         return (*this);
     _location      = object._location;
-    _protocol      = object._protocol;
+    _request       = object._request;
     _metaVariables = object._metaVariables;
     _pipeFD[0]     = object._pipeFD[0];
     _pipeFD[1]     = object._pipeFD[1];
@@ -28,8 +28,8 @@ CGIExecutor &CGIExecutor::operator=(const CGIExecutor &object)
     return (*this);
 }
 
-CGIExecutor::CGIExecutor(const Location &location, const Protocol &protocol)
-    : _location(location), _protocol(protocol)
+CGIExecutor::CGIExecutor(const Location &location, const Request &request)
+    : _location(location), _request(request)
 {
     _setMetaVariables();
 }
@@ -71,7 +71,7 @@ void CGIExecutor::_setMetaVariables(void)
 
 std::string CGIExecutor::_getRequestMethod(void) const
 {
-    return (_protocol.getRequestMethod());
+    return (_request.getRequestMethod());
 }
 
 std::string CGIExecutor::_getDocumentRoot(void) const
@@ -82,7 +82,7 @@ std::string CGIExecutor::_getDocumentRoot(void) const
 std::string CGIExecutor::_getScriptName(void) const
 {
     std::string locationPath = (_location.getLocationPath()).substr(1);
-    std::string uri          = _protocol.getRequestURI();
+    std::string uri          = _request.getRequestURI();
     size_t      startIndex   = uri.find(locationPath) + locationPath.size();
     size_t      scriptEnd    = ConfigUtil::findURIDelimeter(uri, startIndex);
 
@@ -99,7 +99,7 @@ std::string CGIExecutor::_getScriptFileName(void) const
 
 std::string CGIExecutor::_getPathInfo(void) const
 {
-    std::string uri           = _protocol.getRequestURI();
+    std::string uri           = _request.getRequestURI();
     size_t      scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
 
     if (uri[scriptNameEnd] == '/')
@@ -110,7 +110,7 @@ std::string CGIExecutor::_getPathInfo(void) const
 
 std::string CGIExecutor::_getQueryString(void) const
 {
-    std::string uri           = _protocol.getRequestURI();
+    std::string uri           = _request.getRequestURI();
     size_t      scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
 
     if (uri[scriptNameEnd] == '?')
@@ -124,7 +124,7 @@ std::string CGIExecutor::_getContentType(void) const
     std::map<std::string, std::string>           headerEntry;
     std::map<std::string, std::string>::iterator iterator;
 
-    headerEntry = _protocol.getRequestHeader();
+    headerEntry = _request.getRequestHeader();
     iterator    = headerEntry.find("Content-Type");
     if (iterator == headerEntry.end())
         return ("");
@@ -137,7 +137,7 @@ std::string CGIExecutor::_getContentLength(void) const
     std::map<std::string, std::string>           headerEntry;
     std::map<std::string, std::string>::iterator iterator;
 
-    headerEntry = _protocol.getRequestHeader();
+    headerEntry = _request.getRequestHeader();
     iterator    = headerEntry.find("Content-Length");
     if (iterator == headerEntry.end())
         return ("");
