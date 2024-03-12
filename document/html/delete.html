@@ -6,40 +6,47 @@
   <title>Delete Request Example</title>
 </head>
 <body>
+  <h2>Delete page</h2>
+  <div>
+    <input type="file" files name="fileToDelete" id="fileToDelete"><br>
+    <label for="fileToDelete">Select</label><br>
+    <button onclick="doAction()">click me</button>
 
-<button onclick="sendDeleteRequest()">Send DELETE Request</button>
+    <script>
+      let selectedFile;
 
-<script>
-function sendDeleteRequest() {
-  // URL of the resource you want to delete
-  const url = 'deleteTest.html';
+      function doAction() {
+        if (selectedFile) {
+          alert("File selected: " + selectedFile.name);
+          var filepath = "uploaded/" + selectedFile.name 
+          fetch(filepath, {
+          method: 'DELETE',
+          headers: {'Content-Type': 'application/json',},
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json(); // Process the response body if needed
+        })
+        .then(data => {
+          console.log('DELETE request successful:', data);
+          // Handle the response data or perform additional actions as needed
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Handle errors or display an error message to the user
+        });
+        } else {
+          alert("No file selected");
+        }
+      }
 
-  // Use the Fetch API to send a DELETE request
-  fetch(url, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json', // Adjust content type as needed
-      // Add any other headers you may need, such as authentication headers
-    },
-    // You can include a request body if necessary (e.g., for providing additional data)
-    // body: JSON.stringify({ key: 'value' }),
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json(); // Process the response body if needed
-  })
-  .then(data => {
-    console.log('DELETE request successful:', data);
-    // Handle the response data or perform additional actions as needed
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    // Handle errors or display an error message to the user
-  });
-}
-</script>
-
+      const fileInput = document.getElementById("fileToDelete");
+      fileInput.onchange = () => {
+        selectedFile = fileInput.files[0];
+      };
+    </script>
+  </div>
 </body>
 </html>
