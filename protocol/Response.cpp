@@ -140,8 +140,9 @@ void Response::GET_HEAD() {
   std::string body;
 
   int fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
-  if (fd == -1)
+  if (fd == -1) {
     throw(this->_errorResponse.create404Response(_config));
+  }
 
   body.clear();
   while (readSize == BUFFER_SIZE) {
@@ -161,7 +162,11 @@ void Response::GET_HEAD() {
   std::stringstream ss;
   ss << body.size();
   this->setResponseHeader("Content-Length", ss.str());
-  this->setResponseHeader("Content-Type", "text/html");
+  if (splitAfter(_request.getRequestURI(), ".") == "css")
+    this->setResponseHeader("Content-Type", "text/css");
+  else if (splitAfter(_request.getRequestURI(), ".") == "html")
+    this->setResponseHeader("Content-Type", "text/html");
+  //   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
   this->setResponse(this->_errorResponse.create200Response(

@@ -66,3 +66,11 @@ std::vector<std::string> splitString(const std::string &input, char delimiter) {
 
   return (tokens);
 }
+
+struct eventStatus makeStatus(int status, int ident) {
+  struct eventStatus res;
+
+  res.status = status;
+  res.ident = ident;
+  return (res);
+}
