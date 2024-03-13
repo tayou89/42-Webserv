@@ -4,45 +4,13 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Delete</title>
+		<link rel="stylesheet" href="/css/delete.css">
 	</head>
 	<body>
-		<div>
-			{fileList}
-		</div>
+		<h2>Uploaded File List</h2>
 		<div>
 			{deleteButtonList}
 		</div>
+		<script src="/html/doAction.js"></script> 
 	</body>
 </html>
-<div>
-	<input type="file" files name="fileToDelete" id="fileToDelete"><br>
-		<label for="fileToDelete">Select</label><br>
-		<button onclick="doAction()">click me</button>
-	</div>
-<script>
-				function doAction(fileName) 
-				{
-				  if (fileName) {
-				    alert("File selected: " + fileName);
-				    var filepath = "uploaded/" + fileName; 
-				    fetch(filepath, { method: 'DELETE', headers: {'Content-Type': 'application/json',},})
-				  .then(response => {
-				    if (!response.ok) {
-				      throw new Error(`HTTP error! Status: ${response.status}`);
-				    }
-				    return response.json(); // Process the response body if needed
-				  })
-				  .then(data => {
-				    console.log('DELETE request successful:', data);
-				    // Handle the response data or perform additional actions as needed
-				  })
-				  .catch(error => {
-				    console.error('Error:', error);
-				    // Handle errors or display an error message to the user
-				  });
-				  } else {
-				    alert("No file selected");
-				  }
-				  location.href="delete.html";
-				}
-		    </script> 

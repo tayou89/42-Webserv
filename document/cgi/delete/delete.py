@@ -1,19 +1,26 @@
-
 #!/usr/bin/python3
+import cgi
+import os
+import urllib.parse
 
-import sys, os
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from util import util
-from show import file_list_util
-import cgitb
+print("Content-Type: text/plain\n")
 
-cgitb.enable()
-uploadDir = '/Users/tayou/Desktop/tayou/42_webserv/document/uploaded'
-fileList = util.getFileList(uploadDir)
-htmlStringList = file_list_util.getHTMLStringList(fileList)
-buttonStringList = delete_util.getButtonStringList(fileList)
-print("Content-Type: text/html\n")
-htmlFile = open('/Users/tayou/Desktop/tayou/42_webserv/document/html/delete.html', 'r')
-htmlContent = htmlFile.read()
-htmlContent = htmlContent.format(fileList = htmlStringList)
-print(htmlContent)
+# 쿼리 스트링에서 파일 이름을 수동으로 파싱합니다.
+query_string = os.getenv('QUERY_STRING', '')
+print(f"query_string: {query_string}")
+query_params = urllib.parse.parse_qs(query_string)
+filename = query_params.get('filename', [None])[0]
+
+if not filename:
+    print("Error: No filename provided.")
+else:
+    file_path = os.path.join("/Users/tayou/Desktop/tayou/42_webserv/document/uploaded", filename)
+    print(f"{file_path}")
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            print(f"Success: {filename} has been deleted.")
+        except Exception as e:
+            print(f"Error: {str(e)}")
+    else:
+        print("Error: File not found.")

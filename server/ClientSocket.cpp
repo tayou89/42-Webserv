@@ -1,17 +1,25 @@
 #include "../include/ClientSocket.hpp"
 
-ClientSocket::ClientSocket() {}
-
-ClientSocket::ClientSocket(const ClientSocket &ref) { static_cast<void>(ref); }
-
-ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
-  if (this == &ref)
-    return (*this);
-
-  return (*this);
+ClientSocket::ClientSocket()
+{
 }
 
-ClientSocket::~ClientSocket() {}
+ClientSocket::ClientSocket(const ClientSocket &ref)
+{
+    static_cast<void>(ref);
+}
+
+ClientSocket &ClientSocket::operator=(const ClientSocket &ref)
+{
+    if (this == &ref)
+        return (*this);
+
+    return (*this);
+}
+
+ClientSocket::~ClientSocket()
+{
+}
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
     : _routeServer(acceptServer), _socket(socket),
@@ -118,25 +126,25 @@ struct eventStatus ClientSocket::readChunkedBody() {
   size_t chunkSize;
   int readSize = BUFFER_SIZE;
 
-  while (readSize == BUFFER_SIZE) {
     memset(&_buf, 0, BUFFER_SIZE);
-    readSize = read(_socket, &_buf, BUFFER_SIZE);
-    if (readSize < 0) {
-      // read error 처리 추가
-    }
-    tmp.append(_buf, readSize);
-    raw += tmp;
-  }
 
-  memset(&_buf, 0, BUFFER_SIZE);
+    std::istringstream iss(raw);
 
-  std::istringstream iss(raw);
+    while (!iss.eof())
+    {
+        std::string chunk;
 
-  while (!iss.eof()) {
-    std::string chunk;
+        iss >> std::hex >> chunkSize;
+        iss.ignore(2);
 
-    iss >> std::hex >> chunkSize;
-    iss.ignore(2);
+        if (chunkSize == 0)
+        {
+            _status = WRITE;
+            return (WRITE_MODE);
+        }
+        chunk.resize(chunkSize);
+        iss.read(&chunk[0], chunkSize);
+        iss.ignore(2);
 
     if (chunkSize == 0) {
       _status = WRITE;
@@ -185,15 +193,13 @@ struct eventStatus ClientSocket::writeSocket() {
       _responseString = res;
       return (makeStatus(CONTINUE, _socket));
     }
-  }
 
-  //   std::cout << "///////////////////////////////////////////\n";
-  //   std::cout << _responseString;
-  //   std::cout << _socket << " : SOCKET NUMBER\n";
-  //   std::cout << "///////////////////END/////////////////////\n";
+    //   std::cout << "///////////////////////////////////////////\n";
+    //   std::cout << _responseString;
+    //   std::cout << _socket << " : SOCKET NUMBER\n";
+    //   std::cout << "///////////////////END/////////////////////\n";
 
-  size_t writeSize =
-      write(_socket, _responseString.c_str(), _responseString.size());
+    size_t writeSize = write(_socket, _responseString.c_str(), _responseString.size());
 
   if (writeSize != _responseString.size())
     ; //   return (WRITE_ERROR);
@@ -205,14 +211,15 @@ struct eventStatus ClientSocket::writeSocket() {
   return (makeStatus(SOCKET_READ_MODE, _socket));
 }
 
-void ClientSocket::clearSocket() {
-  _status = HEAD_READ;
-  memset(&_buf, 0, BUFFER_SIZE + 1);
-  _tmp.clear();
-  _header.clear();
-  _bodySize = 0;
-  _body.clear();
-  _responseString.clear();
-  _req = Request();
-  _res.initResponse();
+void ClientSocket::clearSocket()
+{
+    _status = HEAD_READ;
+    memset(&_buf, 0, BUFFER_SIZE + 1);
+    _tmp.clear();
+    _header.clear();
+    _bodySize = 0;
+    _body.clear();
+    _responseString.clear();
+    _req = Request();
+    _res.initResponse();
 }
