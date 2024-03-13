@@ -139,7 +139,6 @@ void Response::GET_HEAD() {
   int readSize = BUFFER_SIZE;
   std::string body;
 
-  std::cout << "get_head\n";
   int fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (fd == -1) {
     throw(this->_errorResponse.create404Response(_config));
