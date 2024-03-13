@@ -1,5 +1,6 @@
 #pragma once
 
+#include "struct.hpp"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -18,3 +19,4 @@ std::string getCurrentHttpDate();
 std::string splitBefore(std::string sentence, std::string splitWord);
 std::string splitAfter(std::string sentence, std::string splitWord);
 std::vector<std::string> splitString(const std::string &input, char delimiter);
+struct eventStatus makeStatus(int status, int ident);

@@ -4,6 +4,7 @@
 #include "IEventLoop.hpp"
 #include "IServer.hpp"
 #include "define.hpp"
+#include "struct.hpp"
 #include <fcntl.h>
 #include <map>
 #include <sys/event.h>
@@ -20,7 +21,7 @@ public:
   void initServerSocket(); // make listening socket and register at _changeList
   void newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
                 uint32_t fflags, intptr_t data, void *udata);
-  //   void deleteEvent(struct kevent *event);
+  void eventHandler(struct kevent *event);
   void disconnect(int socket);
   void run();
 

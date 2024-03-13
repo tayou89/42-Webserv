@@ -6,10 +6,13 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "define.hpp"
+#include "struct.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <sys/event.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 class ClientSocket {
@@ -18,11 +21,13 @@ public:
   ClientSocket(int socket, IServer *acceptServer, char **envp);
   virtual ~ClientSocket();
 
-  int readSocket();
-  int readHead();
-  int readContentBody();
-  int readChunkedBody();
-  int writeSocket();
+  struct eventStatus eventProcess(struct kevent *event, int type);
+  struct eventInfo &getEventInfo();
+  struct eventStatus readSocket();
+  struct eventStatus readHead();
+  struct eventStatus readContentBody();
+  struct eventStatus readChunkedBody();
+  struct eventStatus writeSocket();
   void clearSocket();
 
 private:
@@ -41,4 +46,5 @@ private:
   Request _req;
   Response _res;
   std::string _responseString;
+  struct eventInfo _info;
 };
