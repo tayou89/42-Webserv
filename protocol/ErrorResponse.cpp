@@ -122,7 +122,6 @@ std::string errorResponse::create404Response(Config conf) {
     body = body + buf;
     contentLength += readSize;
   }
-  std::cout << body << std::endl;
   std::stringstream ss;
   ss << contentLength;
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
