@@ -170,17 +170,21 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       //   std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
+      std::cout << _req.getRequestURI() << std::endl;
       _req.convertURI();
-      if (_req.getLocation().getCGIPass())
+      std::cout << _req.getRequestURI() << std::endl;
+      if (_req.getLocation().getCGIPass()) {
+        std::cout << "cgi\n";
         // cgi execute -> get pipe fd
         _status = PIPE_WRITE;
-      // return (makeStatus(PIPE_WRITE_MODE, pipefd));
-      else
+        // return (makeStatus(PIPE_WRITE_MODE, pipefd));
+      } else {
         _res.setResponse(_req);
-      //   std::cout << "this is method:" << _req.getRequestMethod() <<
-      //   std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
-      //   std::endl;
-      _responseString = _res.getResponse();
+        _responseString = _res.getResponse();
+        //   std::cout << "this is method:" << _req.getRequestMethod() <<
+        //   std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
+        //   std::endl;
+      }
     } catch (std::string &res) {
       _responseString = res;
       return (makeStatus(CONTINUE, _socket));

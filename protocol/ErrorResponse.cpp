@@ -113,6 +113,7 @@ std::string errorResponse::create404Response(Config conf) {
   int contentLength = 0;
 
   int fd = open(conf.getErrorPage(404).c_str(), O_RDONLY);
+  std::cout << fd << " : " << conf.getErrorPage(404).c_str() << std::endl;
   if (fd == -1)
     return (response);
   char buf[1000]; // change this
@@ -122,6 +123,7 @@ std::string errorResponse::create404Response(Config conf) {
     body = body + buf;
     contentLength += readSize;
   }
+  std::cout << body << std::endl;
   std::stringstream ss;
   ss << contentLength;
   response += "Content-Length: " + ss.str() + "\r\n\r\n";
