@@ -18,7 +18,8 @@ SRCS = main.cpp \
 	   protocol/ErrorResponse.cpp \
 	   protocol/Request.cpp \
 	   protocol/Response.cpp \
-	   protocol/utils.cpp
+	   protocol/utils.cpp \
+	   cgi/CGIExecutor.cpp
 
 INCS = include/ClientSocket.hpp \
 	   include/Config.hpp \
@@ -37,7 +38,8 @@ INCS = include/ClientSocket.hpp \
 	   include/ErrorResponse.hpp \
 	   include/Request.hpp \
 	   include/Response.hpp \
-	   include/utils.hpp
+	   include/utils.hpp \
+	   include/CGIExecutor.hpp
 
 OBJS = $(SRCS:.cpp=.o)
 
