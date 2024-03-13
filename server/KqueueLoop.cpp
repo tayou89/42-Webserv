@@ -46,6 +46,30 @@ void KqueueLoop::disconnect(int socket) {
   close(socket);
 }
 
+void KqueueLoop::eventHandler(struct kevent *event) {
+  /* loop의 eventHandler에서 udata를 해석하고 ClientSocket으로 넘김 */
+  struct eventStatus result;
+  struct eventInfo *info = static_cast<eventInfo *>(event->udata);
+  int socket = info->socket;
+  int type = info->type;
+
+  result = _clientList[socket]->eventProcess(event, type);
+  if (result.status == DISCONNECT) {
+    disconnect(result.ident);
+  } else if (result.status == SOCKET_WRITE_MODE) {
+    newEvent(result.ident, EVFILT_READ, EV_DISABLE, 0, 0,
+             &_clientList[socket]->getEventInfo());
+    newEvent(result.ident, EVFILT_WRITE, EV_ENABLE, 0, 0,
+             &_clientList[socket]->getEventInfo());
+  } else if (result.status == SOCKET_READ_MODE) {
+    _clientList[result.ident]->clearSocket();
+    newEvent(result.ident, EVFILT_READ, EV_ENABLE, 0, 0,
+             &_clientList[socket]->getEventInfo());
+    newEvent(result.ident, EVFILT_WRITE, EV_DISABLE, 0, 0,
+             &_clientList[socket]->getEventInfo());
+  }
+}
+
 void KqueueLoop::run() {
   int eventCount;
   int eventStatus;
@@ -66,36 +90,39 @@ void KqueueLoop::run() {
         continue; // skip the error event
       }
 
-      if (_serverList.find(currentEvent->ident) != _serverList.end()) {
+      if (currentEvent->filter == EVFILT_READ &&
+          _serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
-        if (newClient == 0 || newClient == -1) {
+        if (newClient == -1) {
           std::cout << newClient << ": invalid client fd\n";
           continue;
         }
         _clientList[newClient] = new ClientSocket(
             newClient, _serverList[currentEvent->ident], _envp);
-        newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
-        // std::cout << "hello " << newClient << std::endl;
+        newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
+                 &_clientList[newClient]->getEventInfo());
+        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0,
+                 &_clientList[newClient]->getEventInfo());
       } else {
-        if (currentEvent->filter == EVFILT_READ) {
-          eventStatus = _clientList[currentEvent->ident]->readSocket();
-          if (eventStatus == WRITE_MODE) { // change event status
-            newEvent(currentEvent->ident, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
-            newEvent(currentEvent->ident, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
-          }
-        } else if (currentEvent->filter == EVFILT_WRITE) {
-          eventStatus = _clientList[currentEvent->ident]->writeSocket();
-          if (eventStatus == READ_MODE) { // write finish, change status
-            _clientList[currentEvent->ident]->clearSocket();
-            newEvent(currentEvent->ident, EVFILT_READ, EV_ENABLE, 0, 0, NULL);
-            newEvent(currentEvent->ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
-          }
-        }
+        eventHandler(currentEvent);
+        // if (currentEvent->filter == EVFILT_READ) {
+        //   eventStatus = _clientList[currentEvent->ident]->readSocket();
+        //   if (eventStatus == WRITE_MODE) { // change event status
+        //     newEvent(currentEvent->ident, EVFILT_READ, EV_DISABLE, 0, 0,
+        //     NULL); newEvent(currentEvent->ident, EVFILT_WRITE, EV_ENABLE, 0,
+        //     0, NULL);
+        //   }
+        // } else if (currentEvent->filter == EVFILT_WRITE) {
+        //   eventStatus = _clientList[currentEvent->ident]->writeSocket();
+        //   if (eventStatus == READ_MODE) { // write finish, change status
+        //     _clientList[currentEvent->ident]->clearSocket();
+        //     newEvent(currentEvent->ident, EVFILT_READ, EV_ENABLE, 0, 0,
+        //     NULL); newEvent(currentEvent->ident, EVFILT_WRITE, EV_DISABLE, 0,
+        //     0, NULL);
+        //   }
+        // }
 
         /* connection ended */
-        if (eventStatus == DISCONNECT)
-          disconnect(currentEvent->ident);
         // else if (eventStatus == WRITE_ERROR) {
         //   /* Write Event Error Process */
         //   std::cout << "Write Error occurs\n";

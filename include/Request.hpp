@@ -38,6 +38,7 @@ public:
   void setRequestHeader(std::string key, std::string value);
 
   //   int extensionURI(std::string location) const;
+  bool extensionURI(std::string location) const;
   size_t generalURI(std::string location) const;
   std::string combinePATH(Location target, size_t rate) const;
   void convertURI();

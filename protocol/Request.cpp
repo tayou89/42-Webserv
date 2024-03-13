@@ -177,7 +177,21 @@ void Request::setRequestHeader(std::string key, std::string value) {
   this->_requestHeader.insert(std::make_pair(key, value));
 }
 
-// int Request::extensionURI(std::string location) const {}
+bool Request::extensionURI(std::string location) const {
+  std::vector<std::string> url = splitString(_requestURI, '/');
+  std::vector<std::string>::iterator urlIter = url.begin();
+  std::string extension = location.substr(location.find("."));
+
+  if (extension.size() == 0)
+    return (false);
+  for (; urlIter != url.end(); urlIter++) {
+    if ((*urlIter).size() > extension.size() &&
+        (*urlIter).compare((*urlIter).size() - extension.size(),
+                           extension.length(), extension) == 0)
+      return (true);
+  }
+  return (false);
+}
 
 size_t Request::generalURI(std::string location) const {
   std::vector<std::string> loc = splitString(location, '/');
@@ -219,26 +233,21 @@ std::string Request::combinePATH(Location target, size_t rate) const {
 }
 
 void Request::convertURI() {
-  //   try {
-  //     Location target = _config.getLocation(_requestURI);
-  //     target.setIndexFile();
-  //     _requestURI = target.getIndexFile().getPath();
-  //   } catch (std::string &e) {
-  //     throw (_errorResponse.create404Response(_config));
-  //   }
   std::map<std::string, Location> locationMap = _config.getLocationMap();
   std::map<std::string, Location>::iterator iter = locationMap.begin();
-  Location *target;
+  Location *target = NULL;
   int rate = 0;
   int tmp = 0;
 
   /* calculate similarity */
   for (; iter != locationMap.end(); iter++) {
-    /* cgi extension location */
-    // if (iter->first.find('.') != std::string::npos)
-    //   tmp = extensionURI(iter->first);
-    // else
-    tmp = generalURI(iter->first);
+    if (*(iter->first.begin()) == '~' && *(iter->first.begin() + 1) == '.') {
+      if (extensionURI(iter->first)) {
+        _location = iter->second;
+        return;
+      }
+    } else
+      tmp = generalURI(iter->first);
     if (tmp > rate) {
       rate = tmp;
       target = &iter->second;
@@ -251,12 +260,10 @@ void Request::convertURI() {
 
   /* convert URI to real path */
   if (target) {
-    // std::cout << target->getRootDirectory() << std::endl;
-    _requestURI = combinePATH(*target, rate);
-    // std::cout << _requestURI << "\n";
     _location = *target;
   } else {
-    // no matching location
-    // URI를 서버의 default root + 입력된 URI 또는 defalult index로 변경
+    target = &_config;
+    _location = _config;
   }
+  _requestURI = combinePATH(*target, rate);
 }
