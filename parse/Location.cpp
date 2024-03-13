@@ -232,7 +232,11 @@ void Location::_setAutoindex(void)
 
 void Location::_setErrorPages(void)
 {
-    _errorPages[std::atoi(_parameters[0].c_str())] = _parameters[1];
+    std::string parameter = _parameters[1];
+
+    if (parameter[0] != '/')
+        parameter = '/' + parameter;
+    _errorPages[std::atoi(_parameters[0].c_str())] = parameter;
 }
 
 void Location::_setReturn(void)
