@@ -1,9 +1,8 @@
 function doAction(fileName) 
 {
   if (fileName) {
-    alert("File selected: " + fileName);
-    var filepath = "uploaded/" + fileName; 
-    fetch(filepath, { method: 'DELETE', headers: {'Content-Type': 'application/json',},})
+    var url = `/delete/delete.py?filename=${encodeURIComponent(fileName)}`; 
+    fetch(url, { method: 'DELETE', headers: {'Content-Type': 'application/json',},})
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -21,5 +20,5 @@ function doAction(fileName)
   } else {
     alert("No file selected");
   }
-  location.href="delete.py";
+	location.href="/delete/deletePage.py";
 }

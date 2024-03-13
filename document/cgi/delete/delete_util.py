@@ -1,5 +1,5 @@
-def	getButtonStringList(fileList):
+def	getDeleteStringList(fileList):
 	buttonStringList = ''
 	for fileName in fileList:
-		buttonStringList +=  "<button onclick=\"doAction('{}')\">delete</button>".format(fileName)
+		buttonStringList +=  "<li><span><a href='/show/file.py?file={}'>{}</a></span><button onclick=\"doAction('{}')\">delete</button></li>".format(fileName, fileName, fileName)
 	return (buttonStringList)
