@@ -176,15 +176,20 @@ void Location::_setIndexes(void) {
     _indexes.push_back(_parameters[i]);
 }
 
+void Location::_setErrorPages(void)
+{
+    std::string parameter = _parameters[1];
+
+    if (parameter[0] != '/')
+        parameter = '/' + parameter;
+    _errorPages[std::atoi(_parameters[0].c_str())] = parameter;
+}
+
 void Location::_setAutoindex(void) {
   if (_parameters[0] == "on")
     _autoindex = true;
   else
     _autoindex = false;
-}
-
-void Location::_setErrorPages(void) {
-  _errorPages[std::atoi(_parameters[0].c_str())] = _parameters[1];
 }
 
 void Location::_setReturn(void) { _return = _parameters[0]; }
