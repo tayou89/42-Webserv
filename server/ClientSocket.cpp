@@ -38,10 +38,10 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
       result = writeSocket();
     }
   } else if (type == PIPE) {
-    if (event->filter == EVFILT_READ) {
-      // PIPE READ
-    } else if (event->filter == EVFILT_WRITE) {
+    if (event->filter == EVFILT_WRITE) {
       // PIPE WRITE
+    } else if (event->filter == EVFILT_READ) {
+      // PIPE READ
     }
   }
 
@@ -170,9 +170,7 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       //   std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
-      std::cout << _req.getRequestURI() << std::endl;
       _req.convertURI();
-      std::cout << _req.getRequestURI() << std::endl;
       if (_req.getLocation().getCGIPass()) {
         std::cout << "cgi\n";
         // cgi execute -> get pipe fd

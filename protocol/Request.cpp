@@ -223,7 +223,10 @@ std::string Request::combinePATH(Location target, size_t rate) const {
     std::vector<std::string> index = target.getIndexes();
     std::vector<std::string>::iterator iter = index.begin();
     for (; iter != index.end(); iter++) {
-      path = target.getRootDirectory() + "/" + *iter;
+      if ((*iter)[0] == '/')
+        path = target.getRootDirectory() + *iter;
+      else
+        path = target.getRootDirectory() + "/" + *iter;
       if (access(path.c_str(), F_OK) == 0)
         return (path);
     }
