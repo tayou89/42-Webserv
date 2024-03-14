@@ -2,6 +2,7 @@
 #define LOCATION_HPP
 
 #include "ConfigBase.hpp"
+#include "MimeType.hpp"
 #include <map>
 #include <set>
 
@@ -32,6 +33,7 @@ class Location : public ConfigBase
         const std::string    &getRootDirectory(void) const;
         const std::string    &getReturn(void) const;
         const std::string    &getLocationPath(void) const;
+        const std::string    &getMimeType(const std::string &file);
         const string_vector  &getIndexes(void) const;
         const string_vector  &getAcceptedMethods(void) const;
         const error_page_map &getErrorPageMap(void) const;
@@ -52,6 +54,8 @@ class Location : public ConfigBase
         void                  _setClientHeaderMax(void);
         void                  _setAcceptedMethods(void);
         void                  _setCGIPass(void);
+        void                  _setInclude(void);
+        void                  _setMimeType(void);
 
         std::string           _path;
         bool                  _autoindex;
@@ -63,6 +67,7 @@ class Location : public ConfigBase
         error_page_map        _errorPages;
         string_vector         _acceptedMethods;
         bool                  _cgiPass;
+        MimeType              _mimeType;
 
         location_function_map _locationFunctions;
         string_vector         _parameters;

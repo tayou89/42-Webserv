@@ -36,6 +36,8 @@ class ParameterChecker
         void                               _checkReturnParameter(void) const;
         void                               _checkLimitExceptParameter(void) const;
         void                               _checkCGIPassParameter(void) const;
+        void                               _checkIncludeParameter(void) const;
+        void                               _checkTypesParameter(void) const;
 
         size_t                             _parameterCount;
         std::vector<std::string>           _parameters;
