@@ -147,7 +147,7 @@ void ConfigParser::_initialize(void)
     _block.clear();
     _parameters.clear();
     if (_directiveSet.size() == 0)
-        _parsingType == MIME;
+        _parsingType = MIME;
     else
-        _parsingType == CONFIG;
+        _parsingType = CONFIG;
 }

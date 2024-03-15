@@ -1,8 +1,9 @@
-#include "CGIExecutor.hpp"
+#include "../include/CGIExecutor.hpp"
 #include <cerrno>
 #include <cstring>
 
 CGIExecutor::CGIExecutor(void) {}
+
 
 CGIExecutor::~CGIExecutor(void) {}
 
@@ -83,6 +84,7 @@ std::string CGIExecutor::_getScriptFileName(void) const {
 std::string CGIExecutor::_getPathInfo(void) const {
   std::string uri = _request.getRequestURI();
   size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
+
   size_t pathInfoEnd = uri.find('?', scriptNameEnd);
 
   if (uri[scriptNameEnd] == '/')
@@ -94,6 +96,7 @@ std::string CGIExecutor::_getPathInfo(void) const {
 std::string CGIExecutor::_getQueryString(void) const {
   std::string uri = _request.getRequestURI();
   size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
+
   size_t queryStart = uri.find('?', scriptNameEnd);
 
   if (queryStart == std::string::npos)
@@ -126,6 +129,7 @@ std::string CGIExecutor::_getContentLength(void) const {
     return (iterator->second);
 }
 
+
 void CGIExecutor::_createPipeFD(void) {
   if (pipe(_pipeFD) == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
@@ -137,6 +141,7 @@ void CGIExecutor::_createProcess(void) {
     throw(std::runtime_error(std::string("fork: ") + std::strerror(errno)));
 }
 
+
 void CGIExecutor::_setPipeFD(void) {
   if (_pid == 0) {
     close(_pipeFD[0]);
@@ -146,6 +151,7 @@ void CGIExecutor::_setPipeFD(void) {
   } else
     close(_pipeFD[1]);
 }
+
 
 void CGIExecutor::_executeCGI(void) {
   if (_pid == 0) {
@@ -179,5 +185,6 @@ char **CGIExecutor::_getEnvp(void) const {
 }
 
 pid_t CGIExecutor::getPID(void) const { return (_pid); }
+
 
 int CGIExecutor::getReadFD(void) const { return (_pipeFD[0]); }

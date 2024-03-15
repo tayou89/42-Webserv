@@ -17,6 +17,7 @@ public:
                     std::map<std::string, std::string> responseHeader,
                     std::string responseBody);
   std::string create204Response(Config conf);
+  std::string create302Response(Config conf, Location loc);
   std::string create400Response(Config conf);
   std::string create403Response(Config conf);
   std::string create404Response(Config conf);
