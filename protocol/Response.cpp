@@ -63,8 +63,6 @@ void Response::checkValidity() {
       
       std::string filelist;
       filelist = makeAutoindexBody(dir);
-      std::cout << "this is autoindex html" << std::endl;
-      std::cout << filelist << "\n" << std::endl;
       this->setResponseBody(filelist);
 
       std::stringstream ss;
@@ -134,7 +132,7 @@ std::string Response::makeAutoindexBody(DIR *dir)
   for (int i = 0; i != static_cast<int>(fileName.size()); i++)
   {
     retBody += "    <div class=\"container\">\n";
-    retBody += "        <div class=\"string\">" + fileName[i] + "</div>\n";
+    retBody += "        <div class=\"string clickable\" onclick=\"handleButtonClick('/" + _request.getRequestURI() + "/" + fileName[i] + "')\">" + fileName[i] + "</div>\n";
     retBody += "        <div class=\"string\">" + fileDate[i] + "</div>\n";
     retBody += "        <div class=\"string\">" + fileVolume[i] + "</div>\n";
     retBody += "    </div>\n\n";
