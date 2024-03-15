@@ -56,11 +56,11 @@ void KqueueLoop::eventHandler(struct kevent *event) {
   result = _clientList[socket]->eventProcess(event, type);
   if (result.status == DISCONNECT) {
     disconnect(result.ident);
-  } else if (result.status == READ_PIPE_REGISTER) {
-    newEvent(result.ident, EVFILT_READ, EV_ENABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
-  } else if (result.status == WRITE_PIPE_REGISTER) {
-    newEvent(result.ident, EVFILT_WRITE, EV_ENABLE, 0, 0,
+  } else if (result.status == PROCESS) {
+    std::cout << "return\n";
+    newEvent(result.ident, EVFILT_PROC, EV_ADD | EV_ENABLE | EV_ONESHOT,
+             NOTE_EXIT, 0, &_clientList[socket]->getEventInfo());
+    newEvent(socket, EVFILT_WRITE, EV_DISABLE, 0, 0,
              &_clientList[socket]->getEventInfo());
   } else if (result.status == SOCKET_WRITE_MODE) {
     newEvent(result.ident, EVFILT_READ, EV_DISABLE, 0, 0,
@@ -85,8 +85,10 @@ void KqueueLoop::run() {
   while (1) {
     eventCount = kevent(_kqueue, &_changeList[0], _changeList.size(), newEvents,
                         1024, NULL);
-    if (eventCount == -1)
-      exit(1);           // kevent error exit
+    if (eventCount == -1) {
+      std::cerr << "kill\n";
+      exit(1); // kevent error exit
+    }
     _changeList.clear(); // clear list of new register events
 
     for (int idx = 0; idx < eventCount; idx++) {

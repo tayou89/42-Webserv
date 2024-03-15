@@ -16,7 +16,7 @@ public:
   CGIExecutor(const CGIExecutor &object);
   CGIExecutor &operator=(const CGIExecutor &object);
 
-  CGIExecutor(const Request &request);
+  void setCGIExecutor(const Request &request);
   // 시스템 에러 발생시 1반환, 정상종료시 0반환
   void createPipeFD(void);
   void createProcess(void);

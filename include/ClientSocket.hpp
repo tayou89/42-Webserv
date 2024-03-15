@@ -29,6 +29,7 @@ public:
   struct eventStatus readContentBody();
   struct eventStatus readChunkedBody();
   struct eventStatus writeSocket();
+  std::string makeCGIresponse(std::string result) const;
   void clearSocket();
 
 private:
