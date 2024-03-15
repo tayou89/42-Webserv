@@ -4,6 +4,7 @@
 
 CGIExecutor::CGIExecutor(void) {}
 
+
 CGIExecutor::~CGIExecutor(void) {}
 
 CGIExecutor::CGIExecutor(const CGIExecutor &object) { *this = object; }
@@ -25,24 +26,24 @@ CGIExecutor::CGIExecutor(const Request &request)
   _setMetaVariables();
 }
 
-// int CGIExecutor::execute(void) {
-//   try {
-//     _createPipeFD();
-//     _createProcess()
-//     _setPipeFD();
-//     _executeCGI();
-//   } catch (const std::exception &e) {
-//     std::cerr << "Error: " << e.what() << '\n';
-//     if (_pid == 0)
-//       exit(1);
-//     else
-//       return (1);
-//   }
-//   if (_pid == 0)
-//     exit(0);
-//   else
-//     return (0);
-// }
+int CGIExecutor::execute(void) {
+  try {
+    _createPipeFD();
+    _createProcess();
+    _setPipeFD();
+    _executeCGI();
+  } catch (const std::exception &e) {
+    std::cerr << "Error: " << e.what() << '\n';
+    if (_pid == 0)
+      exit(1);
+    else
+      return (1);
+  }
+  if (_pid == 0)
+    exit(0);
+  else
+    return (0);
+}
 
 void CGIExecutor::_setMetaVariables(void) {
   _metaVariables["REQUEST_METHOD"] = _getRequestMethod();
@@ -84,8 +85,10 @@ std::string CGIExecutor::_getPathInfo(void) const {
   std::string uri = _request.getRequestURI();
   size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
 
+  size_t pathInfoEnd = uri.find('?', scriptNameEnd);
+
   if (uri[scriptNameEnd] == '/')
-    return (uri.substr(scriptNameEnd));
+    return (uri.substr(scriptNameEnd, pathInfoEnd));
   else
     return ("");
 }
@@ -94,10 +97,12 @@ std::string CGIExecutor::_getQueryString(void) const {
   std::string uri = _request.getRequestURI();
   size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
 
-  if (uri[scriptNameEnd] == '?')
-    return (uri.substr(scriptNameEnd));
-  else
+  size_t queryStart = uri.find('?', scriptNameEnd);
+
+  if (queryStart == std::string::npos)
     return ("");
+  else
+    return (uri.substr(queryStart + 1));
 }
 
 std::string CGIExecutor::_getContentType(void) const {
@@ -124,20 +129,20 @@ std::string CGIExecutor::_getContentLength(void) const {
     return (iterator->second);
 }
 
-void CGIExecutor::createPipeFD(void) {
+
+void CGIExecutor::_createPipeFD(void) {
   if (pipe(_pipeFD) == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
-	fcntl(_pipeFD[READFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-	fcntl(_pipeFD[WRITEFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 
-void CGIExecutor::createProcess(void) {
+void CGIExecutor::_createProcess(void) {
   _pid = fork();
   if (_pid == -1)
     throw(std::runtime_error(std::string("fork: ") + std::strerror(errno)));
 }
 
-void CGIExecutor::setPipeFD(void) {
+
+void CGIExecutor::_setPipeFD(void) {
   if (_pid == 0) {
     close(_pipeFD[0]);
     if (dup2(_pipeFD[1], STDOUT_FILENO) == -1)
@@ -147,17 +152,18 @@ void CGIExecutor::setPipeFD(void) {
     close(_pipeFD[1]);
 }
 
-void CGIExecutor::executeCGI(void) {
-//   if (_pid == 0) {
-//     ConfigFile CGIFile = _location.getIndexFile();
-//     char **envp = _getEnvp();
-//     char *argv[2] = {const_cast<char *>(CGIFile.getPath().c_str()), NULL};
 
-//     if (execve(argv[0], argv, envp) == -1) {
-//       ConfigUtil::freeStringArray(envp);
-//       throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
-//     }
-//   }
+void CGIExecutor::_executeCGI(void) {
+  if (_pid == 0) {
+    ConfigFile CGIFile = _location.getIndexFile();
+    char **envp = _getEnvp();
+    char *argv[2] = {const_cast<char *>(CGIFile.getPath().c_str()), NULL};
+
+    if (execve(argv[0], argv, envp) == -1) {
+      ConfigUtil::freeStringArray(envp);
+      throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
+    }
+  }
 }
 
 char **CGIExecutor::_getEnvp(void) const {
@@ -180,5 +186,5 @@ char **CGIExecutor::_getEnvp(void) const {
 
 pid_t CGIExecutor::getPID(void) const { return (_pid); }
 
-int CGIExecutor::getReadFD(void) const { return (_pipeFD[READFD]); }
-int CGIExecutor::getWriteFD(void) const { return (_pipeFD[WRITEFD]); }
+
+int CGIExecutor::getReadFD(void) const { return (_pipeFD[0]); }
