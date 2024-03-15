@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "CGIExecutor.hpp"
 #include "IServer.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -47,4 +48,5 @@ private:
   Response _res;
   std::string _responseString;
   struct eventInfo _info;
+  CGIExecutor _cgi;
 };
