@@ -130,15 +130,6 @@ bool ConfigUtil::isAlphabetNumberString(const std::string &string)
     return (true);
 }
 
-bool ConfigUtil::isExtensionString(const std::string &string)
-{
-    if (string[0] != '.')
-        return (false);
-    if (isAlphabetNumberString(string.substr(1)) == false)
-        return (false);
-    return (true);
-}
-
 bool ConfigUtil::isConvertibleToSizeT(const std::string &string)
 {
     std::stringstream stringStream(string);
@@ -165,7 +156,8 @@ bool ConfigUtil::isDelimeter(const char &character)
 
 bool ConfigUtil::isBlockDirective(const std::string &directive)
 {
-    if (directive == "server" || directive == "location")
+    if (directive == SERVER_DIRECTIVE || directive == LOCATION_DIRECTIVE ||
+        directive == TYPES_DIRECTIVE)
         return (true);
     else
         return (false);
@@ -249,6 +241,21 @@ bool ConfigUtil::isURIDelimeter(const char &character)
         return (false);
 }
 
+bool ConfigUtil::isFileExtension(const std::string &file, const std::string &extension)
+{
+    size_t extensionStart = file.find(extension);
+
+    if (extensionStart == std::string::npos)
+        return (false);
+    if (extensionStart == 0)
+        return (false);
+    if (file[extensionStart - 1] != '.')
+        return (false);
+    if (extensionStart + extension.size() != file.size())
+        return (false);
+    return (true);
+}
+
 size_t ConfigUtil::convertToSizeT(const std::string &string)
 {
     std::stringstream stringStream(string);
@@ -326,6 +333,21 @@ std::string ConfigUtil::convertIntToString(const int &integer)
     stringStream << integer;
     stringStream >> string;
     return (string);
+}
+
+bool ConfigUtil::isMimeTypeFormat(const std::string &string)
+{
+    std::vector<std::string> strings     = splitString(string, '/');
+    size_t                   stringCount = strings.size();
+    size_t                   i;
+
+    if (stringCount != 2)
+        return (false);
+    for (i = 0; i < stringCount; i++)
+    {
+        if (strings[i] == "")
+            return (false);
+    }
 }
 
 // # include <iostream>

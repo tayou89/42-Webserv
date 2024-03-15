@@ -17,6 +17,8 @@
 #define REDIRECTION_DIRECTIVE  "return"
 #define LIMIT_EXCEPT_DIRECTIVE "limit_except"
 #define CGI_PASS_DIRECTIVE     "cgi_pass"
+#define INCLUDE_DIRECTIVE      "include"
+#define TYPES_DIRECTIVE        "types"
 
 class ConfigUtil
 {
@@ -30,7 +32,6 @@ class ConfigUtil
         static bool        isValidOctetNumber(const int &number);
         static bool        isNumberString(const std::string &string);
         static bool        isAlphabetNumberString(const std::string &string);
-        static bool        isExtensionString(const std::string &string);
         static bool        isValidErrorStatusCode(const int &number);
         static bool        isValidPortNumber(const int &number);
         static bool        isDelimeter(const char &character);
@@ -43,6 +44,8 @@ class ConfigUtil
         static bool        isWritableFile(const std::string &filePath);
         static bool        isExecutableFile(const std::string &filePath);
         static bool        isURIDelimeter(const char &character);
+        static bool        isMimeTypeFormat(const std::string &string);
+        static bool        isFileExtension(const std::string &file, const std::string &extension);
         static size_t      convertToSizeT(const std::string &string);
         static size_t      convertByteUnit(const char &byteUnit);
         static size_t      findDelimeter(const std::string &string);

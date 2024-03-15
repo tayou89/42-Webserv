@@ -44,6 +44,8 @@ void ParameterChecker::_setCheckFunctions(void)
     _checkFunctions[REDIRECTION_DIRECTIVE]  = &ParameterChecker::_checkReturnParameter;
     _checkFunctions[LIMIT_EXCEPT_DIRECTIVE] = &ParameterChecker::_checkLimitExceptParameter;
     _checkFunctions[CGI_PASS_DIRECTIVE]     = &ParameterChecker::_checkCGIPassParameter;
+    _checkFunctions[INCLUDE_DIRECTIVE]      = &ParameterChecker::_checkIncludeParameter;
+    _checkFunctions[TYPES_DIRECTIVE]        = &ParameterChecker::_checkTypesParameter;
 }
 
 void ParameterChecker::_setParameterVector(const string_vector &parameters)
@@ -232,4 +234,25 @@ void ParameterChecker::_checkCGIPassParameter(void) const
     if (element != "on" && element != "off")
         throw(std::invalid_argument("Invalid parameter: " + element +
                                     ": only \'on\' or \'off\' is needed for cgi_pass"));
+}
+
+void ParameterChecker::_checkIncludeParameter(void) const
+{
+    std::string element;
+
+    if (_parameterCount < 1)
+        throw(std::invalid_argument("\'include\' needs file path to include"));
+    if (_parameterCount > 1)
+        throw(std::invalid_argument("Too many parameters: \'include\' needs one parameter"));
+    element = _parameters[0];
+    if (ConfigUtil::isExistingFile(element) == false)
+        throw(std::invalid_argument("File doesn't exist: " + element));
+    if (ConfigUtil::isReadableFile(element) == false)
+        throw(std::invalid_argument("Can't read file: " + element));
+}
+
+void ParameterChecker::_checkTypesParameter(void) const
+{
+    if (_parameterCount != 0)
+        throw(std::invalid_argument("\'types\' deosn't need any parameter"));
 }
