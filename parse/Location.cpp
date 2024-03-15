@@ -35,6 +35,7 @@ Location &Location::operator=(const Location &object)
     _errorPages        = object._errorPages;
     _acceptedMethods   = object._acceptedMethods;
     _cgiPass           = object._cgiPass;
+    _mimeType          = object._mimeType;
     return (*this);
 }
 
@@ -202,6 +203,7 @@ void Location::_inheritUnconditionalData(const Location &location)
     _return          = location._return;
     _errorPages      = location._errorPages;
     _cgiPass         = location._cgiPass;
+    _mimeType        = location._mimeType;
 }
 
 void Location::_inheritConditionalData(const Location &location)
