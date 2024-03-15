@@ -169,8 +169,11 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
-      //   std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
+        std::cout << "this is URI 1:" << _req.getRequestURI() << std::endl;
       _req.convertURI();
+      std::cout << "this is method:" << _req.getRequestMethod() <<
+      std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
+      std::endl;
       if (_req.getLocation().getCGIPass()) {
         std::cout << "cgi\n";
         // cgi execute -> get pipe fd
@@ -179,12 +182,13 @@ struct eventStatus ClientSocket::writeSocket() {
       } else {
         _res.setResponse(_req);
         _responseString = _res.getResponse();
-        //   std::cout << "this is method:" << _req.getRequestMethod() <<
-        //   std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
-        //   std::endl;
+        std::cout << "this is response" << std::endl;
+        std::cout << _responseString << "\n" << std::endl;
       }
     } catch (std::string &res) {
       _responseString = res;
+      std::cout << "this is error" << std::endl;
+        std::cout << res << "\n" << std::endl;
       return (makeStatus(CONTINUE, _socket));
     }
   }

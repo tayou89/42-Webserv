@@ -15,6 +15,9 @@
   <button type="button" onclick="sendGetRequest()">Send GET Request</button>
 </form>
 
+<!-- Add a div to display the response -->
+<div id="responseContainer"></div>
+
 <script>
   // Function to handle the button click event and send the GET request
   function sendGetRequest() {
@@ -36,9 +39,8 @@
         return response.text();
       })
       .then(data => {
-        // Handle the response if needed
-        console.log('GET request successful:', data);
-        alert('GET request successful!');
+        // Handle the response by adding it to the response container
+        document.getElementById('responseContainer').innerHTML = data;
       })
       .catch(error => {
         console.error('Error during GET request:', error.message);

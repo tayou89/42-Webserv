@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <unistd.h>
+#include <sys/stat.h>
 
 class Request {
 public:

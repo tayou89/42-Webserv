@@ -38,19 +38,19 @@ std::string splitBefore(std::string sentence, std::string splitWord) {
 
 std::string splitAfter(std::string sentence, std::string splitWord) {
   size_t split_index;
-  size_t i = 1;
+  size_t i = 0;
   std::string value;
 
   split_index = sentence.find(splitWord, 0);
   if (split_index == std::string::npos)
     return ("");
   while (i < sentence.size() - split_index) {
-    if (sentence[split_index + i] == ' ')
+    if (sentence[split_index + 1 + i] == ' ')
       i++;
     else
       break;
   }
-  value = sentence.substr(split_index + i);
+  value = sentence.substr(split_index + i + splitWord.size());
   return (value);
 }
 
@@ -73,4 +73,16 @@ struct eventStatus makeStatus(int status, int ident) {
   res.status = status;
   res.ident = ident;
   return (res);
+}
+
+std::string getModifiedTime(time_t mTime)
+{
+  struct tm *timeinfo = gmtime(&mTime);
+  timeinfo->tm_hour = (timeinfo->tm_hour + 9) % 24;
+
+  char buffer[80];
+
+  strftime(buffer, 80, "%d-%b-%Y %H:%M", timeinfo);
+  std::string MTstring(buffer);
+  return (MTstring);
 }
