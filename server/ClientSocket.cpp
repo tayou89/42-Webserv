@@ -26,6 +26,23 @@ ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
   _info.type = SOCKET;
 }
 
+std::string ClientSocket::makeCGIresponse(std::string result) const {
+  size_t end = result.find("\r\n\r\n");
+  std::string body = result.substr(end + 4);
+
+  std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
+                     "Server: " + _routeServer->getConfig().getServerName() +
+                     "\r\n";
+
+  size_t contentLength = body.size();
+
+  std::stringstream ss;
+  ss << contentLength;
+  head += "Content-Length: " + ss.str() + "\r\n";
+
+  return (head + result);
+}
+
 struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
   struct eventStatus result;
 
@@ -38,20 +55,18 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
       result = writeSocket();
     }
   } else if (type == PIPE) {
-    if (event->filter == EVFILT_WRITE) {
-      // PIPE WRITE
-      _cgi.executeCGI();
-    } else if (event->filter == EVFILT_READ) {
-      // PIPE READ
+    if (event->filter == EVFILT_PROC) {
+      std::cout << "process end" << std::endl;
+      waitpid(_cgi.getPID(), NULL, 0);
       char buf[10000]; // temp buffer
-      read(event->ident, &buf, 10000);
-      _responseString = std::string(buf);
+      read(_cgi.getReadFD(), &buf, 10000);
+      std::string tmp = std::string(buf);
+      _responseString = makeCGIresponse(tmp);
       _info.type = SOCKET;
       _status = WRITE;
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
   }
-
   return (result);
 }
 
@@ -181,16 +196,18 @@ struct eventStatus ClientSocket::writeSocket() {
       if (_req.getLocation().getCGIPass()) {
         // cgi execute -> get pipe fd
         std::cout << "cgi\n";
-        // _status = PIPE_WRITE;
-        // _info.type = PIPE;
-        // _cgi = CGIExecutor(_req);
-        // _cgi.createPipeFD();
-        // _cgi.createProcess();
-        // _cgi.setPipeFD();
-        // if (_cgi.getPID() == 0)
-        //   return (makeStatus(WRITE_PIPE_REGISTER, _cgi.getWriteFD()));
-        // else
-        //   return (makeStatus(READ_PIPE_REGISTER, _cgi.getReadFD()));
+        _status = PIPE_WRITE;
+        _info.type = PIPE;
+        _cgi.setCGIExecutor(_req);
+        _cgi.createPipeFD();
+        _cgi.createProcess();
+        _cgi.setPipeFD();
+        if (_cgi.getPID() > 0) {
+          std::cout << "parent\n";
+          return (makeStatus(PROCESS, _cgi.getPID()));
+        }
+        _cgi.executeCGI(); // child process execve
+        // return (makeStatus(WRITE_PIPE_REGISTER, _cgi.getWriteFD()));
       } else {
         _res.setResponse(_req);
         _responseString = _res.getResponse();
