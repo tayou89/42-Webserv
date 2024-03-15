@@ -53,6 +53,16 @@ std::string errorResponse::create204Response(Config conf) {
   return (response);
 }
 
+std::string errorResponse::create302Response(Config conf, Location loc) {
+  std::string response = "HTTP/1.1 302 Found\r\n" + getCurrentHttpDate() +
+                         "Content-Length: 0\r\n"
+                         "Server: " +
+                         conf.getServerName() + "\r\n";
+  std::string location = "Location: " + loc.getReturn() + "\r\n\r\n";
+  response += location;
+  return (response);
+}
+
 std::string errorResponse::create400Response(Config conf) {
   std::string response = "HTTP/1.1 400 Bad Request\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
