@@ -181,16 +181,16 @@ struct eventStatus ClientSocket::writeSocket() {
       if (_req.getLocation().getCGIPass()) {
         // cgi execute -> get pipe fd
         std::cout << "cgi\n";
-        _status = PIPE_WRITE;
-        _info.type = PIPE;
-        _cgi = CGIExecutor(_req);
-        _cgi.createPipeFD();
-        _cgi.createProcess();
-        _cgi.setPipeFD();
-        if (_cgi.getPID() == 0)
-          return (makeStatus(WRITE_PIPE_REGISTER, _cgi.getWriteFD()));
-        else
-          return (makeStatus(READ_PIPE_REGISTER, _cgi.getReadFD()));
+        // _status = PIPE_WRITE;
+        // _info.type = PIPE;
+        // _cgi = CGIExecutor(_req);
+        // _cgi.createPipeFD();
+        // _cgi.createProcess();
+        // _cgi.setPipeFD();
+        // if (_cgi.getPID() == 0)
+        //   return (makeStatus(WRITE_PIPE_REGISTER, _cgi.getWriteFD()));
+        // else
+        //   return (makeStatus(READ_PIPE_REGISTER, _cgi.getReadFD()));
       } else {
         _res.setResponse(_req);
         _responseString = _res.getResponse();

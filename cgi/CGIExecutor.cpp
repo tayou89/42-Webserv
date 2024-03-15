@@ -146,16 +146,16 @@ void CGIExecutor::setPipeFD(void) {
 }
 
 void CGIExecutor::executeCGI(void) {
-  if (_pid == 0) {
-    ConfigFile CGIFile = _location.getIndexFile();
-    char **envp = _getEnvp();
-    char *argv[2] = {const_cast<char *>(CGIFile.getPath().c_str()), NULL};
+//   if (_pid == 0) {
+//     ConfigFile CGIFile = _location.getIndexFile();
+//     char **envp = _getEnvp();
+//     char *argv[2] = {const_cast<char *>(CGIFile.getPath().c_str()), NULL};
 
-    if (execve(argv[0], argv, envp) == -1) {
-      ConfigUtil::freeStringArray(envp);
-      throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
-    }
-  }
+//     if (execve(argv[0], argv, envp) == -1) {
+//       ConfigUtil::freeStringArray(envp);
+//       throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
+//     }
+//   }
 }
 
 char **CGIExecutor::_getEnvp(void) const {
