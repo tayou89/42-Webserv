@@ -16,8 +16,11 @@ Response Response::operator=(const Response &copy) {
   return (*this);
 }
 
-std::string Response::setResponse(Request _request) {
-  this->_request = _request;
+std::string Response::setResponse(Request request) {
+  this->_request = request;
+  if (request.getLocation().getReturn().size() != 0)
+    throw _errorResponse.create302Response(this->_config,
+                                           _request.getLocation());
   this->checkValidity();
   return (this->getResponse());
 }

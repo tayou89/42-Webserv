@@ -40,8 +40,15 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
   } else if (type == PIPE) {
     if (event->filter == EVFILT_WRITE) {
       // PIPE WRITE
+      _cgi.executeCGI();
     } else if (event->filter == EVFILT_READ) {
       // PIPE READ
+      char buf[10000]; // temp buffer
+      read(event->ident, &buf, 10000);
+      _responseString = std::string(buf);
+      _info.type = SOCKET;
+      _status = WRITE;
+      return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
   }
 
@@ -177,10 +184,18 @@ struct eventStatus ClientSocket::writeSocket() {
       std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
       std::endl;
       if (_req.getLocation().getCGIPass()) {
-        std::cout << "cgi\n";
         // cgi execute -> get pipe fd
-        _status = PIPE_WRITE;
-        // return (makeStatus(PIPE_WRITE_MODE, pipefd));
+        std::cout << "cgi\n";
+        // _status = PIPE_WRITE;
+        // _info.type = PIPE;
+        // _cgi = CGIExecutor(_req);
+        // _cgi.createPipeFD();
+        // _cgi.createProcess();
+        // _cgi.setPipeFD();
+        // if (_cgi.getPID() == 0)
+        //   return (makeStatus(WRITE_PIPE_REGISTER, _cgi.getWriteFD()));
+        // else
+        //   return (makeStatus(READ_PIPE_REGISTER, _cgi.getReadFD()));
       } else {
         _res.setResponse(_req);
         _responseString = _res.getResponse();

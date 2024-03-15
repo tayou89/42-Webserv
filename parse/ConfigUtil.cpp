@@ -348,7 +348,7 @@ bool ConfigUtil::isMimeTypeFormat(const std::string &string)
         if (strings[i] == "")
             return (false);
     }
-    return (true); //is it true?
+	return (true); // is it correct?
 }
 
 // # include <iostream>

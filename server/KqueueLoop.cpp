@@ -56,6 +56,12 @@ void KqueueLoop::eventHandler(struct kevent *event) {
   result = _clientList[socket]->eventProcess(event, type);
   if (result.status == DISCONNECT) {
     disconnect(result.ident);
+  } else if (result.status == READ_PIPE_REGISTER) {
+    newEvent(result.ident, EVFILT_READ, EV_ENABLE, 0, 0,
+             &_clientList[socket]->getEventInfo());
+  } else if (result.status == WRITE_PIPE_REGISTER) {
+    newEvent(result.ident, EVFILT_WRITE, EV_ENABLE, 0, 0,
+             &_clientList[socket]->getEventInfo());
   } else if (result.status == SOCKET_WRITE_MODE) {
     newEvent(result.ident, EVFILT_READ, EV_DISABLE, 0, 0,
              &_clientList[socket]->getEventInfo());
