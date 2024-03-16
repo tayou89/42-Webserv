@@ -20,3 +20,4 @@ std::string splitBefore(std::string sentence, std::string splitWord);
 std::string splitAfter(std::string sentence, std::string splitWord);
 std::vector<std::string> splitString(const std::string &input, char delimiter);
 struct eventStatus makeStatus(int status, int ident);
+std::string getModifiedTime(time_t mTime);

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GET Request Form</title>
+
+  <script>
+    // Function to handle the button click event and send the GET request
+    function sendGetRequest() {
+      // Get the URI from the input field
+      const uri = document.getElementById('uriInput').value;
+  
+      // Check if the URI is not empty
+      if (uri.trim() === '') {
+        alert('Please enter a valid URI.');
+        return;
+      }
+  
+      // Use the Fetch API to send a GET request
+      fetch(uri)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then(data => {
+          // Handle the response by adding it to the response container
+          document.getElementById('responseContainer').innerHTML = data;
+        })
+        .catch(error => {
+          console.error('Error during GET request:', error.message);
+          alert(`Error during GET request: ${error.message}`);
+        });
+    }
+  
+    function handleButtonClick(filepath) {
+      // Replace 'your-server-endpoint' with the actual endpoint URL
+      const endpoint = filepath;
+  
+      // Use the Fetch API to send a GET request
+      fetch(filepath, { method: 'GET', headers: {'Content-Type': 'application/json',},})
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then(data => {
+          // Handle the response if needed
+          console.log('GET request successful:', data);
+          document.getElementById('responseContainer').innerHTML = data;
+        })
+        .catch(error => {
+          console.error('Error during GET request:', error.message);
+        });
+    }
+    
+  </script>
+
+</head>
+<body>
+
+<h1>GET Request Form</h1>
+
+<form id="getRequestForm">
+  <label for="uriInput">Enter URI:</label>
+  <input type="text" id="uriInput" name="uriInput" required>
+  <button type="button" onclick="sendGetRequest()">Send GET Request</button>
+</form>
+
+<!-- Add a div to display the response -->
+<div id="responseContainer"></div>
+
+
+</body>
+</html>

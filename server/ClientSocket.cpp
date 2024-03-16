@@ -83,6 +83,8 @@ struct eventStatus ClientSocket::readHead() {
   _tmp += tmp;
 
   /* header의 끝 찾기 */
+  std::cout << "this is request\n";
+  std::cout << tmp << "\n" << std::endl;
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos + 2);
@@ -209,13 +211,14 @@ struct eventStatus ClientSocket::writeSocket() {
         _cgi.executeCGI(); // child process execve
         // return (makeStatus(WRITE_PIPE_REGISTER, _cgi.getWriteFD()));
       } else {
+        std::cout << "this is URI 2:" << _req.getRequestURI() << std::endl;
         _res.setResponse(_req);
         _responseString = _res.getResponse();
-        //   std::cout << "this is method:" << _req.getRequestMethod() <<
-        //   std::endl; std::cout << "this is URI 2:" << _req.getRequestURI() <<
-        //   std::endl;
+        //   std::cout << "this is method:" << _req.getRequestMethod() << std::endl; 
       }
     } catch (std::string &res) {
+      std::cout << "this is error:\n";
+      std::cout << res << "\n" <<std::endl;
       _responseString = res;
       return (makeStatus(CONTINUE, _socket));
     }
