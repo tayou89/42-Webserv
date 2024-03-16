@@ -1,9 +1,9 @@
 #include "../include/CGIExecutor.hpp"
 #include <cerrno>
 #include <cstring>
+#include <iostream>
 
 CGIExecutor::CGIExecutor(void) {}
-
 
 CGIExecutor::~CGIExecutor(void) {}
 
@@ -21,29 +21,30 @@ CGIExecutor &CGIExecutor::operator=(const CGIExecutor &object) {
   return (*this);
 }
 
-CGIExecutor::CGIExecutor(const Request &request)
-    : _location(request.getLocation()), _request(request) {
+void CGIExecutor::setCGIExecutor(const Request &request) {
+  _location = request.getLocation();
+  _request = request;
   _setMetaVariables();
 }
 
-int CGIExecutor::execute(void) {
-  try {
-    _createPipeFD();
-    _createProcess();
-    _setPipeFD();
-    _executeCGI();
-  } catch (const std::exception &e) {
-    std::cerr << "Error: " << e.what() << '\n';
-    if (_pid == 0)
-      exit(1);
-    else
-      return (1);
-  }
-  if (_pid == 0)
-    exit(0);
-  else
-    return (0);
-}
+// int CGIExecutor::execute(void) {
+//   try {
+//     _createPipeFD();
+//     _createProcess();
+//     _setPipeFD();
+//     _executeCGI();
+//   } catch (const std::exception &e) {
+//     std::cerr << "Error: " << e.what() << '\n';
+//     if (_pid == 0)
+//       exit(1);
+//     else
+//       return (1);
+//   }
+//   if (_pid == 0)
+//     exit(0);
+//   else
+//     return (0);
+// }
 
 void CGIExecutor::_setMetaVariables(void) {
   _metaVariables["REQUEST_METHOD"] = _getRequestMethod();
@@ -129,40 +130,40 @@ std::string CGIExecutor::_getContentLength(void) const {
     return (iterator->second);
 }
 
-
-void CGIExecutor::_createPipeFD(void) {
+void CGIExecutor::createPipeFD(void) {
   if (pipe(_pipeFD) == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
+  fcntl(_pipeFD[READFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+  fcntl(_pipeFD[WRITEFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 
-void CGIExecutor::_createProcess(void) {
+void CGIExecutor::createProcess(void) {
   _pid = fork();
   if (_pid == -1)
     throw(std::runtime_error(std::string("fork: ") + std::strerror(errno)));
 }
 
-
-void CGIExecutor::_setPipeFD(void) {
+void CGIExecutor::setPipeFD(void) {
   if (_pid == 0) {
-    close(_pipeFD[0]);
-    if (dup2(_pipeFD[1], STDOUT_FILENO) == -1)
+    close(_pipeFD[READFD]);
+    if (dup2(_pipeFD[WRITEFD], STDOUT_FILENO) == -1)
       throw(std::runtime_error(std::string("dup2: ") + std::strerror(errno)));
-    close(_pipeFD[1]);
+    close(_pipeFD[WRITEFD]);
   } else
-    close(_pipeFD[1]);
+    close(_pipeFD[WRITEFD]);
 }
 
-
-void CGIExecutor::_executeCGI(void) {
+void CGIExecutor::executeCGI(void) {
   if (_pid == 0) {
-    ConfigFile CGIFile = _location.getIndexFile();
     char **envp = _getEnvp();
-    char *argv[2] = {const_cast<char *>(CGIFile.getPath().c_str()), NULL};
+    const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
 
-    if (execve(argv[0], argv, envp) == -1) {
+    if (execve(path, NULL, envp) == -1) {
+      std::cout << "execve failure\n";
       ConfigUtil::freeStringArray(envp);
       throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
     }
+    exit(1);
   }
 }
 
@@ -186,5 +187,6 @@ char **CGIExecutor::_getEnvp(void) const {
 
 pid_t CGIExecutor::getPID(void) const { return (_pid); }
 
+int CGIExecutor::getReadFD(void) const { return (_pipeFD[READFD]); }
 
-int CGIExecutor::getReadFD(void) const { return (_pipeFD[0]); }
+int CGIExecutor::getWriteFD(void) const { return (_pipeFD[WRITEFD]); }

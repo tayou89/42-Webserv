@@ -6,8 +6,7 @@
 #define CONTINUE 0
 #define SOCKET_WRITE_MODE 1
 #define SOCKET_READ_MODE 2
-#define READ_PIPE_REGISTER 3
-#define WRITE_PIPE_REGISTER 4
+#define PROCESS 3
 
 #define HEAD_READ 0
 #define BODY_READ 1
@@ -21,6 +20,5 @@
 
 #define SOCKET 1
 #define PIPE 2
-#define PROCESS 3
 
 #define BUFFER_SIZE 1023
