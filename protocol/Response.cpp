@@ -210,15 +210,13 @@ void Response::GET_HEAD() {
   close(fd);
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(body);
+  std::cout << body << std::endl;
 
   std::stringstream ss;
   ss << body.size();
   this->setResponseHeader("Content-Length", ss.str());
-  if (splitAfter(_request.getRequestURI(), ".") == "css")
-    this->setResponseHeader("Content-Type", "text/css");
-  else if (splitAfter(_request.getRequestURI(), ".") == "html")
-    this->setResponseHeader("Content-Type", "text/html");
-  //   this->setResponseHeader("Content-Type", "text/html");
+  this->setResponseHeader("Content-Type", _config.getMimeType(_request.getRequestURI()));
+  std::cout << _config.getMimeType(_request.getRequestURI()) << std::endl;
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
   this->setResponse(this->_errorResponse.create200Response(

@@ -214,11 +214,12 @@ struct eventStatus ClientSocket::writeSocket() {
         std::cout << "this is URI 2:" << _req.getRequestURI() << std::endl;
         _res.setResponse(_req);
         _responseString = _res.getResponse();
+        std::cout << "this is response:\n" << _responseString << "\n" << std::endl;
         //   std::cout << "this is method:" << _req.getRequestMethod() << std::endl; 
       }
     } catch (std::string &res) {
       std::cout << "this is error:\n";
-      std::cout << res << "\n" <<std::endl;
+      std::cout << res << "\n" << std::endl;
       _responseString = res;
       return (makeStatus(CONTINUE, _socket));
     }
