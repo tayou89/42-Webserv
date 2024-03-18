@@ -1,4 +1,5 @@
 #include "../include/MimeType.hpp"
+#include <iostream>
 #include <sstream>
 
 MimeType::MimeType(void)

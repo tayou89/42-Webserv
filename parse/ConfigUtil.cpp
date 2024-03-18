@@ -243,7 +243,7 @@ bool ConfigUtil::isURIDelimeter(const char &character)
 
 bool ConfigUtil::isFileExtension(const std::string &file, const std::string &extension)
 {
-    size_t extensionStart = file.find(extension);
+    size_t extensionStart = file.rfind(extension);
 
     if (extensionStart == std::string::npos)
         return (false);
@@ -348,7 +348,7 @@ bool ConfigUtil::isMimeTypeFormat(const std::string &string)
         if (strings[i] == "")
             return (false);
     }
-	return (true); // is it correct?
+    return (true); // is it correct?
 }
 
 // # include <iostream>
