@@ -60,12 +60,12 @@ void Response::checkValidity() {
     // }
 
     // 2. check if autoindex is enabled
-    if (this->_request.getLocation().getAutoIndex() == true) {
+    // if (this->_request.getLocation().getAutoIndex() == true) {
       // read all files in the directory and put it in the response packet
-      struct dirent *ent;
-      std::string filelist = "";
-      while ((ent = readdir(dir)) != NULL)
-        filelist = filelist + ent->d_name + "\n";
+    if (1) {
+      
+      std::string filelist;
+      filelist = makeAutoindexBody(dir);
       this->setResponseBody(filelist);
 
       std::stringstream ss;
@@ -79,7 +79,7 @@ void Response::checkValidity() {
           getResponseBody()));
     } else {
       // auto index not available
-      throw _errorResponse.create403Response(_config);
+      throw (_errorResponse.create403Response(_config));
     }
     closedir(dir);
   } else { // if URI is a file
@@ -93,6 +93,55 @@ void Response::checkValidity() {
     this->executeMethod();
     // check for cookie
   }
+}
+
+std::string Response::makeAutoindexBody(DIR *dir)
+{
+  struct dirent *ent;
+  struct stat buf;
+  std::vector<std::string> fileName;
+  std::vector<std::string> fileDate;
+  std::vector<std::string> fileVolume;
+  //get directory file information
+  while ((ent = readdir(dir)) != NULL)
+  {
+    std::stringstream ss;
+    lstat(ent->d_name, &buf);
+    fileName.push_back(ent->d_name);
+    fileDate.push_back(getModifiedTime(buf.st_mtime));
+    ss << buf.st_size;
+    fileVolume.push_back(ss.str());
+  }
+
+  //read autoindex.html
+  char readbuf[1023 + 1];
+  std::string autoindexHTML;
+  int fd = open("document/html/autoindex.html", O_RDONLY);
+  if (fd < 0)
+    throw (_errorResponse.create500Response(_config));
+  memset(readbuf, 0, 1023);
+  while (read(fd, readbuf, 1023) > 0)
+  {
+    std::string tmp(readbuf);
+    autoindexHTML = autoindexHTML + tmp;
+    memset(readbuf, 0, 1023);
+  }
+
+  //make autoindex.html with directory file information
+  std::string retBody;
+  autoindexHTML = splitBefore(autoindexHTML, "{filename}") + " " + _request.getRequestURI() + splitAfter(autoindexHTML, "{filename}");
+
+  retBody += splitBefore(autoindexHTML, "<!-- ((this is where the body should start)) -->");
+  for (int i = 0; i != static_cast<int>(fileName.size()); i++)
+  {
+    retBody += "    <div class=\"container\">\n";
+    retBody += "        <div class=\"string clickable\" onclick=\"handleButtonClick('/" + _request.getRequestURI() + "/" + fileName[i] + "')\">" + fileName[i] + "</div>\n";
+    retBody += "        <div class=\"string\">" + fileDate[i] + "</div>\n";
+    retBody += "        <div class=\"string\">" + fileVolume[i] + "</div>\n";
+    retBody += "    </div>\n\n";
+  }
+  retBody += splitAfter(autoindexHTML, "<!-- ((this is where the body should end)) -->");
+  return (retBody);
 }
 
 void Response::executeMethod() {
@@ -161,15 +210,13 @@ void Response::GET_HEAD() {
   close(fd);
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(body);
+  std::cout << body << std::endl;
 
   std::stringstream ss;
   ss << body.size();
   this->setResponseHeader("Content-Length", ss.str());
-  if (splitAfter(_request.getRequestURI(), ".") == "css")
-    this->setResponseHeader("Content-Type", "text/css");
-  else if (splitAfter(_request.getRequestURI(), ".") == "html")
-    this->setResponseHeader("Content-Type", "text/html");
-  //   this->setResponseHeader("Content-Type", "text/html");
+  this->setResponseHeader("Content-Type", _config.getMimeType(_request.getRequestURI()));
+  std::cout << _config.getMimeType(_request.getRequestURI()) << std::endl;
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
   this->setResponse(this->_errorResponse.create200Response(

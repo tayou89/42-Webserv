@@ -17,6 +17,7 @@ public:
 
   char **getEnvp() const;
   std::string getPath(char **envp, std::string cmd);
+  std::string makeAutoindexBody(DIR *dir);
 
   void GET_HEAD();
   void POST();
