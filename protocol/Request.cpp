@@ -15,6 +15,7 @@ Request::Request(const Request &copy) {
   this->_requestBody = copy._requestBody;
   this->_requestMethod = copy._requestMethod;
   this->_requestURI = copy._requestURI;
+  this->_queryString = copy._queryString;
   this->_location = copy._location;
 }
 
@@ -24,6 +25,7 @@ Request &Request::operator=(const Request &copy) {
   this->_requestBody = copy._requestBody;
   this->_requestMethod = copy._requestMethod;
   this->_requestURI = copy._requestURI;
+  this->_queryString = copy._queryString;
   this->_location = copy._location;
   return (*this);
 }
@@ -171,6 +173,8 @@ std::string Request::getRequestHeader(std::string key) const {
     return ("");
 }
 
+std::string Request::getQueryStirng() const { return (_queryString); }
+
 Location Request::getLocation() const { return (_location); }
 
 void Request::setRequestHeader(std::string key, std::string value) {
@@ -241,6 +245,14 @@ void Request::convertURI() {
   Location *target = NULL;
   int rate = 0;
   int tmp = 0;
+
+  /* separate query string */
+  std::vector<std::string> query = splitString(_requestURI, '?');
+  _requestURI = query[0];
+  if (query.size() == 1)
+    _queryString.append("");
+  else
+    _queryString = query[1];
 
   /* calculate similarity */
   for (; iter != locationMap.end(); iter++) {

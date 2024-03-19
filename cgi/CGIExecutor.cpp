@@ -95,15 +95,7 @@ std::string CGIExecutor::_getPathInfo(void) const {
 }
 
 std::string CGIExecutor::_getQueryString(void) const {
-  std::string uri = _request.getRequestURI();
-  size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
-
-  size_t queryStart = uri.find('?', scriptNameEnd);
-
-  if (queryStart == std::string::npos)
-    return ("");
-  else
-    return (uri.substr(queryStart + 1));
+  return (_request.getQueryStirng());
 }
 
 std::string CGIExecutor::_getContentType(void) const {
