@@ -15,6 +15,7 @@
 #include <sys/event.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 class ClientSocket {
 
@@ -30,6 +31,7 @@ public:
   struct eventStatus readChunkedBody();
   struct eventStatus writeSocket();
   std::string makeCGIresponse(std::string result) const;
+  void binaryResponse(std::vector<char> vec) const;
   void clearSocket();
 
 private:

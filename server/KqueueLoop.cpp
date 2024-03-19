@@ -57,7 +57,6 @@ void KqueueLoop::eventHandler(struct kevent *event) {
   if (result.status == DISCONNECT) {
     disconnect(result.ident);
   } else if (result.status == PROCESS) {
-    std::cout << "return\n";
     newEvent(result.ident, EVFILT_PROC, EV_ADD | EV_ENABLE | EV_ONESHOT,
              NOTE_EXIT, 0, &_clientList[socket]->getEventInfo());
     newEvent(socket, EVFILT_WRITE, EV_DISABLE, 0, 0,

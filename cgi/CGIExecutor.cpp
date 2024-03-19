@@ -125,8 +125,6 @@ std::string CGIExecutor::_getContentLength(void) const {
 void CGIExecutor::createPipeFD(void) {
   if (pipe(_pipeFD) == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
-  fcntl(_pipeFD[READFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-  fcntl(_pipeFD[WRITEFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 
 void CGIExecutor::createProcess(void) {
