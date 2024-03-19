@@ -9,8 +9,8 @@
 #include <fcntl.h>
 #include <iostream>
 #include <map>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 class Request {
 public:
@@ -35,6 +35,7 @@ public:
   std::string getRequestBody() const;
   std::map<std::string, std::string> getRequestHeader() const;
   std::string getRequestHeader(std::string key) const;
+  std::string getQueryStirng() const;
   Location getLocation() const;
   void setRequestHeader(std::string key, std::string value);
 
@@ -51,6 +52,7 @@ private:
   std::string _requestBody;
   std::string _requestMethod;
   std::string _requestURI;
+  std::string _queryString;
   Location _location;
 
   errorResponse _errorResponse;
