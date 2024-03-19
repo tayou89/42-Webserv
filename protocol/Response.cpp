@@ -90,7 +90,22 @@ void Response::checkValidity() {
       // check if the user is authorized
       // if not, throw 401 response
     }
-    this->executeMethod();
+    if (_request.getRequestURI().find("cookie") != std::string::npos)
+    {
+      _cookie.controlCookies(_request.getRequestHeader(), _request.getRequestURI());
+      this->setResponseHeader("Content-Length", intToString(_cookie.getresBody().size()));
+      this->setResponseHeader("Content-Type", "text/html");
+      // need to change
+      if (_cookie.getresCookieHeaderString().size() != 0)
+        this->setResponseHeader("Set-Cookie", _cookie.getresCookieHeaderString());
+      this->setResponseHeader("Last-Modified", getCurrentHttpDateForCookie());
+      this->setResponse(this->_errorResponse.create200Response(
+          this->_config.getServerName(), getResponseHeader(),
+          _cookie.getresBody()));
+      std::cout << "this is response\n" << _response << "\n" << std::endl;
+    }
+    else
+      this->executeMethod();
     // check for cookie
   }
 }
@@ -210,13 +225,11 @@ void Response::GET_HEAD() {
   close(fd);
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(body);
-  std::cout << body << std::endl;
 
   std::stringstream ss;
   ss << body.size();
   this->setResponseHeader("Content-Length", ss.str());
   this->setResponseHeader("Content-Type", _config.getMimeType(_request.getRequestURI()));
-  std::cout << _config.getMimeType(_request.getRequestURI()) << std::endl;
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
   this->setResponse(this->_errorResponse.create200Response(

@@ -18,6 +18,24 @@ std::string getCurrentHttpDate() {
   return (str);
 }
 
+std::string getCurrentHttpDateForCookie() {
+  // Get the current time
+  time_t rawtime;
+  time(&rawtime);
+
+  // Convert to a struct tm
+  struct tm *timeinfo = gmtime(&rawtime);
+  // std::cout << "tm_hour: " << timeinfo->tm_hour << std::endl;
+  timeinfo->tm_hour = (timeinfo->tm_hour + 9) % 24; // UTC to KST
+
+  // Format the time to HTTP date format
+  char buffer[80];
+  strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
+  std::string str(buffer);
+  str = "Date: " + str;
+  return (str);
+}
+
 std::string splitBefore(std::string sentence, std::string splitWord) {
   size_t split_index;
   size_t i = 1;
@@ -85,4 +103,39 @@ std::string getModifiedTime(time_t mTime)
   strftime(buffer, 80, "%d-%b-%Y %H:%M", timeinfo);
   std::string MTstring(buffer);
   return (MTstring);
+}
+
+std::string intToString(int value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+std::vector<std::string> rgbToDecimal(const std::string& rgbHex) {
+    std::vector<std::string> decimalValues;
+    
+    // Convert hexadecimal to decimal for each component
+    for (int i = 0; i < 3; ++i) {
+        int value;
+        std::stringstream ss;
+        ss << std::hex << rgbHex.substr(i * 2, 2);
+        ss >> value;
+        decimalValues.push_back(intToString(value));
+    }
+    return (decimalValues);
+}
+
+std::string decimalToRgb(int red, int green, int blue) {
+    std::ostringstream oss;
+    
+    // Convert decimal to hexadecimal for each component
+    char buffer[3];
+    sprintf(buffer, "%02x", red);
+    oss << buffer;
+    sprintf(buffer, "%02x", green);
+    oss << buffer;
+    sprintf(buffer, "%02x", blue);
+    oss << buffer;
+    
+    return oss.str();
 }

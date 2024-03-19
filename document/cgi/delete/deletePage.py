@@ -6,11 +6,11 @@ from util import util
 import cgitb, delete_util
 
 cgitb.enable()
-uploadDir = '/Users/tayou/Desktop/tayou/42_webserv/document/uploaded'
+uploadDir = '/Users/yejlee2/Desktop/yejlee2/42_webserv/document/uploaded'
 fileList = util.getFileList(uploadDir)
 buttonStringList = delete_util.getDeleteStringList(fileList)
 print("Content-Type: text/html\n")
-htmlFile = open('/Users/tayou/Desktop/tayou/42_webserv/document/html/delete.html', 'r')
+htmlFile = open('/Users/yejlee2/Desktop/yejlee2/42_webserv/document/html/delete.html', 'r')
 htmlContent = htmlFile.read()
 htmlContent = htmlContent.format(deleteButtonList = buttonStringList)
 print(htmlContent)

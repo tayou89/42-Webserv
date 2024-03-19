@@ -14,7 +14,7 @@ filename = query_params.get('filename', [None])[0]
 if not filename:
     print("Error: No filename provided.")
 else:
-    file_path = os.path.join("/Users/tayou/Desktop/tayou/42_webserv/document/uploaded", filename)
+    file_path = os.path.join("/Users/yejlee2/Desktop/tayou/42_webserv/document/uploaded", filename)
     print(f"{file_path}")
     if os.path.exists(file_path):
         try:

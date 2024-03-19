@@ -19,6 +19,8 @@ SRCS = main.cpp \
 	   protocol/Request.cpp \
 	   protocol/Response.cpp \
 	   protocol/utils.cpp \
+	   protocol/Cookie.cpp \
+	   protocol/Session.cpp \
 	   mime/MimeType.cpp \
 	   cgi/CGIExecutor.cpp
 
@@ -30,6 +32,7 @@ INCS = include/ClientSocket.hpp \
 	   include/ConfigParser.hpp \
 	   include/ConfigStream.hpp \
 	   include/ConfigUtil.hpp \
+	   include/Cookie.hpp \
 	   include/IEventLoop.hpp \
 	   include/IServer.hpp \
 	   include/KqueueLoop.hpp \
@@ -39,6 +42,7 @@ INCS = include/ClientSocket.hpp \
 	   include/ErrorResponse.hpp \
 	   include/Request.hpp \
 	   include/Response.hpp \
+	   include/utils.hpp \
 	   include/utils.hpp \
 	   include/MimeType.hpp \
 	   include/CGIExecutor.hpp

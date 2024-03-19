@@ -1,4 +1,4 @@
-#include "Session.hpp"
+#include "../include/Session.hpp"
 
 Session::Session(std::string sessionID)
 {
@@ -28,7 +28,7 @@ std::string Session::getSessionID() const
 
 void    Session::addSessionMap(std::string key, std::string value)
 {
-    _sessionMap.insert(key, value);
+    _sessionMap.insert(std::make_pair(key, value));
 }
 
 std::map<std::string, std::string>  Session::getSessionMap() const

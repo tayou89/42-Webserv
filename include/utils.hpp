@@ -16,8 +16,12 @@
 // # endif
 
 std::string getCurrentHttpDate();
+std::string getCurrentHttpDateForCookie();
 std::string splitBefore(std::string sentence, std::string splitWord);
 std::string splitAfter(std::string sentence, std::string splitWord);
 std::vector<std::string> splitString(const std::string &input, char delimiter);
 struct eventStatus makeStatus(int status, int ident);
 std::string getModifiedTime(time_t mTime);
+std::vector<std::string> rgbToDecimal(const std::string& rgbHex);
+std::string decimalToRgb(int red, int green, int blue);
+std::string intToString(int value);

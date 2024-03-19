@@ -24,6 +24,7 @@ std::string errorResponse::create200Response(
            responseHeader.begin();
        itr != responseHeader.end(); ++itr)
     response = response + itr->first + ": " + itr->second + "\r\n";
+  // std::cout << "this is response header:\n" << response << "\n" << std::endl;
   response = response + responseBody;
   return (response);
 }

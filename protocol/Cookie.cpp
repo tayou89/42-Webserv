@@ -13,12 +13,25 @@ Cookie::~Cookie()
 
 Cookie::Cookie(const Cookie &copy)
 {
-
+    this->_sessionList = copy._sessionList;
+    this->_reqCookieHeader = copy._reqCookieHeader;
+    this->_resCookieHeader = copy._resCookieHeader;
+    this->_queryString = copy._queryString;
+    this->_queryStringExistance = copy._queryStringExistance;
+    this->_resCookieHeaderString = copy._resCookieHeaderString;
+    this->_resBody = copy._resBody;
 }
 
 Cookie Cookie::operator=(const Cookie &copy)
 {
-
+    this->_sessionList = copy._sessionList;
+    this->_reqCookieHeader = copy._reqCookieHeader;
+    this->_resCookieHeader = copy._resCookieHeader;
+    this->_queryString = copy._queryString;
+    this->_queryStringExistance = copy._queryStringExistance;
+    this->_resCookieHeaderString = copy._resCookieHeaderString;
+    this->_resBody = copy._resBody;
+    return (*this);
 }
 
 time_t Cookie::getCookieTime(int day, int hour, int min)
@@ -62,42 +75,33 @@ std::string Cookie::makeNewSID()
     return (cookieName);
 }
 
-std::string Cookie::controlCookies(std::map<std::string, std::string> header)
+void Cookie::controlCookies(std::map<std::string, std::string> header, std::string URI)
 {
     std::map<std::string, std::string>::iterator itrHeader = header.find("Cookie");
     
-    if (itrHeader == header.end())
+    parseURI(URI);
+    std::cout << "URI is:" << URI << std::endl;
+    if (_queryStringExistance == 1) //쿼리스트링이 존재함
     {
-        //cookie header does not exist -> make new cookie, write it, return it
-        std::string newSID = this->makeNewSID();
-        //return set-Cookie header field with private information?
-        return ("SID=" + newSID);
+        _resCookieHeaderString.clear();
+        _resCookieHeaderString += "color=" + _queryString["color"] + "; ";
+        // _resCookieHeaderString += "size=" + _queryString["size"] + "; ";
+        // _resCookieHeaderString += "Expires=" + convertIntoRealTime(getCookieTime(0, 1, 0)) + ";";
+        makeBody(_queryString["color"], _queryString["size"]);
+        std::cout << "query string exists, color is:" << _queryString["color"] << ", and size is:" << _queryString["size"] << std::endl;
     }
-    else
+    else if (itrHeader == header.end()) //쿼리스트링과 쿠키 다 없음
     {
-        std::string sid = "";
-        //read the cookie header, then make user specified response with that information
+        makeBody("000000", "15");
+        _resCookieHeaderString.clear();
+        std::cout << "query string and cookie does not exist, color is:" << "000000" << ", and size is:" << "15" << std::endl;
+    }
+    else //쿼리스트링은 없지만 쿠키헤더값은 있는 경우
+    {
         setCookieHeader(itrHeader->second);
-        std::map<std::string, std::string>::iterator itrReq = _reqCookieHeader.begin();
-        for (; itrReq != _reqCookieHeader.end(); ++itrReq)
-        {
-            if (itrReq->first == "SID")
-                sid = itrReq->second;
-            else
-                _resCookieHeader.insert(std::make_pair(itrReq->first, itrReq->second));
-        }
-        if (sid != "")
-        {
-            Session tmpSession = getSession(sid);
-            if (tmpSession.getSessionID() != "defaultSession")
-            {
-                std::map<std::string, std::string> ses = tmpSession.getSessionMap();
-                std::map<std::string, std::string>::iterator itrSes = ses.begin();
-                for (; itrSes != ses.end(); ++itrSes)
-                    _resCookieHeader[itrSes->first] = itrSes->second; //중복될 경우 덮어씌워야해서 []
-            }
-        }
-        //go through _resCookieHeader to make user friendly response
+        makeBody(_reqCookieHeader["color"], _reqCookieHeader["size"]);
+        _resCookieHeaderString.clear();
+        std::cout << "query string does not, but cookie header exists, color is:" << _reqCookieHeader["color"] << ", and size is:" << _reqCookieHeader["size"] << std::endl;
     }
 }
 
@@ -147,9 +151,45 @@ void    Cookie::deleteSession(std::string sessionID)
     return ;
 }
 
+void    Cookie::parseURI(std::string URI)
+{
+    if (URI.find("cookie?color=") == std::string::npos && URI.find("cookie.html?color=") == std::string::npos)
+        _queryStringExistance = 0;
+    else
+    {
+        _queryStringExistance = 1;
+        std::string query = splitAfter(URI, "color=%23");
+        std::string colorString = splitBefore(query, "&size=");
+        std::string sizeString = splitAfter(query, "&size=");
+        _queryString["color"] = colorString;
+        _queryString["size"] = sizeString;
+    }
+}
+
+void    Cookie::makeBody(std::string color, std::string size)
+{
+    int fd = open("document/html/cookie.html", O_RDONLY);
+    std::string cookieHTML;
+    char buf[BUFFER_SIZE + 1];
+    
+    memset(buf, 0, BUFFER_SIZE + 1);
+    while (read(fd, buf, BUFFER_SIZE) > 0)
+    {
+        std::string tmp(buf);
+        cookieHTML += tmp;
+        memset(buf, 0, BUFFER_SIZE + 1);
+    }
+    std::vector<std::string> rgbValue = rgbToDecimal(color);
+    _resBody = splitBefore(cookieHTML, ".cookie-text") + "  .cookie-text";
+    _resBody += " {\n    color: rgb(" + rgbValue[0] + ", ";
+    _resBody += rgbValue[1] + ", " + rgbValue[2] + ");";
+    _resBody += "\n    font-size: " + size + "px;\n  }";
+    _resBody += "\n</style>\n</head>\n<body>\n\n" + splitAfter(cookieHTML, "</style>\n</head>\n<body>");
+}
+
 void    Cookie::controlSession(std::map<std::string, std::string> header)
 {
-
+    (void)header;
 }
 
 Session Cookie::createSession(std::string sessionID)
@@ -157,4 +197,18 @@ Session Cookie::createSession(std::string sessionID)
     //or heap allocation?
     Session newSession(sessionID);
     return (newSession);
+}
+
+std::string Cookie::getresBody() const
+{
+    return (_resBody);
+}
+
+
+std::string Cookie::getresCookieHeaderString() const
+{
+    if (_resCookieHeaderString.size() == 0)
+        return ("");
+    else
+        return (_resCookieHeaderString + "\r\n");
 }
