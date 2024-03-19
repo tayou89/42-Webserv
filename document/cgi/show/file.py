@@ -34,7 +34,7 @@ cgitb.enable()
 
 form = cgi.FieldStorage()
 fileName = form.getvalue('file')
-filePath = '/Users/tayou/Desktop/tayou/42_webserv/document/uploaded' + '/' + fileName
+filePath = '/Users/jinhyeop/Desktop/project/webserv/document/html/uploaded' + '/' + fileName
 
 try:
     if os.path.isfile(filePath):
@@ -42,12 +42,16 @@ try:
         if mimeType is None:
             mimeType = 'application/octet-stream'
         
-        sys.stdout.buffer.write(f"Content-Type: {mimeType}\n\n".encode('utf-8'))
+        sys.stdout.buffer.write(f"Content-Type: {mimeType}\r\n\r\n".encode('utf-8'))
+        print("head end", file=sys.stderr)
         with open(filePath, 'rb') as file:
             sys.stdout.flush()
-            chunk = file.read(1024)
-            while chunk:
+            while True:
+                chunk = file.read(1024)
+                if not chunk:
+                    break
                 sys.stdout.buffer.write(chunk)
+                sys.stdout.flush()
                 chunk = file.read(1024)
     else:
         print("Content-Type: text/html\n")
@@ -55,3 +59,5 @@ try:
 except Exception as e:
     print("Content-Type: text/html\n")
     print(f"Error: {str(e)}")
+
+print("end", file=sys.stderr)

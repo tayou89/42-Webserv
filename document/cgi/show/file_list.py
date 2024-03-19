@@ -6,7 +6,7 @@ from util import util
 import cgitb, file_list_util
 
 cgitb.enable()
-uploadDir = '/Users/jinhyeop/Desktop/project/webserv/document/uploaded'
+uploadDir = '/Users/jinhyeop/Desktop/project/webserv/document/html/uploaded'
 fileList = util.getFileList(uploadDir)
 htmlStringList = file_list_util.getHTMLStringList(fileList)
 print("Content-Type: text/html\r\n\r\n", end="")
