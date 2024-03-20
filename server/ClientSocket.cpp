@@ -149,7 +149,7 @@ struct eventStatus ClientSocket::readPipe() {
   else {
     close(_cgi.getReadFD());
     _processStatus = END;
-    return (makeStatus(PROCESS_END, _cgi.getPID()));
+    return (makeStatus(PROCESS_END, _cgi.getReadFD()));
   }
 }
 
