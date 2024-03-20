@@ -26,51 +26,130 @@ ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
   _info.type = SOCKET;
 }
 
-std::string ClientSocket::makeCGIresponse(std::string result) const {
-  size_t end = result.find("\r\n\r\n");
-  std::string body = result.substr(end + 4);
+// std::string ClientSocket::makeCGIresponse(std::string result) const {
+//   size_t end = result.find("\r\n\r\n");
+//   std::string body = result.substr(end + 4);
 
-  std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
-                     "Server: " + _routeServer->getConfig().getServerName() +
-                     "\r\n";
+//   std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
+//                      "Server: " + _routeServer->getConfig().getServerName() +
+//                      "\r\n";
 
-  size_t contentLength = body.size();
+//   size_t contentLength = body.size();
 
-  std::stringstream ss;
-  ss << contentLength;
-  head += "Content-Length: " + ss.str() + "\r\n";
+//   std::stringstream ss;
+//   ss << contentLength;
+//   head += "Content-Length: " + ss.str() + "\r\n";
 
-  return (head + result);
+//   return (head + result);
+// }
+
+// void ClientSocket::binaryResponse(std::vector<char> vec) const {
+//   std::vector<char>::iterator it = vec.begin();
+//   int idx = 0;
+
+//   while (it != vec.end()) {
+//     if (*it == '\r' && *(it + 1) == '\n' && *(it + 2) == '\r' &&
+//         *(it + 3) == '\n')
+//       break;
+//     it++;
+//     idx++;
+//   }
+//   idx += 4;
+
+//   it = vec.begin();
+//   std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
+//                      "Server: " + _routeServer->getConfig().getServerName() +
+//                      "\r\n";
+
+//   size_t contentLength = vec.size() - idx;
+
+//   std::stringstream ss;
+//   ss << contentLength;
+//   head += "Content-Length: " + ss.str() + "\r\n";
+
+//   write(_socket, &head[0], head.size());
+//   while (it != vec.end()) {
+//     write(_socket, &(*it), 1);
+//     it++;
+//   }
+// }
+
+std::string ClientSocket::getContentType() {
+  std::string tmp(_cgiResponse.begin(), _cgiResponse.end());
+  std::string header;
+  size_t pos;
+
+  if ((pos = tmp.find("\r\n\r\n")) != std::string::npos) {
+    header = tmp.substr(0, pos);
+    _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + pos + 4);
+  } else if ((pos = tmp.find("\n\n")) != std::string::npos) {
+    header = tmp.substr(0, pos);
+    _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + pos + 2);
+  }
+
+  return (header);
 }
 
-void ClientSocket::binaryResponse(std::vector<char> vec) const {
-  std::vector<char>::iterator it = vec.begin();
-  int idx = 0;
+struct eventStatus ClientSocket::sendCGIHeader() {
+  if (_cgiResponse.empty() == true)
+    return (makeStatus(CONTINUE, _socket));
 
-  while (it != vec.end()) {
-    if (*it == '\r' && *(it + 1) == '\n' && *(it + 2) == '\r' &&
-        *(it + 3) == '\n')
-      break;
-    it++;
-    idx++;
-  }
-  idx += 4;
-
-  it = vec.begin();
   std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
                      "Server: " + _routeServer->getConfig().getServerName() +
-                     "\r\n";
+                     "\r\n" + getContentType() + "\r\n" +
+                     "Transfer-Encoding: Chunked\r\n\r\n";
 
-  size_t contentLength = vec.size() - idx;
+  size_t writeSize = write(_socket, &head[0], head.size());
+  if (writeSize != head.size())
+    ; // write error
+  _status = PIPE_BODY;
+  return (makeStatus(CONTINUE, _socket));
+}
 
-  std::stringstream ss;
-  ss << contentLength;
-  head += "Content-Length: " + ss.str() + "\r\n";
+struct eventStatus ClientSocket::sendCGIBody() {
+  if (_cgiResponse.empty() == false) {
+    int chunkSize = _cgiResponse.size();
+    std::stringstream ss;
 
-  write(_socket, &head[0], head.size());
-  while (it != vec.end()) {
-    write(_socket, &(*it), 1);
-    it++;
+    ss << std::hex << chunkSize;
+
+    std::string sizeStr = ss.str() + "\r\n";
+
+    size_t sizeWrite = write(_socket, sizeStr.c_str(), sizeStr.size());
+    if (sizeWrite != sizeStr.size())
+      ; // write error
+    size_t chunkWrite = write(_socket, &_cgiResponse[0], _cgiResponse.size());
+    if (chunkWrite != _cgiResponse.size())
+      ; // write error
+    _cgiResponse.clear();
+    write(_socket, "\r\n", 2);
+  }
+
+  if (_processStatus == END) {
+    write(_socket, "0\r\n\r\n", 5);
+    _status = HEAD_READ;
+    _info.type = SOCKET;
+    return (makeStatus(SOCKET_READ_MODE, _socket));
+  }
+  return (makeStatus(CONTINUE, _socket));
+}
+
+struct eventStatus ClientSocket::readPipe() {
+  std::vector<unsigned char> tmp(BUFFER_SIZE + 1);
+  int readSize = BUFFER_SIZE + 1;
+
+  memset(&tmp[0], 0, BUFFER_SIZE + 1);
+  readSize = read(_cgi.getReadFD(), &tmp[0], BUFFER_SIZE + 1);
+
+  _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
+
+  int pid = waitpid(_cgi.getPID(), &_processStatus, WNOHANG);
+  if (pid == 0)
+    return (makeStatus(CONTINUE, _socket));
+  else {
+    close(_cgi.getReadFD());
+    _processStatus = END;
+    return (makeStatus(PROCESS_END, _cgi.getReadFD()));
   }
 }
 
@@ -82,26 +161,27 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
       // SOCKET READ
       result = readSocket();
     } else if (event->filter == EVFILT_WRITE) {
-      // SOCKET WRITE
       result = writeSocket();
     }
   } else if (type == PIPE) {
-    if (event->filter == EVFILT_PROC) {
-      std::vector<char> bufVec;
-      std::vector<char> tmp(BUFFER_SIZE + 1);
-      int readSize = BUFFER_SIZE + 1;
-
-      waitpid(_cgi.getPID(), NULL, 0);
-      while (readSize > 0) {
-        memset(&tmp[0], 0, BUFFER_SIZE + 1);
-        readSize = read(_cgi.getReadFD(), &tmp[0], BUFFER_SIZE + 1);
-        bufVec.insert(bufVec.end(), tmp.begin(), tmp.begin() + readSize);
+    if (event->filter == EVFILT_READ) {
+      result = readPipe();
+    } else if (event->filter == EVFILT_WRITE) {
+      if (_status == PIPE_HEAD) {
+        // status PIPE HEAD 처음 버퍼의 내용을 소켓에 작성할 때
+        try {
+          result = sendCGIHeader();
+        } catch (std::string &res) {
+          _responseString = res;
+        }
+      } else if (_status == PIPE_BODY) {
+        // status PIPE BODY 그 이후에 버퍼의 내용을 소켓에 작성할 때
+        try {
+          result = sendCGIBody();
+        } catch (std::string &res) {
+          _responseString = res;
+        }
       }
-      binaryResponse(bufVec);
-      close(_cgi.getReadFD());
-      _info.type = SOCKET;
-      _status = HEAD_READ;
-      return (makeStatus(SOCKET_READ_MODE, _socket));
     }
   }
   return (result);
@@ -229,14 +309,15 @@ struct eventStatus ClientSocket::writeSocket() {
     try {
       _req.convertURI();
       if (_req.getLocation().getCGIPass()) {
-        _status = PIPE_WRITE;
+        _status = PIPE_HEAD;
+        _processStatus = ALIVE;
         _info.type = PIPE;
         _cgi.setCGIExecutor(_req);
         _cgi.createPipeFD();
         _cgi.createProcess();
         _cgi.setPipeFD();
         if (_cgi.getPID() > 0) {
-          return (makeStatus(PROCESS, _cgi.getPID()));
+          return (makeStatus(PROCESS, _cgi.getReadFD()));
         }
         _cgi.executeCGI(); // child process execve
       } else {
@@ -272,4 +353,5 @@ void ClientSocket::clearSocket() {
   _responseString.clear();
   _req = Request();
   _res.initResponse();
+  _processStatus = END;
 }

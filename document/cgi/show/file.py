@@ -43,7 +43,6 @@ try:
             mimeType = 'application/octet-stream'
         
         sys.stdout.buffer.write(f"Content-Type: {mimeType}\r\n\r\n".encode('utf-8'))
-        print("head end", file=sys.stderr)
         with open(filePath, 'rb') as file:
             sys.stdout.flush()
             while True:
@@ -51,8 +50,11 @@ try:
                 if not chunk:
                     break
                 sys.stdout.buffer.write(chunk)
+                # encoded_str = encoded_chunk.decode('utf-8')
+                # sys.stderr.buffer.write(encoded_chunk)
+                # print(encoded_chunk, file=sys.stderr)
+                # sys.stdout.buffer.write(encoded_str)
                 sys.stdout.flush()
-                chunk = file.read(1024)
     else:
         print("Content-Type: text/html\n")
         print("File not found.: {}".format(filePath))
