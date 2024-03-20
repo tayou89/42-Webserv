@@ -30,8 +30,12 @@ public:
   struct eventStatus readContentBody();
   struct eventStatus readChunkedBody();
   struct eventStatus writeSocket();
-  std::string makeCGIresponse(std::string result) const;
-  void binaryResponse(std::vector<char> vec) const;
+  struct eventStatus sendCGIHeader();
+  struct eventStatus sendCGIBody();
+  struct eventStatus readPipe();
+  std::string getContentType();
+  //   std::string makeCGIresponse(std::string result) const;
+  //   void binaryResponse(std::vector<char> vec) const;
   void clearSocket();
 
 private:
@@ -52,4 +56,6 @@ private:
   std::string _responseString;
   struct eventInfo _info;
   CGIExecutor _cgi;
+  std::vector<unsigned char> _cgiResponse;
+  int _processStatus;
 };

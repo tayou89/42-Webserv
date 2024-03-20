@@ -61,9 +61,9 @@ void Response::checkValidity() {
 
     // 2. check if autoindex is enabled
     // if (this->_request.getLocation().getAutoIndex() == true) {
-      // read all files in the directory and put it in the response packet
+    // read all files in the directory and put it in the response packet
     if (1) {
-      
+
       std::string filelist;
       filelist = makeAutoindexBody(dir);
       this->setResponseBody(filelist);
@@ -79,7 +79,7 @@ void Response::checkValidity() {
           getResponseBody()));
     } else {
       // auto index not available
-      throw (_errorResponse.create403Response(_config));
+      throw(_errorResponse.create403Response(_config));
     }
     closedir(dir);
   } else { // if URI is a file
@@ -95,16 +95,14 @@ void Response::checkValidity() {
   }
 }
 
-std::string Response::makeAutoindexBody(DIR *dir)
-{
+std::string Response::makeAutoindexBody(DIR *dir) {
   struct dirent *ent;
   struct stat buf;
   std::vector<std::string> fileName;
   std::vector<std::string> fileDate;
   std::vector<std::string> fileVolume;
-  //get directory file information
-  while ((ent = readdir(dir)) != NULL)
-  {
+  // get directory file information
+  while ((ent = readdir(dir)) != NULL) {
     std::stringstream ss;
     lstat(ent->d_name, &buf);
     fileName.push_back(ent->d_name);
@@ -113,34 +111,39 @@ std::string Response::makeAutoindexBody(DIR *dir)
     fileVolume.push_back(ss.str());
   }
 
-  //read autoindex.html
+  // read autoindex.html
   char readbuf[1023 + 1];
   std::string autoindexHTML;
   int fd = open("document/html/autoindex.html", O_RDONLY);
   if (fd < 0)
-    throw (_errorResponse.create500Response(_config));
+    throw(_errorResponse.create500Response(_config));
   memset(readbuf, 0, 1023);
-  while (read(fd, readbuf, 1023) > 0)
-  {
+  while (read(fd, readbuf, 1023) > 0) {
     std::string tmp(readbuf);
     autoindexHTML = autoindexHTML + tmp;
     memset(readbuf, 0, 1023);
   }
 
-  //make autoindex.html with directory file information
+  // make autoindex.html with directory file information
   std::string retBody;
-  autoindexHTML = splitBefore(autoindexHTML, "{filename}") + " " + _request.getRequestURI() + splitAfter(autoindexHTML, "{filename}");
+  autoindexHTML = splitBefore(autoindexHTML, "{filename}") + " " +
+                  _request.getRequestURI() +
+                  splitAfter(autoindexHTML, "{filename}");
 
-  retBody += splitBefore(autoindexHTML, "<!-- ((this is where the body should start)) -->");
-  for (int i = 0; i != static_cast<int>(fileName.size()); i++)
-  {
+  retBody += splitBefore(autoindexHTML,
+                         "<!-- ((this is where the body should start)) -->");
+  for (int i = 0; i != static_cast<int>(fileName.size()); i++) {
     retBody += "    <div class=\"container\">\n";
-    retBody += "        <div class=\"string clickable\" onclick=\"handleButtonClick('/" + _request.getRequestURI() + "/" + fileName[i] + "')\">" + fileName[i] + "</div>\n";
+    retBody += "        <div class=\"string clickable\" "
+               "onclick=\"handleButtonClick('/" +
+               _request.getRequestURI() + "/" + fileName[i] + "')\">" +
+               fileName[i] + "</div>\n";
     retBody += "        <div class=\"string\">" + fileDate[i] + "</div>\n";
     retBody += "        <div class=\"string\">" + fileVolume[i] + "</div>\n";
     retBody += "    </div>\n\n";
   }
-  retBody += splitAfter(autoindexHTML, "<!-- ((this is where the body should end)) -->");
+  retBody += splitAfter(autoindexHTML,
+                        "<!-- ((this is where the body should end)) -->");
   return (retBody);
 }
 
@@ -210,12 +213,13 @@ void Response::GET_HEAD() {
   close(fd);
   if (this->_request.getRequestMethod() == "GET")
     this->setResponseBody(body);
-  std::cout << body << std::endl;
+  //   std::cout << body << std::endl;
 
   std::stringstream ss;
   ss << body.size();
   this->setResponseHeader("Content-Length", ss.str());
-  this->setResponseHeader("Content-Type", _config.getMimeType(_request.getRequestURI()));
+  this->setResponseHeader("Content-Type",
+                          _config.getMimeType(_request.getRequestURI()));
   std::cout << _config.getMimeType(_request.getRequestURI()) << std::endl;
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
