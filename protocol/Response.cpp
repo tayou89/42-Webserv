@@ -72,7 +72,6 @@ void Response::checkValidity() {
       ss << filelist.size();
       this->setResponseHeader("Content-Length", ss.str());
       this->setResponseHeader("Content-Type", "text/html");
-      // need to change
       this->setResponseHeader("Last-Modified", getCurrentHttpDate());
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
@@ -92,16 +91,30 @@ void Response::checkValidity() {
     }
     if (_request.getRequestURI().find("cookie") != std::string::npos)
     {
+      std::cout << "inside cookie\n";
       _cookie.controlCookies(_request.getRequestHeader(), _request.getRequestURI());
       this->setResponseHeader("Content-Length", intToString(_cookie.getresBody().size()));
       this->setResponseHeader("Content-Type", "text/html");
-      // need to change
       if (_cookie.getresCookieHeaderString().size() != 0)
         this->setResponseHeader("Set-Cookie", _cookie.getresCookieHeaderString());
       this->setResponseHeader("Last-Modified", getCurrentHttpDateForCookie());
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
           _cookie.getresBody()));
+      std::cout << "this is response\n" << _response << "\n" << std::endl;
+    }
+    else if (_request.getRequestURI().find("session") != std::string::npos)
+    {
+      _sessionControl.controlSession(_request.getRequestHeader(), _request.getRequestURI());
+      this->setResponseHeader("Content-Length", intToString(_sessionControl.getresBody().size()));
+      this->setResponseHeader("Content-Type", "text/html");
+
+      if (_sessionControl.getresSessionHeaderString().size() != 0)
+        this->setResponseHeader("Set-Cookie", _sessionControl.getresSessionHeaderString());
+      this->setResponseHeader("Last-Modified", getCurrentHttpDateForCookie());
+      this->setResponse(this->_errorResponse.create200Response(
+          this->_config.getServerName(), getResponseHeader(),
+          _sessionControl.getresBody()));
       std::cout << "this is response\n" << _response << "\n" << std::endl;
     }
     else

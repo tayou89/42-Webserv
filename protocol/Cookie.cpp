@@ -2,8 +2,7 @@
 
 Cookie::Cookie()
 {
-    std::string sessionID = "defaultSession";
-    _sessionList.push_back(createSession(sessionID));
+
 }
 
 Cookie::~Cookie()
@@ -13,7 +12,6 @@ Cookie::~Cookie()
 
 Cookie::Cookie(const Cookie &copy)
 {
-    this->_sessionList = copy._sessionList;
     this->_reqCookieHeader = copy._reqCookieHeader;
     this->_resCookieHeader = copy._resCookieHeader;
     this->_queryString = copy._queryString;
@@ -24,7 +22,6 @@ Cookie::Cookie(const Cookie &copy)
 
 Cookie Cookie::operator=(const Cookie &copy)
 {
-    this->_sessionList = copy._sessionList;
     this->_reqCookieHeader = copy._reqCookieHeader;
     this->_resCookieHeader = copy._resCookieHeader;
     this->_queryString = copy._queryString;
@@ -53,39 +50,16 @@ std::string Cookie::convertIntoRealTime(time_t rawtime)
     return (cookieTime);
 }
 
-std::string Cookie::makeNewSID()
-{
-    char	random_name[8];
-	int		random_fd;
-	int		i;
-
-	i = 0;
-	random_fd = open("/dev/urandom", O_RDONLY);
-	if (read(random_fd, random_name, 8) == -1)
-		;
-	close(random_fd);
-	while (8 > i)
-	{
-		if (random_name[i] < 0)
-			random_name[i] = random_name[i] * -1;
-		random_name[i] = random_name[i] % 93 + '!';
-		i++;
-	}
-    std::string cookieName(random_name);
-    return (cookieName);
-}
-
 void Cookie::controlCookies(std::map<std::string, std::string> header, std::string URI)
 {
     std::map<std::string, std::string>::iterator itrHeader = header.find("Cookie");
     
     parseURI(URI);
-    std::cout << "URI is:" << URI << std::endl;
     if (_queryStringExistance == 1) //쿼리스트링이 존재함
     {
         _resCookieHeaderString.clear();
-        _resCookieHeaderString = "color=" + _queryString["color"] + "; ";
-        // _resCookieHeaderString += "size=" + _queryString["size"] + "; ";
+        _resCookieHeaderString = "color=" + _queryString["color"] + "; \r\n";
+        _resCookieHeaderString += "Set-Cookie: size=" + _queryString["size"] + "; ";
         // _resCookieHeaderString += "Expires=" + convertIntoRealTime(getCookieTime(0, 1, 0)) + ";";
         makeBody(_queryString["color"], _queryString["size"]);
         std::cout << "query string exists, color is:" << _queryString["color"] << ", and size is:" << _queryString["size"] << std::endl;
@@ -93,7 +67,7 @@ void Cookie::controlCookies(std::map<std::string, std::string> header, std::stri
     else if (itrHeader == header.end()) //쿼리스트링과 쿠키 다 없음
     {
         _resCookieHeaderString.clear();
-        _resCookieHeaderString = "color=000000; ";
+        _resCookieHeaderString = "color=000000; \r\nSet-Cookie: size=15;";
         makeBody("000000", "15");
         std::cout << "query string and cookie does not exist, color is:" << "000000" << ", and size is:" << "15" << std::endl;
     }
@@ -101,9 +75,9 @@ void Cookie::controlCookies(std::map<std::string, std::string> header, std::stri
     {
         _resCookieHeaderString.clear();
         setCookieHeader(itrHeader->second);
-        if (_reqCookieHeader.find("size") == _reqCookieHeader.end())
-            _reqCookieHeader.insert(std::make_pair("size", "15"));
-        _resCookieHeaderString = "color=" + _reqCookieHeader["color"] + "; ";
+        // if (_reqCookieHeader.find("size") == _reqCookieHeader.end())
+        //     _reqCookieHeader.insert(std::make_pair("size", "15"));
+        _resCookieHeaderString = "color=" + _reqCookieHeader["color"] + "; \r\nSet-Cookie: size=" + _reqCookieHeader["size"] + "; ";
         makeBody(_reqCookieHeader["color"], _reqCookieHeader["size"]);
         std::cout << "query string does not, but cookie header exists, color is:" << _reqCookieHeader["color"] << ", and size is:" << _reqCookieHeader["size"] << std::endl;
     }
@@ -126,33 +100,6 @@ void    Cookie::setCookieHeader(std::string rawCookie)
             break;
         pos = index + 2;
     }
-}
-
-Session Cookie::getSession(std::string sessionID)
-{
-    std::vector<Session>::iterator itr = _sessionList.begin();
-
-    for (; itr != _sessionList.end(); ++itr)
-    {
-        if (itr->getSessionID() == sessionID)
-            return (*itr);
-    }
-    return (*(_sessionList.begin()));
-}
-
-void    Cookie::deleteSession(std::string sessionID)
-{
-    std::vector<Session>::iterator itr = _sessionList.begin();
-
-    for (; itr != _sessionList.end(); ++itr)
-    {
-        if (itr->getSessionID() == sessionID)
-        {
-            _sessionList.erase(itr);
-            return ;
-        }
-    }
-    return ;
 }
 
 void    Cookie::parseURI(std::string URI)
@@ -189,18 +136,6 @@ void    Cookie::makeBody(std::string color, std::string size)
     _resBody += rgbValue[1] + ", " + rgbValue[2] + ");";
     _resBody += "\n    font-size: " + size + "px;\n  }";
     _resBody += "\n</style>\n</head>\n<body>\n\n" + splitAfter(cookieHTML, "</style>\n</head>\n<body>");
-}
-
-void    Cookie::controlSession(std::map<std::string, std::string> header)
-{
-    (void)header;
-}
-
-Session Cookie::createSession(std::string sessionID)
-{
-    //or heap allocation?
-    Session newSession(sessionID);
-    return (newSession);
 }
 
 std::string Cookie::getresBody() const

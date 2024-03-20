@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Style Preference</title>
+<style>
+  /* Optional: Style the form for better presentation */
+  form {
+    margin: 20px;
+  }
+  label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  .cookie-text {
+    color: rgb(244, 138, 138); /* Change 'blue' to your preferred color */
+    font-size: 16px; /* Change '16px' to your preferred font size */
+  }
+</style>
+</head>
+<body>
+
+<h1>Cookie Test</h1>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+<p class="cookie-text">This page is for cookie testing</p>
+
+<form id="textStyleForm">
+  <label for="colorInput">Text Color:</label>
+  <input type="color" id="colorInput" name="color" value="#000000"><br>
+
+  <label for="sizeInput">Text Size:</label>
+  <input type="number" id="sizeInput" name="size" value="16"><br>
+
+  <button type="button" onclick="sendTextStyle()">Apply Style</button>
+</form>
+
+<script>
+function sendTextStyle() {
+  // Get user input values
+  var color = document.getElementById("colorInput").value;
+  var size = document.getElementById("sizeInput").value;
+
+  // Construct query string
+  var queryString = "?color=" + encodeURIComponent(color) + "&size=" + encodeURIComponent(size);
+
+  // Append query string to current URL and navigate
+  window.location.href = window.location.href.split('?')[0] + queryString;
+}
+</script>
+
+</body>
+</html>
