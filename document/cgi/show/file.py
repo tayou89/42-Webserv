@@ -61,5 +61,3 @@ try:
 except Exception as e:
     print("Content-Type: text/html\n")
     print(f"Error: {str(e)}")
-
-print("end", file=sys.stderr)

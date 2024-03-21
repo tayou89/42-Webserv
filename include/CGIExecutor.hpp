@@ -4,6 +4,8 @@
 #include "Config.hpp"
 #include "Request.hpp"
 #include "define.hpp"
+#include "struct.hpp"
+#include "utils.hpp"
 #include <map>
 #include <unistd.h>
 
@@ -16,13 +18,20 @@ public:
   CGIExecutor(const CGIExecutor &object);
   CGIExecutor &operator=(const CGIExecutor &object);
 
-  void setCGIExecutor(const Request &request);
   // 시스템 에러 발생시 1반환, 정상종료시 0반환
-  void createPipeFD(void);
-  void createProcess(void);
-  void setPipeFD(void);
-  void executeCGI(void);
-  //   int execute(void);
+
+  void _createProcess(void);
+
+  void _createPipeGET(void);
+  void _setPipeGET(void);
+  struct eventStatus _executeGET(void);
+
+  void _createPipePOST(void);
+  void _setPipePOST(void);
+  struct eventStatus _executePOST(void);
+
+  int setCGIExecutor(const Request &request);
+  struct eventStatus execute(void);
   int getReadFD(void) const;
   int getWriteFD(void) const;
   pid_t getPID(void) const;
@@ -43,7 +52,8 @@ private:
   Location _location;
   Request _request;
   string_map _metaVariables;
-  int _pipeFD[2];
+  int _nonBlockRead[2];
+  int _nonBlockWrite[2];
   pid_t _pid;
 };
 

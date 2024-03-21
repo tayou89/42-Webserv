@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <title>File Upload</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!--	<link rel="stylesheet" href="/css/upload.css"> -->
+	<title>File Upload</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!--	<link rel="stylesheet" href="/css/upload.css"> -->
 	<style>
 		h2 {
 			font-size: 60px;
@@ -14,22 +15,24 @@
 			margin: 0 auto;
 			width: 80%;
 		}
-		
+
 		form {
 			text-align: center;
 			padding-top: 40px;
 		}
-		
-		input[type="file"]{
+
+		input[type="file"] {
 			display: none;
 		}
-		
-		label, input[type="submit"], li{
+
+		label,
+		input[type="submit"],
+		li {
 			display: inline-block;
 			width: 150px;
-			height:50px;
+			height: 50px;
 			font-size: 20px;
-			font-family:Arial, Helvetica, sans-serif;
+			font-family: Arial, Helvetica, sans-serif;
 			text-align: center;
 			line-height: 50px;
 			color: black;
@@ -37,16 +40,18 @@
 			background-color: white;
 			margin-bottom: 20px;
 		}
-		
+
 		a {
 			color: black;
 			text-decoration: none;
 		}
 	</style>
 </head>
+
 <body>
-    <h2>Upload What You Want</h2>
-	<form action="/upload/upload.py/Users/tayou/Desktop/tayou/42_webserv/document/uploaded" method="post" enctype="multipart/form-data">
+	<h2>Upload What You Want</h2>
+	<form action="/upload/upload.py/Users/jinhyeop/Desktop/project/webserv/document/uploaded" method="post"
+		enctype="multipart/form-data">
 		<div>
 			<input type="file" name="fileToUpload" id="fileToUpload"><br>
 			<label for="fileToUpload">Select</label><br>
@@ -55,4 +60,5 @@
 		</div>
 	</form>
 </body>
+
 </html>

@@ -118,8 +118,8 @@ int Request::checkBodyExistence() const {
   if (_requestHeader.find("Transfer-encoding") != _requestHeader.end() &&
       _requestHeader.find("Transfer-encoding")->second == "chunked")
     return (CHUNKED_READ);
-  else if (_requestHeader.find("Content-length") != _requestHeader.end() &&
-           _requestHeader.find("Content-length")->second != "0")
+  else if (_requestHeader.find("Content-Length") != _requestHeader.end() &&
+           _requestHeader.find("Content-Length")->second != "0")
     return (BODY_READ);
   else
     return (WRITE);
@@ -281,4 +281,10 @@ void Request::convertURI() {
     _location = _config;
   }
   _requestURI = combinePATH(*target, rate);
+}
+
+void Request::eraseRequestBody(size_t start, size_t end) {
+  if (end > _requestBody.size())
+    end = _requestBody.size();
+  _requestBody.erase(_requestBody.begin() + start, _requestBody.begin() + end);
 }

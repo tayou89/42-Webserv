@@ -44,6 +44,7 @@ public:
   size_t generalURI(std::string location) const;
   std::string combinePATH(Location target, size_t rate) const;
   void convertURI();
+  void eraseRequestBody(size_t start, size_t end);
 
 private:
   Config _config;
