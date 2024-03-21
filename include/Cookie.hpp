@@ -34,6 +34,7 @@ class Cookie
         std::map<std::string, std::string>  _resCookieHeader;
         std::map<std::string, std::string>  _queryString;
         bool                                _queryStringExistance;
+        bool                                _cookieExistance;
         std::string _resCookieHeaderString;
         std::string _resBody;
 };

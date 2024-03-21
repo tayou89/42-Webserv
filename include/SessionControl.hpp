@@ -16,10 +16,10 @@ class SessionControl {
         ~SessionControl();
 
         std::string makeNewSID();
-        Session getSession(std::string sessionID);
+        Session* getSession(std::string sessionID);
         void    deleteSession(std::string sessionID);
         void    controlSession(std::map<std::string, std::string> header, std::string URI);
-        Session createSession(std::string sessionID, std::string color, std::string size);
+        Session *createSession(std::string sessionID, std::string color, std::string size);
         void    parseURI(std::string URI);
         void    makeBody(std::string color, std::string size);
         void    setCookieHeader(std::string rawCookie);
@@ -32,7 +32,7 @@ class SessionControl {
         SessionControl(const SessionControl& copy);
         SessionControl operator=(const SessionControl& copy);
 
-        std::vector<Session> _sessionList; //첫번째 노드는 비어있음
+        std::vector<Session*> _sessionList; //첫번째 노드는 비어있음
         bool                _queryStringExistance;
         bool                _SIDHeaderExistance;
         std::map<std::string, std::string> _queryString;

@@ -34,7 +34,7 @@ SessionControl::~SessionControl()
 
 std::string SessionControl::makeNewSID()
 {
-    char	random_name[8];
+    char	random_name[10];
 	int		random_fd;
 	int		i;
 
@@ -43,7 +43,7 @@ std::string SessionControl::makeNewSID()
 	if (read(random_fd, random_name, 8) == -1)
 		;
 	close(random_fd);
-	while (8 > i)
+	while (10 > i)
 	{
 		if (random_name[i] < 0)
 			random_name[i] = random_name[i] * -1;
@@ -54,38 +54,34 @@ std::string SessionControl::makeNewSID()
     return (cookieName);
 }
 
-Session SessionControl::createSession(std::string sessionID, std::string color, std::string size)
+Session* SessionControl::createSession(std::string sessionID, std::string color, std::string size)
 {
-    //or heap allocation?
-    Session newSession(sessionID);
-    newSession.addSessionMap("color", color);
-    newSession.addSessionMap("size", size);
-    std::cout << newSession.getSessionValue("color") << newSession.getSessionValue("size") << std::endl;
+    //heap allocation, memory leak possible 
+    Session *newSession = new Session(sessionID);
+    newSession->addSessionMap("color", color);
+    newSession->addSessionMap("size", size);
     return (newSession);
 }
 
-Session SessionControl::getSession(std::string sessionID)
+Session* SessionControl::getSession(std::string sessionID)
 {
-    std::vector<Session>::iterator itr = _sessionList.begin();
+    std::vector<Session*>::iterator itr = _sessionList.begin();
 
     for (; itr != _sessionList.end(); ++itr)
     {
-        if (itr->getSessionID() == sessionID)
-        {
-            std::cout << "found session!\n";    
+        if ((*itr)->getSessionID() == sessionID)
             return (*itr);
-        }
     }
     return (*(_sessionList.begin()));
 }
 
 void    SessionControl::deleteSession(std::string sessionID)
 {
-    std::vector<Session>::iterator itr = _sessionList.begin();
+    std::vector<Session*>::iterator itr = _sessionList.begin();
 
     for (; itr != _sessionList.end(); ++itr)
     {
-        if (itr->getSessionID() == sessionID)
+        if ((*itr)->getSessionID() == sessionID)
         {
             _sessionList.erase(itr);
             return ;
@@ -97,28 +93,17 @@ void    SessionControl::deleteSession(std::string sessionID)
 void    SessionControl::controlSession(std::map<std::string, std::string> header, std::string URI)
 {
     std::map<std::string, std::string>::iterator itrHeader = header.find("Cookie");
-
-    std::cout << "inside control SESSION\n";
     parseURI(URI);
-
-
-    std::cout << "let's see what's saved before \n";
-    std::cout << "color is:" << getSession(_reqCookieHeader["SID"]).getSessionValue("color") << ", size is:" << getSession(_reqCookieHeader["SID"]).getSessionValue("size") << std::endl;
-
-
-
     if (itrHeader != header.end())
         setCookieHeader(itrHeader->second);
     if (_queryStringExistance == 1 && _SIDHeaderExistance == 1) //쿼리스트링 o, SID o
     {
-        std::cout << "query string o, SID o\n";
         updateSID(_reqCookieHeader["SID"], _queryString["color"], _queryString["size"]);
         _resSessionHeaderString.clear();
         makeBody(_queryString["color"], _queryString["size"]);
     }
     else if (_queryStringExistance == 1 && _SIDHeaderExistance == 0) //쿼리스트링 o, SID x
     {
-        std::cout << "query string o, SID x\n";
         std::string newSID = makeNewSID();
         _sessionList.push_back(createSession(newSID, _queryString["color"], _queryString["size"]));
         _resSessionHeaderString.clear();
@@ -128,30 +113,16 @@ void    SessionControl::controlSession(std::map<std::string, std::string> header
     }
     else if (_queryStringExistance == 0 && _SIDHeaderExistance == 1) //쿼리스트링 x, SID o
     {
-        std::cout << "query string x, SID o\n";
         std::string SID = _reqCookieHeader.find("SID")->second;
-        if (getSession(SID).getSessionID() == "defaultSession")
-        {
-            std::cout << SID << ", this session does not exist\n";
+        if (getSession(SID)->getSessionID() == "defaultSession")
             _sessionList.push_back(createSession(SID, "000000", "15"));
-            if (getSession(SID).getSessionID() == "defaultSession")
-                std::cout << "insert failed\n";
-            else
-            {
-                std::cout << "insert success\n";
-                std::cout << "color is:" << getSession(SID).getSessionValue("color") << ", size is:" << getSession(SID).getSessionValue("size") << std::endl;
-
-            }
-        }
         std::string color = getSIDcolor(SID); 
         std::string size = getSIDsize(SID);
-        std::cout << "SID is:" << SID << ",     color is:" << color << ",       size is:" << size << std::endl;
         _resSessionHeaderString.clear();
         makeBody(color, size);
     }
     else //쿼리스트링 x, SID x
     {
-        std::cout << "query string x, SID x\n";
         std::string newSID = makeNewSID();
         _sessionList.push_back(createSession(newSID, "000000", "15"));
         _resSessionHeaderString.clear();
@@ -159,10 +130,6 @@ void    SessionControl::controlSession(std::map<std::string, std::string> header
         makeBody("000000", "15");
         //어떠한 방식으로든 SID 전달해서 response header에 넣도록하자
     }
-
-    std::cout << "let's see what's saved after\n";
-    std::cout << "color is:" << getSession(_reqCookieHeader["SID"]).getSessionValue("color") << ", size is:" << getSession(_reqCookieHeader["SID"]).getSessionValue("size") << std::endl;
-
 }
 
 void    SessionControl::parseURI(std::string URI)
@@ -225,7 +192,7 @@ void    SessionControl::setCookieHeader(std::string rawCookie)
 
 std::string SessionControl::getSIDcolor(std::string SID)
 {
-    std::string color = getSession(SID).getSessionValue("color");
+    std::string color = getSession(SID)->getSessionValue("color");
     
     if (color.size() == 0)
         return ("000000");
@@ -235,7 +202,7 @@ std::string SessionControl::getSIDcolor(std::string SID)
 
 std::string SessionControl::getSIDsize(std::string SID)
 {
-    std::string size = getSession(SID).getSessionValue("size");
+    std::string size = getSession(SID)->getSessionValue("size");
     
     if (size.size() == 0)
         return ("15");
@@ -245,20 +212,18 @@ std::string SessionControl::getSIDsize(std::string SID)
 
 void    SessionControl::updateSID(std::string SID, std::string color, std::string size)
 {
-    std::vector<Session>::iterator itr = _sessionList.begin();
+    std::vector<Session*>::iterator itr = _sessionList.begin();
     
     for (; itr != _sessionList.end(); ++itr)
     {
-        if (itr->getSessionID() == SID)
+        if ((*itr)->getSessionID() == SID)
         {
-            itr->addSessionMap("color", color);
-            itr->addSessionMap("size", size);
-            std::cout << "updated (SID, color, size) =" << SID << color << size << std::endl;
+            (*itr)->addSessionMap("color", color);
+            (*itr)->addSessionMap("size", size);
             return ;
         }
     }
     _sessionList.push_back(createSession(SID, color, size));
-    std::cout << "made new session of (SID, color, size) =" << SID << color << size << std::endl;
 }
 
 std::string SessionControl::getresBody() const

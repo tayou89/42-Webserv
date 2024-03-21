@@ -83,15 +83,12 @@ struct eventStatus ClientSocket::readHead() {
   _tmp += tmp;
 
   /* header의 끝 찾기 */
-  std::cout << "this is request\n";
-  std::cout << tmp << "\n" << std::endl;
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos + 2);
     try {
       _req.setRequest(_header);
     } catch (std::string &res) {
-      std::cout << res << std::endl;
       _responseString = res;
       _status = WRITE;
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
@@ -217,8 +214,6 @@ struct eventStatus ClientSocket::writeSocket() {
         //   std::cout << "this is method:" << _req.getRequestMethod() << std::endl; 
       }
     } catch (std::string &res) {
-      std::cout << "this is error:\n";
-      std::cout << res << "\n" <<std::endl;
       _responseString = res;
       return (makeStatus(CONTINUE, _socket));
     }
