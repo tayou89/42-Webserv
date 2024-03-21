@@ -200,6 +200,7 @@ struct eventStatus ClientSocket::readHead() {
   _tmp += tmp;
 
   /* header의 끝 찾기 */
+  // std::cout << "\nthis is request:\n" << tmp << std::endl;
   size_t pos = _tmp.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = _tmp.substr(0, pos + 2);

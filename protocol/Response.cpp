@@ -91,7 +91,8 @@ void Response::checkValidity() {
     }
     if (_request.getRequestURI().find("cookie") != std::string::npos)
     {
-      _cookie.controlCookies(_request.getRequestHeader(), _request.getRequestURI());
+      // std::cout << "inside cookie\n";
+      _cookie.controlCookies(_request.getRequestHeader(), _request.getQueryStirng());
       this->setResponseHeader("Content-Length", intToString(_cookie.getresBody().size()));
       this->setResponseHeader("Content-Type", "text/html");
       if (_cookie.getresCookieHeaderString().size() != 0)
@@ -100,10 +101,11 @@ void Response::checkValidity() {
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
           _cookie.getresBody()));
+      // std::cout << "\nthis is response:\n" << getResponse() << std::endl;
     }
     else if (_request.getRequestURI().find("session") != std::string::npos)
     {
-      _sessionControl.controlSession(_request.getRequestHeader(), _request.getRequestURI());
+      _sessionControl.controlSession(_request.getRequestHeader(), _request.getQueryStirng());
       this->setResponseHeader("Content-Length", intToString(_sessionControl.getresBody().size()));
       this->setResponseHeader("Content-Type", "text/html");
 

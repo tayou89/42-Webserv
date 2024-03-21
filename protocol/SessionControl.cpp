@@ -135,7 +135,7 @@ void    SessionControl::controlSession(std::map<std::string, std::string> header
 
 void    SessionControl::parseURI(std::string URI)
 {
-    if (URI.find("session?color=") == std::string::npos && URI.find("session.html?color=") == std::string::npos)
+    if (URI.find("color=") == std::string::npos && URI.find("size=") == std::string::npos)
         _queryStringExistance = 0;
     else
     {

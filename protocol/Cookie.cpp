@@ -58,6 +58,7 @@ void Cookie::controlCookies(std::map<std::string, std::string> header, std::stri
         setCookieHeader(itrHeader->second);
     if (_queryStringExistance == 1) //쿼리스트링이 존재함
     {
+        // std::cout << "query o\n";
         _resCookieHeaderString.clear();
         _resCookieHeaderString = "color=" + _queryString["color"] + "; \r\n";
         _resCookieHeaderString += "Set-Cookie: size=" + _queryString["size"] + "; ";
@@ -66,12 +67,14 @@ void Cookie::controlCookies(std::map<std::string, std::string> header, std::stri
     }
     else if (_queryStringExistance == 0 && _cookieExistance == 0) //쿼리스트링과 쿠키 다 없음
     {
+        // std::cout << "query x cookie x\n";
         _resCookieHeaderString.clear();
         _resCookieHeaderString = "color=000000; \r\nSet-Cookie: size=15;";
         makeBody("000000", "15");
     }
     else if (_queryStringExistance == 0 && _cookieExistance == 1)//쿼리스트링은 없지만 쿠키헤더값은 있는 경우
     {
+        // std::cout << "query x cookie o\n";
         _resCookieHeaderString.clear();
         setCookieHeader(itrHeader->second);
         _resCookieHeaderString = "color=" + _reqCookieHeader["color"] + "; \r\nSet-Cookie: size=" + _reqCookieHeader["size"] + "; ";
@@ -103,7 +106,8 @@ void    Cookie::setCookieHeader(std::string rawCookie)
 
 void    Cookie::parseURI(std::string URI)
 {
-    if (URI.find("cookie?color=") == std::string::npos && URI.find("cookie.html?color=") == std::string::npos)
+    // std::cout << "this is URI: " << URI << std::endl;
+    if (URI.find("color=") == std::string::npos && URI.find("size=") == std::string::npos)
         _queryStringExistance = 0;
     else
     {
