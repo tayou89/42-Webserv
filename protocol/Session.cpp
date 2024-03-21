@@ -1,4 +1,4 @@
-#include "Session.hpp"
+#include "../include/Session.hpp"
 
 Session::Session(std::string sessionID)
 {
@@ -28,10 +28,21 @@ std::string Session::getSessionID() const
 
 void    Session::addSessionMap(std::string key, std::string value)
 {
-    _sessionMap.insert(key, value);
+    _sessionMap[key] = value;
 }
 
 std::map<std::string, std::string>  Session::getSessionMap() const
 {
     return (_sessionMap);
+}
+
+std::string Session::getSessionValue(std::string key) const
+{
+    if (_sessionMap.find(key) == _sessionMap.end())
+    {
+        std::cout << key << " does not exist\n";
+        return ("");
+    }
+    else
+        return (_sessionMap.find(key)->second);
 }
