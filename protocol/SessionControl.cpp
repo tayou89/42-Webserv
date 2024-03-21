@@ -29,7 +29,8 @@ SessionControl SessionControl::operator=(const SessionControl& copy)
 
 SessionControl::~SessionControl()
 {
-
+    for (std::vector<Session*>::iterator itr = _sessionList.begin(); itr != _sessionList.end(); ++itr) 
+        delete (*itr);
 }
 
 std::string SessionControl::makeNewSID()
