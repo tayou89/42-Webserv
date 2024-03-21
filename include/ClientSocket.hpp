@@ -30,6 +30,7 @@ public:
   struct eventStatus readContentBody();
   struct eventStatus readChunkedBody();
   struct eventStatus writeSocket();
+  struct eventStatus socketToPipe();
   struct eventStatus sendCGIHeader();
   struct eventStatus sendCGIBody();
   struct eventStatus readPipe();

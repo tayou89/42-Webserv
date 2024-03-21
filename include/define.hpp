@@ -8,8 +8,11 @@
 #define CONTINUE 0
 #define SOCKET_WRITE_MODE 1
 #define SOCKET_READ_MODE 2
-#define PROCESS 3
-#define PROCESS_END 4
+#define CGI_READ 3
+#define CGI_WRITE 4
+#define CGI_END 5
+#define CGI_READ_END 6
+#define FD_CLOSE 252
 #define DISCONNECT 253
 #define WRITE_ERROR 254
 
@@ -18,9 +21,10 @@
 #define BODY_READ 1
 #define CHUNKED_READ 2
 #define WRITE 3
-#define PIPE_HEAD 4
-#define PIPE_BODY 5
-#define PIPE_END 6
+#define SOCKET_TO_PIPE_WRITE 4
+#define PIPE_TO_SOCKET_HEAD 5
+#define PIPE_TO_SOCKET_BODY 6
+#define PIPE_END 7
 
 // event type define
 #define SOCKET 1

@@ -15,36 +15,32 @@ CGIExecutor &CGIExecutor::operator=(const CGIExecutor &object) {
   _location = object._location;
   _request = object._request;
   _metaVariables = object._metaVariables;
-  _pipeFD[0] = object._pipeFD[0];
-  _pipeFD[1] = object._pipeFD[1];
+  _nonBlockRead[0] = object._nonBlockRead[0];
+  _nonBlockRead[1] = object._nonBlockRead[1];
+  _nonBlockWrite[0] = object._nonBlockWrite[0];
+  _nonBlockWrite[1] = object._nonBlockWrite[1];
   _pid = object._pid;
   return (*this);
 }
 
-void CGIExecutor::setCGIExecutor(const Request &request) {
+int CGIExecutor::setCGIExecutor(const Request &request) {
   _location = request.getLocation();
   _request = request;
   _setMetaVariables();
+  if (_request.getRequestMethod() == "GET")
+    return (PIPE_TO_SOCKET_HEAD);
+  else if (_request.getRequestMethod() == "POST")
+    return (SOCKET_TO_PIPE_WRITE);
+  return (CONTINUE);
 }
 
-// int CGIExecutor::execute(void) {
-//   try {
-//     _createPipeFD();
-//     _createProcess();
-//     _setPipeFD();
-//     _executeCGI();
-//   } catch (const std::exception &e) {
-//     std::cerr << "Error: " << e.what() << '\n';
-//     if (_pid == 0)
-//       exit(1);
-//     else
-//       return (1);
-//   }
-//   if (_pid == 0)
-//     exit(0);
-//   else
-//     return (0);
-// }
+struct eventStatus CGIExecutor::execute(void) {
+  if (_request.getRequestMethod() == "POST") {
+    return (_executePOST());
+  } else {
+    return (_executeGET());
+  }
+}
 
 void CGIExecutor::_setMetaVariables(void) {
   _metaVariables["REQUEST_METHOD"] = _getRequestMethod();
@@ -122,29 +118,33 @@ std::string CGIExecutor::_getContentLength(void) const {
     return (iterator->second);
 }
 
-void CGIExecutor::createPipeFD(void) {
-  if (pipe(_pipeFD) == -1)
-    throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
-  fcntl(_pipeFD[READFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-}
-
-void CGIExecutor::createProcess(void) {
+void CGIExecutor::_createProcess(void) {
   _pid = fork();
   if (_pid == -1)
     throw(std::runtime_error(std::string("fork: ") + std::strerror(errno)));
 }
 
-void CGIExecutor::setPipeFD(void) {
-  if (_pid == 0) {
-    close(_pipeFD[READFD]);
-    if (dup2(_pipeFD[WRITEFD], STDOUT_FILENO) == -1)
-      throw(std::runtime_error(std::string("dup2: ") + std::strerror(errno)));
-    close(_pipeFD[WRITEFD]);
-  } else
-    close(_pipeFD[WRITEFD]);
+void CGIExecutor::_createPipeGET(void) {
+  if (pipe(_nonBlockRead) == -1)
+    throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
 }
 
-void CGIExecutor::executeCGI(void) {
+void CGIExecutor::_setPipeGET(void) {
+  if (_pid == 0) {
+    close(_nonBlockRead[READFD]);
+    if (dup2(_nonBlockRead[WRITEFD], STDOUT_FILENO) == -1)
+      throw(std::runtime_error(std::string("dup2: ") + std::strerror(errno)));
+    close(_nonBlockRead[WRITEFD]);
+  } else {
+    fcntl(_nonBlockRead[READFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    close(_nonBlockRead[WRITEFD]);
+  }
+}
+
+struct eventStatus CGIExecutor::_executeGET(void) {
+  _createPipeGET();
+  _createProcess();
+  _setPipeGET();
   if (_pid == 0) {
     char **envp = _getEnvp();
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
@@ -152,10 +152,51 @@ void CGIExecutor::executeCGI(void) {
     if (execve(path, NULL, envp) == -1) {
       std::cout << "execve failure\n";
       ConfigUtil::freeStringArray(envp);
-      throw(std::runtime_error(std::string("execve: ") + std::strerror(errno)));
+      exit(1);
     }
-    exit(1);
   }
+  return (makeStatus(CGI_READ, getReadFD()));
+}
+
+void CGIExecutor::_createPipePOST(void) {
+  if (pipe(_nonBlockRead) == -1)
+    throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
+  if (pipe(_nonBlockWrite) == -1)
+    throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
+}
+
+void CGIExecutor::_setPipePOST(void) {
+  if (_pid == 0) {
+    if (dup2(_nonBlockWrite[READFD], STDIN_FILENO) == -1)
+      throw(std::runtime_error(std::string("dup2: ") + std::strerror(errno)));
+    if (dup2(_nonBlockRead[WRITEFD], STDOUT_FILENO) == -1)
+      throw(std::runtime_error(std::string("dup2: ") + std::strerror(errno)));
+    close(_nonBlockWrite[READFD]);
+    close(_nonBlockWrite[WRITEFD]);
+    close(_nonBlockRead[READFD]);
+    close(_nonBlockRead[WRITEFD]);
+  } else {
+    fcntl(_nonBlockRead[READFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    fcntl(_nonBlockWrite[WRITEFD], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    close(_nonBlockRead[WRITEFD]);
+    close(_nonBlockWrite[READFD]);
+  }
+}
+
+struct eventStatus CGIExecutor::_executePOST(void) {
+  _createPipePOST();
+  _createProcess();
+  _setPipePOST();
+  if (_pid == 0) {
+    char **envp = _getEnvp();
+    const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
+    if (execve(path, NULL, envp) == -1) {
+      std::cout << "execve failure\n";
+      ConfigUtil::freeStringArray(envp);
+      exit(1);
+    }
+  }
+  return (makeStatus(CGI_WRITE, getWriteFD()));
 }
 
 char **CGIExecutor::_getEnvp(void) const {
@@ -178,6 +219,6 @@ char **CGIExecutor::_getEnvp(void) const {
 
 pid_t CGIExecutor::getPID(void) const { return (_pid); }
 
-int CGIExecutor::getReadFD(void) const { return (_pipeFD[READFD]); }
+int CGIExecutor::getReadFD(void) const { return (_nonBlockRead[READFD]); }
 
-int CGIExecutor::getWriteFD(void) const { return (_pipeFD[WRITEFD]); }
+int CGIExecutor::getWriteFD(void) const { return (_nonBlockWrite[WRITEFD]); }

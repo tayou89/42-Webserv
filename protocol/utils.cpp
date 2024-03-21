@@ -90,11 +90,20 @@ struct eventStatus makeStatus(int status, int ident) {
 
   res.status = status;
   res.ident = ident;
+  res.sub = 0;
   return (res);
 }
 
-std::string getModifiedTime(time_t mTime)
-{
+struct eventStatus makeStatus(int status, int ident, int sub) {
+  struct eventStatus res;
+
+  res.status = status;
+  res.ident = ident;
+  res.sub = sub;
+  return (res);
+}
+
+std::string getModifiedTime(time_t mTime) {
   struct tm *timeinfo = gmtime(&mTime);
   timeinfo->tm_hour = (timeinfo->tm_hour + 9) % 24;
 
@@ -106,36 +115,36 @@ std::string getModifiedTime(time_t mTime)
 }
 
 std::string intToString(int value) {
-    std::stringstream ss;
-    ss << value;
-    return ss.str();
+  std::stringstream ss;
+  ss << value;
+  return ss.str();
 }
 
-std::vector<std::string> rgbToDecimal(const std::string& rgbHex) {
-    std::vector<std::string> decimalValues;
-    
-    // Convert hexadecimal to decimal for each component
-    for (int i = 0; i < 3; ++i) {
-        int value;
-        std::stringstream ss;
-        ss << std::hex << rgbHex.substr(i * 2, 2);
-        ss >> value;
-        decimalValues.push_back(intToString(value));
-    }
-    return (decimalValues);
+std::vector<std::string> rgbToDecimal(const std::string &rgbHex) {
+  std::vector<std::string> decimalValues;
+
+  // Convert hexadecimal to decimal for each component
+  for (int i = 0; i < 3; ++i) {
+    int value;
+    std::stringstream ss;
+    ss << std::hex << rgbHex.substr(i * 2, 2);
+    ss >> value;
+    decimalValues.push_back(intToString(value));
+  }
+  return (decimalValues);
 }
 
 std::string decimalToRgb(int red, int green, int blue) {
-    std::ostringstream oss;
-    
-    // Convert decimal to hexadecimal for each component
-    char buffer[3];
-    sprintf(buffer, "%02x", red);
-    oss << buffer;
-    sprintf(buffer, "%02x", green);
-    oss << buffer;
-    sprintf(buffer, "%02x", blue);
-    oss << buffer;
-    
-    return oss.str();
+  std::ostringstream oss;
+
+  // Convert decimal to hexadecimal for each component
+  char buffer[3];
+  sprintf(buffer, "%02x", red);
+  oss << buffer;
+  sprintf(buffer, "%02x", green);
+  oss << buffer;
+  sprintf(buffer, "%02x", blue);
+  oss << buffer;
+
+  return oss.str();
 }
