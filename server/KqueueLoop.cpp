@@ -60,7 +60,6 @@ void KqueueLoop::eventHandler(struct kevent *event) {
     newEvent(result.ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
              &_clientList[socket]->getEventInfo());
     if (result.sub > 0) {
-      std::cout << "write delete\n";
       newEvent(result.sub, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
     }
   } else if (result.status == CGI_READ_END) {

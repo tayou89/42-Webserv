@@ -122,7 +122,6 @@ struct eventStatus ClientSocket::socketToPipe() {
   if (_status != SOCKET_TO_PIPE_WRITE)
     return (makeStatus(CONTINUE, _socket));
 
-  std::cout << "write to pipe" << std::endl;
   std::string str = _req.getRequestBody();
 
   int writeSize = write(_cgi.getWriteFD(), str.c_str(), str.size());
@@ -199,6 +198,7 @@ struct eventStatus ClientSocket::readHead() {
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
     _status = _req.checkBodyExistence();
+    // std::cout << _header << std::endl;
     if (_status == BODY_READ) { // read normal body
       _body = _tmp.substr(pos + 4);
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
@@ -299,6 +299,7 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       _req.convertURI();
+      std::cout << _req.getRequestURI() << std::endl;
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;

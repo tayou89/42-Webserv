@@ -148,3 +148,13 @@ std::string decimalToRgb(int red, int green, int blue) {
 
   return oss.str();
 }
+
+void replace(std::string &str, const std::string &target,
+             const std::string &replacement) {
+  size_t pos = 0;
+
+  while ((pos = str.find(target, pos)) != std::string::npos) {
+    str.replace(pos, target.length(), replacement);
+    pos += replacement.length(); // 다음 탐색 위치 설정
+  }
+}

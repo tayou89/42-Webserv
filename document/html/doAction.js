@@ -1,7 +1,7 @@
 function doAction(fileName) 
 {
   if (fileName) {
-    var url = `/delete/delete.py?filename=${encodeURIComponent(fileName)}`; 
+    var url = `/rm/${encodeURIComponent(fileName)}`; 
     fetch(url, { method: 'DELETE', headers: {'Content-Type': 'application/json',},})
   .then(response => {
     if (!response.ok) {
