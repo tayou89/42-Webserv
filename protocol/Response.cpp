@@ -89,34 +89,36 @@ void Response::checkValidity() {
       // check if the user is authorized
       // if not, throw 401 response
     }
-    if (_request.getRequestURI().find("cookie") != std::string::npos)
-    {
+    if (_request.getRequestURI().find("cookie") != std::string::npos) {
       // std::cout << "inside cookie\n";
-      _cookie.controlCookies(_request.getRequestHeader(), _request.getQueryStirng());
-      this->setResponseHeader("Content-Length", intToString(_cookie.getresBody().size()));
+      _cookie.controlCookies(_request.getRequestHeader(),
+                             _request.getQueryStirng());
+      this->setResponseHeader("Content-Length",
+                              intToString(_cookie.getresBody().size()));
       this->setResponseHeader("Content-Type", "text/html");
       if (_cookie.getresCookieHeaderString().size() != 0)
-        this->setResponseHeader("Set-Cookie", _cookie.getresCookieHeaderString());
+        this->setResponseHeader("Set-Cookie",
+                                _cookie.getresCookieHeaderString());
       this->setResponseHeader("Last-Modified", getCurrentHttpDateForCookie());
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
           _cookie.getresBody()));
       // std::cout << "\nthis is response:\n" << getResponse() << std::endl;
-    }
-    else if (_request.getRequestURI().find("session") != std::string::npos)
-    {
-      _sessionControl.controlSession(_request.getRequestHeader(), _request.getQueryStirng());
-      this->setResponseHeader("Content-Length", intToString(_sessionControl.getresBody().size()));
+    } else if (_request.getRequestURI().find("session") != std::string::npos) {
+      _sessionControl.controlSession(_request.getRequestHeader(),
+                                     _request.getQueryStirng());
+      this->setResponseHeader("Content-Length",
+                              intToString(_sessionControl.getresBody().size()));
       this->setResponseHeader("Content-Type", "text/html");
 
       if (_sessionControl.getresSessionHeaderString().size() != 0)
-        this->setResponseHeader("Set-Cookie", _sessionControl.getresSessionHeaderString());
+        this->setResponseHeader("Set-Cookie",
+                                _sessionControl.getresSessionHeaderString());
       this->setResponseHeader("Last-Modified", getCurrentHttpDateForCookie());
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
           _sessionControl.getresBody()));
-    }
-    else
+    } else
       this->executeMethod();
     // check for cookie
   }
@@ -244,7 +246,8 @@ void Response::GET_HEAD() {
   std::stringstream ss;
   ss << body.size();
   this->setResponseHeader("Content-Length", ss.str());
-  this->setResponseHeader("Content-Type", _config.getMimeType(_request.getRequestURI()));
+  this->setResponseHeader("Content-Type",
+                          _config.getMimeType(_request.getRequestURI()));
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
   this->setResponse(this->_errorResponse.create200Response(
@@ -261,6 +264,13 @@ void Response::POST() {
 void Response::DELETE() {
   int fd;
 
+  std::vector<std::string> pathVec = splitString(_request.getRequestURI(), '/');
+  std::vector<std::string>::iterator iter = pathVec.begin();
+
+  for (; iter != pathVec.end(); iter++) {
+    if (*iter == ".." || *iter == ".")
+      throw(this->_errorResponse.create403Response(_config));
+  }
   fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (fd == -1)
     throw(this->_errorResponse.create204Response(

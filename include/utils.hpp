@@ -26,3 +26,5 @@ std::string getModifiedTime(time_t mTime);
 std::vector<std::string> rgbToDecimal(const std::string &rgbHex);
 std::string decimalToRgb(int red, int green, int blue);
 std::string intToString(int value);
+void replace(std::string &str, const std::string &target,
+             const std::string &replacement);

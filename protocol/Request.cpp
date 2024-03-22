@@ -246,6 +246,7 @@ void Request::convertURI() {
   int rate = 0;
   int tmp = 0;
 
+  replace(_requestURI, "%20", " ");
   /* separate query string */
   std::vector<std::string> query = splitString(_requestURI, '?');
   _requestURI = query[0];

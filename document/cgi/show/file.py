@@ -34,7 +34,7 @@ cgitb.enable()
 
 form = cgi.FieldStorage()
 fileName = form.getvalue('file')
-filePath = '/Users/jinhyeop/Desktop/project/webserv/document/html/uploaded' + '/' + fileName
+filePath = '/Users/jinhyeop/Desktop/project/webserv/document/uploaded' + '/' + fileName
 
 try:
     if os.path.isfile(filePath):
