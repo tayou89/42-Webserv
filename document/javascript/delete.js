@@ -1,4 +1,4 @@
-function doAction(fileName) 
+function deleteFile(fileName) 
 {
   if (fileName) {
     var url = `/rm/${encodeURIComponent(fileName)}`; 
