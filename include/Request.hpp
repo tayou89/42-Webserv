@@ -26,13 +26,13 @@ public:
   void readHeader(std::string header);
   void checkValidHeader(std::string key, std::string value);
   void checkContentLength(int client_max_body_size);
-  void readBody(std::string body);
+  void readBody(std::vector<unsigned char> body);
 
   int checkBodyExistence() const;
 
   std::string getRequestMethod() const;
   std::string getRequestURI() const;
-  std::string getRequestBody() const;
+  std::vector<unsigned char> getRequestBody() const;
   std::map<std::string, std::string> getRequestHeader() const;
   std::string getRequestHeader(std::string key) const;
   std::string getQueryStirng() const;
@@ -50,7 +50,7 @@ private:
   Config _config;
   std::string _request;
   std::map<std::string, std::string> _requestHeader;
-  std::string _requestBody;
+  std::vector<unsigned char> _requestBody;
   std::string _requestMethod;
   std::string _requestURI;
   std::string _queryString;

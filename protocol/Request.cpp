@@ -145,7 +145,7 @@ void Request::checkContentLength(int client_max_body_size) {
   }
 }
 
-void Request::readBody(std::string body) {
+void Request::readBody(std::vector<unsigned char> body) {
   if (body.size() > static_cast<unsigned long>(
                         std::stol(this->_requestHeader["Content-Length"])))
     throw(this->_errorResponse.create413Response(this->_config));
@@ -160,7 +160,7 @@ std::string Request::getRequestMethod() const { return (this->_requestMethod); }
 
 std::string Request::getRequestURI() const { return (this->_requestURI); }
 
-std::string Request::getRequestBody() const { return (this->_requestBody); }
+std::vector<unsigned char> Request::getRequestBody() const { return (this->_requestBody); }
 
 std::map<std::string, std::string> Request::getRequestHeader() const {
   return (this->_requestHeader);

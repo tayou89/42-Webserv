@@ -47,11 +47,12 @@ private:
   IServer *_routeServer;
   int _socket;
   int _status;
-  char _buf[BUFFER_SIZE + 1];
-  std::string _tmp;
+//   char _buf[BUFFER_SIZE + 1];
+//   std::string _tmp;
+  std::vector<unsigned char> _buf;
   std::string _header;
   size_t _bodySize;
-  std::string _body;
+//   std::vector<unsigned char> _body;
   Request _req;
   Response _res;
   std::string _responseString;
