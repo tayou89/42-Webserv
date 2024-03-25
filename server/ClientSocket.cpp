@@ -188,7 +188,7 @@ struct eventStatus ClientSocket::readHead() {
   size_t pos = tmpStr.find("\r\n\r\n");
   if (pos != std::string::npos) {
     _header = tmpStr.substr(0, pos + 2);
-	_buf.erase(_buf.begin(), _buf.begin() + pos + 4);
+    _buf.erase(_buf.begin(), _buf.begin() + pos + 4);
     try {
       _req.setRequest(_header);
     } catch (std::string &res) {
@@ -238,44 +238,44 @@ struct eventStatus ClientSocket::readContentBody() {
 
 /* \r\n을 이용해서 한줄씩 읽는 방식으로 변경해야됨 */
 struct eventStatus ClientSocket::readChunkedBody() {
-//   std::string tmp;
-//   std::string raw;
-//   std::ostringstream oss;
-//   size_t chunkSize;
-//   int readSize = BUFFER_SIZE;
+  //   std::string tmp;
+  //   std::string raw;
+  //   std::ostringstream oss;
+  //   size_t chunkSize;
+  //   int readSize = BUFFER_SIZE;
 
-//   while (readSize == BUFFER_SIZE) {
-//     memset(&_buf, 0, BUFFER_SIZE);
-//     readSize = read(_socket, &_buf, BUFFER_SIZE);
-//     if (readSize < 0) {
-//       // read error 처리 추가
-//     }
-//     tmp.append(_buf, readSize);
-//     raw += tmp;
-//   }
+  //   while (readSize == BUFFER_SIZE) {
+  //     memset(&_buf, 0, BUFFER_SIZE);
+  //     readSize = read(_socket, &_buf, BUFFER_SIZE);
+  //     if (readSize < 0) {
+  //       // read error 처리 추가
+  //     }
+  //     tmp.append(_buf, readSize);
+  //     raw += tmp;
+  //   }
 
-//   memset(&_buf, 0, BUFFER_SIZE);
+  //   memset(&_buf, 0, BUFFER_SIZE);
 
-//   std::istringstream iss(raw);
+  //   std::istringstream iss(raw);
 
-//   while (!iss.eof()) {
-//     std::string chunk;
+  //   while (!iss.eof()) {
+  //     std::string chunk;
 
-//     iss >> std::hex >> chunkSize;
-//     iss.ignore(2);
+  //     iss >> std::hex >> chunkSize;
+  //     iss.ignore(2);
 
-//     if (chunkSize == 0) {
-//       _status = WRITE;
-//       return (makeStatus(SOCKET_WRITE_MODE, _socket));
-//     }
-//     chunk.resize(chunkSize);
-//     iss.read(&chunk[0], chunkSize);
-//     iss.ignore(2);
+  //     if (chunkSize == 0) {
+  //       _status = WRITE;
+  //       return (makeStatus(SOCKET_WRITE_MODE, _socket));
+  //     }
+  //     chunk.resize(chunkSize);
+  //     iss.read(&chunk[0], chunkSize);
+  //     iss.ignore(2);
 
-//     _body += chunk;
-//   }
+  //     _body += chunk;
+  //   }
 
-//   return (makeStatus(CONTINUE, _socket));
+  return (makeStatus(CONTINUE, _socket));
 }
 
 struct eventStatus ClientSocket::readSocket() {
