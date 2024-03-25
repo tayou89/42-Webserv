@@ -42,7 +42,7 @@ void KqueueLoop::disconnect(int socket) {
   newEvent(socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
   newEvent(socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
   if (_clientList.find(socket) != _clientList.end()) {
-    //   delete _clientList[socket]; // allocation delete
+    delete _clientList[socket]; // allocation delete
     _clientList[socket] = NULL;
     _clientList.erase(socket);
     close(socket);

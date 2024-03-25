@@ -11,11 +11,8 @@ ConfigStream::ConfigStream(const ConfigStream &object) { *this = object; }
 ConfigStream &ConfigStream::operator=(const ConfigStream &object) {
   if (this == &object)
     return (*this);
-  std::cout << "configOperator=1\n";
   init();
-  std::cout << "configOperator=2\n";
   *this << object.rdbuf();
-  std::cout << "configOperator=3\n";
   return (*this);
 }
 

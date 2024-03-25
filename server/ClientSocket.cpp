@@ -122,7 +122,7 @@ struct eventStatus ClientSocket::socketToPipe() {
 
   std::vector<unsigned char> body = _req.getRequestBody();
 
-  int writeSize = write(_cgi.getWriteFD(), &body[0], BUFFER_SIZE);
+  int writeSize = write(_cgi.getWriteFD(), &body[0], body.size());
   _req.eraseRequestBody(0, BUFFER_SIZE);
   if (writeSize == -1)
     ; // throw _res.getErrorResponse().create403Response();
@@ -181,7 +181,18 @@ struct eventStatus ClientSocket::readHead() {
   if (readSize == 0)
     return (makeStatus(DISCONNECT, _socket));
 
+  //   std::cout << readSize << ": read size\n";
+  //   std::cout << tmp.size() << ": tmp size\n";
   _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
+  //   std::cout << _buf.size() << ": buf size\n";
+  //   for (size_t idx = 0; idx < readSize; idx++) {
+  //     std::cout << static_cast<int>(tmp[idx]) << static_cast<int>(_buf[idx])
+  //               << std::endl;
+  //     if (tmp[idx] != _buf[idx]) {
+  //       std::cout << "exit\n";
+  //       exit(123);
+  //     }
+  //   }
   std::string tmpStr(_buf.begin(), _buf.end());
 
   /* header의 끝 찾기 */
