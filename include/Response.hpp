@@ -24,9 +24,6 @@ public:
   void GET_HEAD();
   void POST();
   void DELETE();
-  void PUT();
-  void OPTIONS();
-  void TRACE();
 
   void setResponseHeader(std::string key, std::string value);
   void setResponseBody(std::string body);

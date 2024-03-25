@@ -17,10 +17,8 @@ ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
     : _routeServer(acceptServer), _socket(socket),
       _req(_routeServer->getConfig()), _res(envp, _routeServer->getConfig()) {
   this->_status = HEAD_READ;
-  memset(&_buf[0], 0, BUFFER_SIZE + 1);
   _buf.clear();
   _header.clear();
-  _body.clear();
   _bodySize = 0;
   _info.socket = _socket;
   _info.type = SOCKET;
@@ -202,10 +200,8 @@ struct eventStatus ClientSocket::readHead() {
     // std::cout << _header << std::endl;
     if (_status == BODY_READ) { // read normal body
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
-      _tmp.clear();
       return (makeStatus(CONTINUE, _socket));
     } else if (_status == CHUNKED_READ) { // read chunked body
-      _tmp.clear();
       return (makeStatus(CONTINUE, _socket));
     } else
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
@@ -332,10 +328,8 @@ struct eventStatus ClientSocket::writeSocket() {
 void ClientSocket::clearSocket() {
   _status = HEAD_READ;
   memset(&_buf, 0, BUFFER_SIZE + 1);
-  _tmp.clear();
   _header.clear();
   _bodySize = 0;
-  _body.clear();
   _responseString.clear();
   _req = Request();
   _res.initResponse();
