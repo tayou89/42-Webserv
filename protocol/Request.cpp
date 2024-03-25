@@ -160,7 +160,9 @@ std::string Request::getRequestMethod() const { return (this->_requestMethod); }
 
 std::string Request::getRequestURI() const { return (this->_requestURI); }
 
-std::vector<unsigned char> Request::getRequestBody() const { return (this->_requestBody); }
+std::vector<unsigned char> Request::getRequestBody() const {
+  return (this->_requestBody);
+}
 
 std::map<std::string, std::string> Request::getRequestHeader() const {
   return (this->_requestHeader);

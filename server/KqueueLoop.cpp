@@ -41,10 +41,12 @@ void KqueueLoop::disconnect(int socket) {
   std::cout << socket << " disconnect\n";
   newEvent(socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
   newEvent(socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-  delete _clientList[socket]; // allocation delete
-  _clientList[socket] = NULL;
-  _clientList.erase(socket);
-  close(socket);
+  if (_clientList.find(socket) != _clientList.end()) {
+    //   delete _clientList[socket]; // allocation delete
+    _clientList[socket] = NULL;
+    _clientList.erase(socket);
+    close(socket);
+  }
 }
 
 void KqueueLoop::eventHandler(struct kevent *event) {

@@ -1,44 +1,39 @@
 #include "../include/ConfigStream.hpp"
+#include <iostream>
 #include <iterator>
 
 ConfigStream::ConfigStream(void) {}
 
-ConfigStream::~ConfigStream(void)
-{
+ConfigStream::~ConfigStream(void) {}
+
+ConfigStream::ConfigStream(const ConfigStream &object) { *this = object; }
+
+ConfigStream &ConfigStream::operator=(const ConfigStream &object) {
+  if (this == &object)
+    return (*this);
+  std::cout << "configOperator=1\n";
+  init();
+  std::cout << "configOperator=2\n";
+  *this << object.rdbuf();
+  std::cout << "configOperator=3\n";
+  return (*this);
 }
 
-ConfigStream::ConfigStream(const ConfigStream &object)
-{
-	*this = object;
+ConfigStream::ConfigStream(std::string configText) {
+  ConfigUtil::removeComments(configText);
+  *this << configText;
 }
 
-ConfigStream &ConfigStream::operator=(const ConfigStream &object)
-{
-	if (this == &object)
-		return (*this);
-	init();
-	*this << object.rdbuf();
-	return (*this);
+void ConfigStream::init(void) {
+  str("");
+  clear();
 }
 
-ConfigStream::ConfigStream(std::string configText)
-{
-	ConfigUtil::removeComments(configText);
-	*this << configText;
-}
+void ConfigStream::pushFront(const std::string &string) {
+  std::string previousBuffer((std::istreambuf_iterator<char>(*this)),
+                             std::istreambuf_iterator<char>());
+  std::string newBuffer = string + previousBuffer;
 
-void ConfigStream::init(void)
-{
-	str("");
-	clear();
-}
-
-void ConfigStream::pushFront(const std::string &string)
-{
-	std::string previousBuffer((std::istreambuf_iterator<char>(*this)),
-							   std::istreambuf_iterator<char>());
-	std::string newBuffer = string + previousBuffer;
-
-	init();
-	*this << newBuffer;
+  init();
+  *this << newBuffer;
 }
