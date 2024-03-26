@@ -2,7 +2,7 @@
 
 Response::Response() {}
 
-Response::Response(char **envp, Config conf) : _envp(envp), _config(conf) {}
+Response::Response(char **envp, Config &conf) : _envp(envp), _config(conf) {}
 
 Response::~Response() {}
 
@@ -61,8 +61,8 @@ void Response::checkValidity() {
 
     // 2. check if autoindex is enabled
     if (this->_request.getLocation().getAutoIndex() == true) {
-    // read all files in the directory and put it in the response packet
-    // if (1) {
+      // read all files in the directory and put it in the response packet
+      // if (1) {
 
       std::string filelist;
       filelist = makeAutoindexBody(dir);
@@ -184,12 +184,6 @@ void Response::executeMethod() {
     POST();
   else if (this->_request.getRequestMethod() == "DELETE")
     DELETE();
-  else if (this->_request.getRequestMethod() == "PUT")
-    PUT();
-  else if (this->_request.getRequestMethod() == "OPTIONS")
-    OPTIONS();
-  else if (this->_request.getRequestMethod() == "TRACE")
-    TRACE();
   else
     throw(this->_errorResponse.create405Response(this->_config));
 }
@@ -299,52 +293,6 @@ void Response::DELETE() {
   // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
   this->setResponseHeader("Content-Type", "text/html");
   this->setResponseHeader("Content-Language", "en-US");
-  this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getServerName(), this->getResponseHeader(),
-      this->getResponseBody()));
-}
-
-void Response::PUT() {
-  int fd;
-
-  fd = open(this->_request.getRequestURI().c_str(), O_WRONLY | O_TRUNC);
-  if (fd == -1)
-    throw(this->_errorResponse.create404Response(_config));
-  // this->_config.getLocation(this->_request.getRequestURI()),
-  // this->_config.getServerName()));
-  write(fd, this->_request.getRequestBody().c_str(),
-        this->_request.getRequestBody().size());
-  this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getServerName(), this->getResponseHeader(),
-      this->getResponseBody()));
-}
-
-void Response::OPTIONS() {
-  if (this->_request.getRequestHeader("Origins") == "")
-    throw(this->_errorResponse.create400Response(this->_config));
-  int fd = open(this->_request.getRequestHeader("Origins").c_str(), O_RDONLY);
-  if (fd == -1)
-    throw(this->_errorResponse.create400Response(this->_config));
-  this->setResponseHeader("Access-Control-Allow-Origin",
-                          this->_request.getRequestHeader("Origins"));
-  this->setResponse(this->_errorResponse.create200Response(
-      this->_config.getServerName(), this->getResponseHeader(),
-      this->getResponseBody()));
-}
-
-void Response::TRACE() {
-  std::string body;
-  std::map<std::string, std::string> header;
-
-  body = this->_request.getRequestMethod() + " " +
-         this->_request.getRequestURI() + " HTTP/1.1\r\n";
-  header = this->_request.getRequestHeader();
-  for (std::map<std::string, std::string>::iterator itr = header.begin();
-       itr != header.end(); ++itr) {
-    body = body + itr->first + ": " + itr->second + "\r\n";
-  }
-  body = body + this->_request.getRequestBody();
-  this->setResponseBody(body);
   this->setResponse(this->_errorResponse.create200Response(
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));

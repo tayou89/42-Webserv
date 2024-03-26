@@ -31,7 +31,7 @@
 #define PIPE 2
 
 // default buffer size
-#define BUFFER_SIZE 1023
+#define BUFFER_SIZE 10240
 
 // child process status
 #define END 0

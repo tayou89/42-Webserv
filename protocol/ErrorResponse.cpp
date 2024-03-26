@@ -29,7 +29,7 @@ std::string errorResponse::create200Response(
   return (response);
 }
 
-std::string errorResponse::create204Response(Config conf) {
+std::string errorResponse::create204Response(Config &conf) {
   std::string response = "HTTP/1.1 204 No Content\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
   std::string body;
@@ -54,7 +54,7 @@ std::string errorResponse::create204Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create302Response(Config conf, Location loc) {
+std::string errorResponse::create302Response(Config &conf, Location loc) {
   std::string response = "HTTP/1.1 302 Found\r\n" + getCurrentHttpDate() +
                          "Content-Length: 0\r\n"
                          "Server: " +
@@ -64,7 +64,7 @@ std::string errorResponse::create302Response(Config conf, Location loc) {
   return (response);
 }
 
-std::string errorResponse::create400Response(Config conf) {
+std::string errorResponse::create400Response(Config &conf) {
   std::string response = "HTTP/1.1 400 Bad Request\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
   std::string body;
@@ -89,7 +89,7 @@ std::string errorResponse::create400Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create403Response(Config conf) {
+std::string errorResponse::create403Response(Config &conf) {
   std::string response = "HTTP/1.1 403 Forbidden\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
   // this->_response = response;
@@ -115,7 +115,7 @@ std::string errorResponse::create403Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create404Response(Config conf) {
+std::string errorResponse::create404Response(Config &conf) {
   std::string response = "HTTP/1.1 404 Not Found\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
   // this->_response = response;
@@ -141,7 +141,7 @@ std::string errorResponse::create404Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create405Response(Config conf) {
+std::string errorResponse::create405Response(Config &conf) {
   std::string response = "HTTP/1.1 405 Method Not Allowed\r\n" +
                          getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
@@ -167,7 +167,7 @@ std::string errorResponse::create405Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create413Response(Config conf) {
+std::string errorResponse::create413Response(Config &conf) {
   std::string response = "HTTP/1.1 413 Request Entity Too Large\r\n" +
                          getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
@@ -193,7 +193,7 @@ std::string errorResponse::create413Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create414Response(Config conf) {
+std::string errorResponse::create414Response(Config &conf) {
   std::string response = "HTTP/1.1 414 URI Too Long\r\n" +
                          getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
@@ -219,7 +219,7 @@ std::string errorResponse::create414Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create500Response(Config conf) {
+std::string errorResponse::create500Response(Config &conf) {
   std::string response = "HTTP/1.1 500 Internal Server Error\r\n" +
                          getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
@@ -245,7 +245,7 @@ std::string errorResponse::create500Response(Config conf) {
   return (response);
 }
 
-std::string errorResponse::create505Response(Config conf) {
+std::string errorResponse::create505Response(Config &conf) {
   std::string response = "HTTP/1.1 505 HTTP Version Not Supported\r\n" +
                          getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
