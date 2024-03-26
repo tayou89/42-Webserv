@@ -119,9 +119,10 @@ int Request::checkBodyExistence() const {
       _requestHeader.find("Transfer-encoding")->second == "chunked")
     return (CHUNKED_READ);
   else if (_requestHeader.find("Content-Length") != _requestHeader.end() &&
-           _requestHeader.find("Content-Length")->second != "0")
+           _requestHeader.find("Content-Length")->second != "0") {
+    std::cout << "body find\n";
     return (BODY_READ);
-  else
+  } else
     return (WRITE);
 }
 
