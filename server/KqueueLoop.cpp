@@ -38,7 +38,6 @@ void KqueueLoop::newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
 }
 
 void KqueueLoop::disconnect(int socket) {
-  std::cout << socket << " disconnect\n";
   newEvent(socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
   newEvent(socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
   if (_clientList.find(socket) != _clientList.end()) {

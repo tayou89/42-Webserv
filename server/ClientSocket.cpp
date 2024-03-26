@@ -11,7 +11,7 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
   return (*this);
 }
 
-ClientSocket::~ClientSocket() { std::cout << "destructor\n"; }
+ClientSocket::~ClientSocket() {}
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
     : _routeServer(acceptServer), _req(acceptServer->getConfig()),
@@ -179,9 +179,10 @@ struct eventStatus ClientSocket::readHead() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
-  std::cout << readSize << std::endl;
-  if (readSize == 0)
+  if (readSize == 0) {
+    clearSocket();
     return (makeStatus(DISCONNECT, _socket));
+  }
 
   _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
 
@@ -194,14 +195,12 @@ struct eventStatus ClientSocket::readHead() {
     _buf.erase(_buf.begin(), _buf.begin() + pos + 4);
     try {
       _req.setRequest(_header);
-      std::cout << _header << std::endl;
     } catch (std::string &res) {
       _responseString = res;
       _status = WRITE;
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
     _status = _req.checkBodyExistence();
-    // std::cout << _header << std::endl;
     if (_status == BODY_READ) { // read normal body
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
       return (makeStatus(CONTINUE, _socket));
@@ -218,8 +217,10 @@ struct eventStatus ClientSocket::readContentBody() {
 
   size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
   std::cout << readSize << std::endl;
-  if (readSize == 0)
+  if (readSize == 0) {
+    clearSocket();
     return (makeStatus(DISCONNECT, _socket));
+  }
 
   _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
 
@@ -323,6 +324,7 @@ struct eventStatus ClientSocket::writeSocket() {
     ; //   return (WRITE_ERROR);
 
   if (_req.getRequestHeader("Connection") == "close") {
+    clearSocket();
     return (makeStatus(DISCONNECT, _socket));
   }
 
@@ -331,7 +333,7 @@ struct eventStatus ClientSocket::writeSocket() {
 
 void ClientSocket::clearSocket() {
   _status = HEAD_READ;
-  memset(&_buf, 0, BUFFER_SIZE + 1);
+  _buf.clear();
   _header.clear();
   _bodySize = 0;
   _responseString.clear();
