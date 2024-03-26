@@ -120,7 +120,6 @@ int Request::checkBodyExistence() const {
     return (CHUNKED_READ);
   else if (_requestHeader.find("Content-Length") != _requestHeader.end() &&
            _requestHeader.find("Content-Length")->second != "0") {
-    std::cout << "body find\n";
     return (BODY_READ);
   } else
     return (WRITE);
