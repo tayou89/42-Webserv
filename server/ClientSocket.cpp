@@ -67,8 +67,11 @@ struct eventStatus ClientSocket::sendCGIBody() {
     return (makeStatus(CONTINUE, _socket));
 
   int chunkSize = _cgiResponse.size();
-  if (chunkSize > 30000)
-    chunkSize = 30000;
+  //   std::cout << "Response size: " << chunkSize << std::endl;
+  if (chunkSize > 1000)
+    chunkSize = 1000;
+
+  //   std::cout << "chunk size: " << chunkSize << std::endl;
 
   std::stringstream ss;
 
@@ -78,12 +81,12 @@ struct eventStatus ClientSocket::sendCGIBody() {
 
   size_t sizeWrite = write(_socket, sizeStr.c_str(), sizeStr.size());
   if (sizeWrite != sizeStr.size())
-    ; // write error
+    ;
   size_t chunkWrite = write(_socket, &_cgiResponse[0], chunkSize);
   if (chunkWrite < 1)
     return (makeStatus(CONTINUE, _socket)); // write error
-  _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + chunkWrite);
   write(_socket, "\r\n", 2);
+  _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + chunkWrite);
 
   //   if (_processStatus == END) {
   //     write(_socket, "0\r\n\r\n", 5);
@@ -128,7 +131,6 @@ struct eventStatus ClientSocket::socketToPipe() {
   _req.eraseRequestBody(0, writeSize);
   //   if (writeSize == -1) {
   //     perror("Error");
-  //     std::cout << "errno: " << errno << std::endl;
   //   }
   if (_req.getRequestBody().size() == 0) {
     close(_cgi.getWriteFD());
@@ -202,8 +204,6 @@ struct eventStatus ClientSocket::readHead() {
     _status = _req.checkBodyExistence();
     if (_status == BODY_READ) { // read normal body
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
-      std::cout << "body size: " << _bodySize << std::endl;
-      std::cout << "buffer size: " << _buf.size() << std::endl;
       if (_buf.size() >= _bodySize) {
         _status = WRITE;
         _req.readBody(_buf);
