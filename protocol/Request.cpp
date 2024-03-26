@@ -1,7 +1,7 @@
 #include "../include/Request.hpp"
 
-#define LARGE_CLIENT_HEADER_BUFFERS 1000
-#define MAX_BODY_SIZE 1000
+// #define LARGE_CLIENT_HEADER_BUFFERS 1000
+// #define MAX_BODY_SIZE 1000
 
 Request::Request() {}
 
@@ -35,12 +35,12 @@ void Request::setRequest(std::string packet) {
   //       packet.find("\r\n") == std::string::npos)
   //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
-  this->readStartLine(firstLine, LARGE_CLIENT_HEADER_BUFFERS);
+  this->readStartLine(firstLine, _location.getClientHeaderMax());
   std::string header = packet.substr(packet.find("\r\n") + 2);
   // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/
   this->readHeader(header);
 
-  this->checkContentLength(MAX_BODY_SIZE);
+  this->checkContentLength(_location.getClientBodyMax());
 }
 
 void Request::readStartLine(std::string startLine,
@@ -139,7 +139,7 @@ void Request::checkContentLength(int client_max_body_size) {
     if (this->_requestHeader["Content-Length"].size() > 10) {
       throw(this->_errorResponse.create400Response(this->_config));
     }
-    if (std::stoi(this->_requestHeader["Content-Length"]) >
+    if (atoi(this->_requestHeader["Content-Length"].c_str()) >
         client_max_body_size)
       throw(this->_errorResponse.create413Response(this->_config));
   }
