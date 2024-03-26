@@ -2,7 +2,7 @@
 
 Response::Response() {}
 
-Response::Response(char **envp, Config conf) : _envp(envp), _config(conf) {}
+Response::Response(char **envp, Config &conf) : _envp(envp), _config(conf) {}
 
 Response::~Response() {}
 
@@ -61,8 +61,8 @@ void Response::checkValidity() {
 
     // 2. check if autoindex is enabled
     if (this->_request.getLocation().getAutoIndex() == true) {
-    // read all files in the directory and put it in the response packet
-    // if (1) {
+      // read all files in the directory and put it in the response packet
+      // if (1) {
 
       std::string filelist;
       filelist = makeAutoindexBody(dir);

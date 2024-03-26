@@ -5,7 +5,7 @@
 
 Request::Request() {}
 
-Request::Request(Config conf) : _config(conf) {}
+Request::Request(Config &conf) : _config(conf) {}
 
 Request::~Request() {}
 
@@ -290,4 +290,14 @@ void Request::eraseRequestBody(size_t start, size_t end) {
   if (end > _requestBody.size())
     end = _requestBody.size();
   _requestBody.erase(_requestBody.begin() + start, _requestBody.begin() + end);
+}
+
+void Request::initRequest() {
+  _request.clear();
+  _requestHeader.clear();
+  _requestBody.clear();
+  _requestMethod.clear();
+  _requestURI.clear();
+  _queryString.clear();
+  _location = Location();
 }

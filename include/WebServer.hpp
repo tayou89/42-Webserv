@@ -18,9 +18,7 @@ public:
   ~WebServer();
 
   int getListenSocket() const;
-  Config getConfig() const;
-  //   struct kevent setEvent(uintptr_t ident, int16_t filter, uint16_t flags,
-  //                          uint32_t fflags, intptr_t data, void *udata);
+  Config &getConfig();
 
 private:
   Config _config;

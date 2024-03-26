@@ -1,16 +1,16 @@
 #pragma once
 
 #include "Config.hpp"
+#include "Cookie.hpp"
 #include "ErrorResponse.hpp"
 #include "Request.hpp"
-#include "define.hpp"
-#include "Cookie.hpp"
 #include "SessionControl.hpp"
+#include "define.hpp"
 
 class Response {
 public:
   Response();
-  Response(char **envp, Config conf);
+  Response(char **envp, Config &conf);
   ~Response();
 
   std::string setResponse(Request _request);

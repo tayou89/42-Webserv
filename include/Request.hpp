@@ -15,7 +15,7 @@
 class Request {
 public:
   Request();
-  Request(Config conf);
+  Request(Config &conf);
   ~Request();
   Request &operator=(const Request &copy);
   Request(const Request &copy);
@@ -45,6 +45,7 @@ public:
   std::string combinePATH(Location target, size_t rate) const;
   void convertURI();
   void eraseRequestBody(size_t start, size_t end);
+  void initRequest();
 
 private:
   Config _config;

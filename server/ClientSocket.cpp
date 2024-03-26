@@ -11,11 +11,12 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
   return (*this);
 }
 
-ClientSocket::~ClientSocket() {}
+ClientSocket::~ClientSocket() { std::cout << "destructor\n"; }
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
-    : _routeServer(acceptServer), _socket(socket),
-      _req(_routeServer->getConfig()), _res(envp, _routeServer->getConfig()) {
+    : _routeServer(acceptServer), _req(acceptServer->getConfig()),
+      _res(envp, acceptServer->getConfig()) {
+  _socket = socket;
   this->_status = HEAD_READ;
   _buf.clear();
   _header.clear();
@@ -178,21 +179,12 @@ struct eventStatus ClientSocket::readHead() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  std::cout << readSize << std::endl;
   if (readSize == 0)
     return (makeStatus(DISCONNECT, _socket));
 
-  //   std::cout << readSize << ": read size\n";
-  //   std::cout << tmp.size() << ": tmp size\n";
   _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
-  //   std::cout << _buf.size() << ": buf size\n";
-  //   for (size_t idx = 0; idx < readSize; idx++) {
-  //     std::cout << static_cast<int>(tmp[idx]) << static_cast<int>(_buf[idx])
-  //               << std::endl;
-  //     if (tmp[idx] != _buf[idx]) {
-  //       std::cout << "exit\n";
-  //       exit(123);
-  //     }
-  //   }
+
   std::string tmpStr(_buf.begin(), _buf.end());
 
   /* header의 끝 찾기 */
@@ -202,6 +194,7 @@ struct eventStatus ClientSocket::readHead() {
     _buf.erase(_buf.begin(), _buf.begin() + pos + 4);
     try {
       _req.setRequest(_header);
+      std::cout << _header << std::endl;
     } catch (std::string &res) {
       _responseString = res;
       _status = WRITE;
@@ -224,6 +217,7 @@ struct eventStatus ClientSocket::readContentBody() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  std::cout << readSize << std::endl;
   if (readSize == 0)
     return (makeStatus(DISCONNECT, _socket));
 
@@ -341,7 +335,7 @@ void ClientSocket::clearSocket() {
   _header.clear();
   _bodySize = 0;
   _responseString.clear();
-  _req = Request();
+  _req.initRequest();
   _res.initResponse();
   _processStatus = END;
 }
