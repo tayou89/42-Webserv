@@ -35,8 +35,6 @@ void Request::setRequest(std::string packet) {
   //       packet.find("\r\n") == std::string::npos)
   //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
-  std::cout << _config.getClientHeaderMax() << std::endl;
-  std::cout << _config.getClientBodyMax() << std::endl;
   this->readStartLine(firstLine, _config.getClientHeaderMax());
   std::string header = packet.substr(packet.find("\r\n") + 2);
   // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/

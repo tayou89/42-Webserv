@@ -58,7 +58,7 @@ struct eventStatus ClientSocket::sendCGIHeader() {
 }
 
 struct eventStatus ClientSocket::sendCGIBody() {
-  if (_processStatus == END && _cgiResponse.empty() == true) {
+  if (_processStatus == CLOSEPIPE && _cgiResponse.empty() == true) {
     write(_socket, "0\r\n\r\n", 5);
     _status = HEAD_READ;
     _info.type = SOCKET;
@@ -67,6 +67,9 @@ struct eventStatus ClientSocket::sendCGIBody() {
     return (makeStatus(CONTINUE, _socket));
 
   int chunkSize = _cgiResponse.size();
+  if (chunkSize > 30000)
+    chunkSize = 30000;
+
   std::stringstream ss;
 
   ss << std::hex << chunkSize;
@@ -76,42 +79,40 @@ struct eventStatus ClientSocket::sendCGIBody() {
   size_t sizeWrite = write(_socket, sizeStr.c_str(), sizeStr.size());
   if (sizeWrite != sizeStr.size())
     ; // write error
-  size_t chunkWrite = write(_socket, &_cgiResponse[0], _cgiResponse.size());
-  if (chunkWrite != _cgiResponse.size())
-    ; // write error
-  _cgiResponse.clear();
+  size_t chunkWrite = write(_socket, &_cgiResponse[0], chunkSize);
+  if (chunkWrite < 1)
+    return (makeStatus(CONTINUE, _socket)); // write error
+  _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + chunkWrite);
   write(_socket, "\r\n", 2);
 
-  if (_processStatus == END) {
-    write(_socket, "0\r\n\r\n", 5);
-    _status = HEAD_READ;
-    _info.type = SOCKET;
-    return (makeStatus(SOCKET_READ_MODE, _socket, _cgi.getWriteFD()));
-  }
+  //   if (_processStatus == END) {
+  //     write(_socket, "0\r\n\r\n", 5);
+  //     _status = HEAD_READ;
+  //     _info.type = SOCKET;
+  //     return (makeStatus(SOCKET_READ_MODE, _socket, _cgi.getWriteFD()));
+  //   }
 
   return (makeStatus(CONTINUE, _socket));
 }
 
 struct eventStatus ClientSocket::readPipe() {
-  if (_processStatus == END) {
-    return (makeStatus(CONTINUE, _socket));
-  }
-
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   int readSize = read(_cgi.getReadFD(), &tmp[0], BUFFER_SIZE);
   if (readSize == -1) {
     return (makeStatus(CONTINUE, _socket));
+  } else if (_processStatus == END && readSize == 0) {
+    _processStatus = CLOSEPIPE;
+    close(_cgi.getReadFD());
+    return (makeStatus(CGI_READ_END, _cgi.getReadFD()));
   }
 
   _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
 
   int pid = waitpid(_cgi.getPID(), &_processStatus, WNOHANG);
-  if (pid != 0) {
-    close(_cgi.getReadFD());
+  if (pid != 0)
     _processStatus = END;
-    return (makeStatus(CGI_READ_END, _cgi.getReadFD()));
-  }
+
   return (makeStatus(CONTINUE, _socket));
 }
 
@@ -122,16 +123,14 @@ struct eventStatus ClientSocket::socketToPipe() {
   std::vector<unsigned char> body = _req.getRequestBody();
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], body.size());
-  std::cout << "Write size: " << writeSize << std::endl;
-  std::cout << "Remain body size:" << body.size() << std::endl;
+  //   std::cout << "Write size: " << writeSize << std::endl;
+  //   std::cout << "Remain body size:" << body.size() << std::endl;
   _req.eraseRequestBody(0, writeSize);
-  if (writeSize == -1) {
-    perror("Error");
-    std::cout << "errno: " << errno << std::endl;
-  }
-  //   throw _res.getErrorResponse().create403Response();
+  //   if (writeSize == -1) {
+  //     perror("Error");
+  //     std::cout << "errno: " << errno << std::endl;
+  //   }
   if (_req.getRequestBody().size() == 0) {
-    std::cout << "socket to pipe finish\n";
     close(_cgi.getWriteFD());
     _status = PIPE_TO_SOCKET_HEAD;
     return (makeStatus(CGI_READ, _cgi.getReadFD(), _cgi.getWriteFD()));
@@ -192,7 +191,6 @@ struct eventStatus ClientSocket::readHead() {
 
   if (iter != _buf.end()) {
     _header = std::string(_buf.begin(), iter + 2);
-    std::cout << _header << std::endl;
     _buf.erase(_buf.begin(), iter + 4);
     try {
       _req.setRequest(_header);
@@ -311,9 +309,7 @@ struct eventStatus ClientSocket::writeSocket() {
       //   for (std::vector<unsigned char>::iterator iter = _buf.begin();
       //        iter != _buf.end(); iter++)
       //     std::cout << *iter;
-      std::cout << "this is URI1:" << _req.getRequestURI() << std::endl;
       _req.convertURI();
-      std::cout << "this is URI2:" << _req.getRequestURI() << std::endl;
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;

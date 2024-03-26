@@ -31,8 +31,9 @@
 #define PIPE 2
 
 // default buffer size
-#define BUFFER_SIZE 10240
+#define BUFFER_SIZE 20000
 
 // child process status
+#define CLOSEPIPE -1
 #define END 0
 #define ALIVE 1
