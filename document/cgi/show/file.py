@@ -47,7 +47,7 @@ try:
         with open(filePath, 'rb') as file:
             sys.stdout.flush()
             while True:
-                chunk = file.read(1024)
+                chunk = file.read(10000)
                 if not chunk:
                     break
                 sys.stdout.buffer.write(chunk)
