@@ -41,16 +41,17 @@ std::string SessionControl::makeNewSID()
 
 	i = 0;
 	random_fd = open("/dev/urandom", O_RDONLY);
-	if (read(random_fd, random_name, 8) == -1)
+	if (read(random_fd, random_name, 9) == -1)
 		;
 	close(random_fd);
-	while (10 > i)
+	while (9 > i)
 	{
 		if (random_name[i] < 0)
 			random_name[i] = random_name[i] * -1;
 		random_name[i] = random_name[i] % 93 + '!';
 		i++;
 	}
+    random_name[i] = '\0';
     std::string cookieName(random_name);
     return (cookieName);
 }
