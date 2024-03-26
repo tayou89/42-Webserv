@@ -35,12 +35,14 @@ void Request::setRequest(std::string packet) {
   //       packet.find("\r\n") == std::string::npos)
   //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
-  this->readStartLine(firstLine, _location.getClientHeaderMax());
+  std::cout << _config.getClientHeaderMax() << std::endl;
+  std::cout << _config.getClientBodyMax() << std::endl;
+  this->readStartLine(firstLine, _config.getClientHeaderMax());
   std::string header = packet.substr(packet.find("\r\n") + 2);
   // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/
   this->readHeader(header);
 
-  this->checkContentLength(_location.getClientBodyMax());
+  this->checkContentLength(_config.getClientBodyMax());
 }
 
 void Request::readStartLine(std::string startLine,
@@ -287,9 +289,11 @@ void Request::convertURI() {
   _requestURI = combinePATH(*target, rate);
 }
 
-void Request::eraseRequestBody(size_t start, size_t end) {
-  if (end > _requestBody.size())
-    end = _requestBody.size();
+void Request::eraseRequestBody(int start, int end) {
+  if (start < 0 || end < 0)
+    return;
+  if (start + end > static_cast<int>(_requestBody.size()))
+    end = _requestBody.size() - start;
   _requestBody.erase(_requestBody.begin() + start, _requestBody.begin() + end);
 }
 

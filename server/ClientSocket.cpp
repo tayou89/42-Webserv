@@ -118,14 +118,17 @@ struct eventStatus ClientSocket::readPipe() {
 struct eventStatus ClientSocket::socketToPipe() {
   if (_status != SOCKET_TO_PIPE_WRITE)
     return (makeStatus(CONTINUE, _socket));
-  std::cout << "socket to pipe start\n";
 
   std::vector<unsigned char> body = _req.getRequestBody();
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], body.size());
-  std::cout << writeSize << std::endl;
+  std::cout << "Write size: " << writeSize << std::endl;
+  std::cout << "Remain body size:" << body.size() << std::endl;
   _req.eraseRequestBody(0, writeSize);
-  //   if (writeSize == -1)
+  if (writeSize == -1) {
+    perror("Error");
+    std::cout << "errno: " << errno << std::endl;
+  }
   //   throw _res.getErrorResponse().create403Response();
   if (_req.getRequestBody().size() == 0) {
     std::cout << "socket to pipe finish\n";
@@ -305,6 +308,9 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
+      //   for (std::vector<unsigned char>::iterator iter = _buf.begin();
+      //        iter != _buf.end(); iter++)
+      //     std::cout << *iter;
       std::cout << "this is URI1:" << _req.getRequestURI() << std::endl;
       _req.convertURI();
       std::cout << "this is URI2:" << _req.getRequestURI() << std::endl;

@@ -196,7 +196,6 @@ struct eventStatus CGIExecutor::_executePOST(void) {
       exit(1);
     }
   }
-  std::cout << "execute cgi\n";
   return (makeStatus(CGI_WRITE, getWriteFD()));
 }
 
