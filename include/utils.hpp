@@ -1,6 +1,7 @@
 #pragma once
 
 #include "struct.hpp"
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -28,3 +29,5 @@ std::string decimalToRgb(int red, int green, int blue);
 std::string intToString(int value);
 void replace(std::string &str, const std::string &target,
              const std::string &replacement);
+std::vector<unsigned char>::iterator
+findHeader(std::vector<unsigned char> &vec);

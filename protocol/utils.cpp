@@ -158,3 +158,18 @@ void replace(std::string &str, const std::string &target,
     pos += replacement.length(); // 다음 탐색 위치 설정
   }
 }
+
+std::vector<unsigned char>::iterator
+findHeader(std::vector<unsigned char> &vec) {
+  std::vector<unsigned char> needle;
+  std::vector<unsigned char>::iterator iter;
+
+  needle.push_back(13);
+  needle.push_back(10);
+  needle.push_back(13);
+  needle.push_back(10);
+
+  iter = std::search(vec.begin(), vec.end(), needle.begin(), needle.end());
+
+  return (iter);
+}

@@ -185,14 +185,12 @@ struct eventStatus ClientSocket::readHead() {
   }
 
   _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
+  std::vector<unsigned char>::iterator iter = findHeader(_buf);
 
-  std::string tmpStr(_buf.begin(), _buf.end());
-
-  /* header의 끝 찾기 */
-  size_t pos = tmpStr.find("\r\n\r\n");
-  if (pos != std::string::npos) {
-    _header = tmpStr.substr(0, pos + 2);
-    _buf.erase(_buf.begin(), _buf.begin() + pos + 4);
+  if (iter != _buf.end()) {
+    _header = std::string(_buf.begin(), iter + 2);
+    std::cout << _header << std::endl;
+    _buf.erase(_buf.begin(), iter + 4);
     try {
       _req.setRequest(_header);
     } catch (std::string &res) {
@@ -201,7 +199,6 @@ struct eventStatus ClientSocket::readHead() {
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
     _status = _req.checkBodyExistence();
-    std::cout << "status: " << _status << std::endl;
     if (_status == BODY_READ) { // read normal body
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
       std::cout << "body size: " << _bodySize << std::endl;
