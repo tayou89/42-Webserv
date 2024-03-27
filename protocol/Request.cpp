@@ -310,6 +310,8 @@ void Request::checkAcceptedMethods() {
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
 
+  if (acceptedMethods.empty())
+    return;
   for (; iter != acceptedMethods.end(); iter++) {
     if (*iter == _requestMethod)
       break;
