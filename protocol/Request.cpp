@@ -305,3 +305,16 @@ void Request::initRequest() {
   _queryString.clear();
   _location = Location();
 }
+
+void Request::checkAcceptedMethods() {
+  std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
+  std::vector<std::string>::iterator iter = acceptedMethods.begin();
+
+  for (; iter != acceptedMethods.end(); iter++) {
+    if (*iter == _requestMethod)
+      break;
+  }
+
+  if (iter == acceptedMethods.end())
+    throw _errorResponse.create405Response(_config);
+}
