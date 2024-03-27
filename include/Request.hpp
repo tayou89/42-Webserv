@@ -46,6 +46,7 @@ public:
   void convertURI();
   void eraseRequestBody(int start, int end);
   void initRequest();
+  void checkAcceptedMethods();
 
 private:
   Config _config;
