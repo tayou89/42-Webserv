@@ -289,6 +289,8 @@ void Request::convertURI() {
 void Request::eraseRequestBody(int start, int end) {
   if (start < 0 || end < 0)
     return;
+  if (start > end)
+    return;
   if (start + end > static_cast<int>(_requestBody.size()))
     end = _requestBody.size() - start;
   _requestBody.erase(_requestBody.begin() + start, _requestBody.begin() + end);

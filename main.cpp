@@ -8,6 +8,13 @@
 
 std::map<int, IServer *> serverMap;
 
+void sigpipeDetect(int signal) {
+  std::cout << "SIGPIPE Detect: " << signal << std::endl;
+  perror("Error");
+
+  exit(signal);
+}
+
 void signalHandler(int signal) {
   std::cout << "\nsignal " << signal << " occurs. quit server.\n";
 
@@ -31,6 +38,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
   signal(SIGINT, signalHandler);  // Ctrl+C 시그널 핸들러 등록
   signal(SIGQUIT, signalHandler); // Ctrl+\ 시그널 핸들러 등록
+  signal(SIGPIPE, sigpipeDetect);
 
   for (; iter != confVec.end(); iter++) {
     WebServer *temp = new WebServer(*iter);
