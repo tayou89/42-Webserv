@@ -310,7 +310,7 @@ struct eventStatus ClientSocket::writeSocket() {
       //        iter != _buf.end(); iter++)
       //     std::cout << *iter;
       _req.convertURI();
-      _req.checkAcceptedMethods();
+      _req.checkRequestValidity();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;

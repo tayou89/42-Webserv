@@ -22,10 +22,8 @@ public:
 
   void setRequest(std::string packet);
   // void	checkValidity();
-  void readStartLine(std::string startLine, int large_client_header_buffers);
+  void readStartLine(std::string startLine);
   void readHeader(std::string header);
-  void checkValidHeader(std::string key, std::string value);
-  void checkContentLength(int client_max_body_size);
   void readBody(std::vector<unsigned char> body);
 
   int checkBodyExistence() const;
@@ -46,7 +44,7 @@ public:
   void convertURI();
   void eraseRequestBody(int start, int end);
   void initRequest();
-  void checkAcceptedMethods();
+  void checkRequestValidity();
 
 private:
   Config _config;
@@ -55,6 +53,7 @@ private:
   std::vector<unsigned char> _requestBody;
   std::string _requestMethod;
   std::string _requestURI;
+  std::string _requestHTTPVersion;
   std::string _queryString;
   Location _location;
 

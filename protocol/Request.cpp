@@ -35,58 +35,23 @@ void Request::setRequest(std::string packet) {
   //       packet.find("\r\n") == std::string::npos)
   //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
-  this->readStartLine(firstLine, _config.getClientHeaderMax());
+  this->readStartLine(firstLine);
   std::string header = packet.substr(packet.find("\r\n") + 2);
   // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/
   this->readHeader(header);
-
-  this->checkContentLength(_config.getClientBodyMax());
 }
 
-void Request::readStartLine(std::string startLine,
-                            int large_client_header_buffers) {
+void Request::readStartLine(std::string startLine) {
   std::string requestHTTPVersion;
   std::string::size_type pos1 = startLine.find(" ");
   std::string::size_type pos2 = startLine.find(" ", pos1 + 1);
 
-  if (pos1 == std::string::npos || pos2 == std::string::npos) {
-    throw(this->_errorResponse.create400Response(this->_config));
-  }
+  // if (pos1 == std::string::npos || pos2 == std::string::npos) {
+  //   throw(this->_errorResponse.create400Response(this->_config));
+  // }
   this->_requestMethod = startLine.substr(0, pos1);
   this->_requestURI = startLine.substr(pos1 + 1, pos2 - pos1 - 1);
-  requestHTTPVersion = startLine.substr(pos2 + 1, startLine.size() - pos2);
-
-  // if it is not method sp URI sp HTTP-Version, create 400 response
-  if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
-      requestHTTPVersion.size() == 0) {
-    throw(this->_errorResponse.create400Response(this->_config));
-  }
-
-  // if it is not GET, HEAD, DELETE, OPTIONS, POST, PUT, TRACE, create 400
-  // response
-  if (!(this->_requestMethod == "GET" || this->_requestMethod == "HEAD" ||
-        this->_requestMethod == "DELETE" || this->_requestMethod == "OPTIONS" ||
-        this->_requestMethod == "POST" || this->_requestMethod == "PUT" ||
-        this->_requestMethod == "TRACE")) {
-    throw(this->_errorResponse.create400Response(this->_config));
-  }
-
-  // if the requestURI is longer than large_client_header_buffers, create 414
-  // response
-  if (this->_requestURI.size() >
-      static_cast<unsigned long>(large_client_header_buffers))
-    throw(this->_errorResponse.create414Response(this->_config));
-
-  // if the HTTP-Version is not HTTP/1.1, create 505 response, else create 400
-  // response
-  if (requestHTTPVersion != "HTTP/1.1") {
-    if (requestHTTPVersion == "HTTP/0.9" || requestHTTPVersion == "HTTP/1.0" ||
-        requestHTTPVersion == "HTTP/2.0" || requestHTTPVersion == "HTTP/3.0")
-      throw(this->_errorResponse.create505Response(this->_config));
-    else {
-      throw(this->_errorResponse.create400Response(this->_config));
-    }
-  }
+  this->_requestHTTPVersion = startLine.substr(pos2 + 1, startLine.size() - pos2);
 }
 
 void Request::readHeader(std::string header) {
@@ -110,7 +75,7 @@ void Request::readHeader(std::string header) {
   for (std::map<std::string, std::string>::iterator it =
            this->_requestHeader.begin();
        it != this->_requestHeader.end(); it++) {
-    this->checkValidHeader(it->first, it->second);
+    // this->checkValidHeader(it->first, it->second);
   }
 }
 
@@ -125,35 +90,34 @@ int Request::checkBodyExistence() const {
     return (WRITE);
 }
 
-void Request::checkValidHeader(std::string key, std::string value) {
-  if (key.empty() || value.empty()) {
-    throw(this->_errorResponse.create400Response(this->_config));
-  }
+// void Request::checkValidHeader(std::string key, std::string value) {
+//   if (key.empty() || value.empty()) {
+//     throw(this->_errorResponse.create400Response(this->_config));
+//   }
+// }
 
-  // check validity of mandatory headers??
-}
-
-void Request::checkContentLength(int client_max_body_size) {
-  if (this->_requestHeader.find("Content-Length") !=
-      this->_requestHeader.end()) {
-    if (this->_requestHeader["Content-Length"].size() > 10) {
-      throw(this->_errorResponse.create400Response(this->_config));
-    }
-    if (atoi(this->_requestHeader["Content-Length"].c_str()) >
-        client_max_body_size)
-      throw(this->_errorResponse.create413Response(this->_config));
-  }
-}
+// void Request::checkContentLength(int client_max_body_size) {
+//   if (this->_requestHeader.find("Content-Length") !=
+//       this->_requestHeader.end()) {
+//     if (this->_requestHeader["Content-Length"].size() > 10) {
+//       throw(this->_errorResponse.create400Response(this->_config));
+//     }
+//     if (atoi(this->_requestHeader["Content-Length"].c_str()) >
+//         client_max_body_size)
+//       throw(this->_errorResponse.create413Response(this->_config));
+//   }
+// }
 
 void Request::readBody(std::vector<unsigned char> body) {
-  if (body.size() > static_cast<unsigned long>(
-                        std::stol(this->_requestHeader["Content-Length"])))
-    throw(this->_errorResponse.create413Response(this->_config));
-  else if (body.size() < static_cast<unsigned long>(
-                             std::stol(this->_requestHeader["Content-Length"])))
-    throw(this->_errorResponse.create400Response(this->_config));
-  else
-    this->_requestBody = body;
+  // if (body.size() > static_cast<unsigned long>(
+  //                       std::stol(this->_requestHeader["Content-Length"])))
+  //   throw(this->_errorResponse.create413Response(this->_config));
+  // else if (body.size() < static_cast<unsigned long>(
+  //                            std::stol(this->_requestHeader["Content-Length"])))
+  //   throw(this->_errorResponse.create400Response(this->_config));
+  // else
+  //   this->_requestBody = body;
+  this->_requestBody = body;
 }
 
 std::string Request::getRequestMethod() const { return (this->_requestMethod); }
@@ -306,7 +270,7 @@ void Request::initRequest() {
   _location = Location();
 }
 
-void Request::checkAcceptedMethods() {
+void Request::checkRequestValidity() {
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
 
@@ -316,7 +280,59 @@ void Request::checkAcceptedMethods() {
     if (*iter == _requestMethod)
       break;
   }
-
   if (iter == acceptedMethods.end())
     throw _errorResponse.create405Response(_config);
+
+  //start request header validity check
+  
+  // if it is not method sp URI sp HTTP-Version, create 400 response
+  if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
+      this->_requestHTTPVersion.size() == 0) {
+    throw(this->_errorResponse.create400Response(this->_config));
+  }
+
+  // if it is not GET, HEAD, DELETE, POST, create 400
+  // response
+  if (!(this->_requestMethod == "GET" || this->_requestMethod == "HEAD" ||
+        this->_requestMethod == "DELETE" || this->_requestMethod == "POST")) {
+    throw(this->_errorResponse.create400Response(this->_config));
+  }
+
+  // if the requestURI is longer than large_client_header_buffers, create 414
+  // response
+  if (this->_requestURI.size() >
+      static_cast<unsigned long>(_config.getClientHeaderMax()))
+    throw(this->_errorResponse.create414Response(this->_config));
+
+  // if the HTTP-Version is not HTTP/1.1, create 505 response, else create 400
+  // response
+  if (_requestHTTPVersion != "HTTP/1.1") {
+    if (_requestHTTPVersion == "HTTP/0.9" || _requestHTTPVersion == "HTTP/1.0" ||
+        _requestHTTPVersion == "HTTP/2.0" || _requestHTTPVersion == "HTTP/3.0")
+      throw(this->_errorResponse.create505Response(this->_config));
+    else {
+      throw(this->_errorResponse.create400Response(this->_config));
+    }
+  }
+
+  //check request header validity & content-Length
+  std::map<std::string, std::string>::iterator itr = _requestHeader.begin();
+  for (; itr != _requestHeader.end(); ++itr)
+  {
+    if (itr->first.empty() || itr->second.empty())
+      throw (this->_errorResponse.create400Response(_config));
+    if (itr->first == "Content-Length")
+    {
+      if (atol(itr->second.c_str()) > static_cast<long>(_config.getClientBodyMax()))
+        throw (this->_errorResponse.create413Response(_config));
+    }
+  }
+
+  //read body
+  if (_requestBody.size() > static_cast<unsigned long>(
+                        std::atol(this->_requestHeader["Content-Length"].c_str())))
+    throw(this->_errorResponse.create413Response(this->_config));
+  else if (_requestBody.size() < static_cast<unsigned long>(
+                             std::atol(this->_requestHeader["Content-Length"].c_str())))
+    throw(this->_errorResponse.create400Response(this->_config));
 }
