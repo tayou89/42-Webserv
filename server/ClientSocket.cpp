@@ -304,12 +304,12 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
+      _req.convertURI();
       std::cout << "this is body:\n";
       for (std::vector<unsigned char>::iterator iter = _buf.begin();
-        iter != _buf.end(); iter++)
+           iter != _buf.end(); iter++)
         std::cout << *iter;
       _req.checkRequestValidity();
-      _req.convertURI();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;
