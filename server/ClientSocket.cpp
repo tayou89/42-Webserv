@@ -196,11 +196,11 @@ struct eventStatus ClientSocket::readHead() {
     // std::cout << _header << std::endl;
     _buf.erase(_buf.begin(), iter + 4);
     try {
-      // std::cout << "this is request:\n" << _header << std::endl;
+      std::cout << "this is request:\n" << _header << std::endl;
       _req.setRequest(_header);
     } catch (std::string &res) {
       _responseString = res;
-      // std::cout << "this is response:\n" << res << std::endl;
+      std::cout << "this is response:\n" << res << std::endl;
       _status = WRITE;
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
@@ -281,9 +281,8 @@ struct eventStatus ClientSocket::readChunkedBody() {
     if (readSize == -1)
       ; // read error
     content.insert(content.end(), buf.begin(), buf.end() - 2);
-
-    _buf.insert(_buf.end(), content.begin(), content.end());
   }
+  _buf.insert(_buf.end(), content.begin(), content.end());
 
   return (makeStatus(CONTINUE, _socket));
 }
@@ -305,9 +304,10 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
-      //   for (std::vector<unsigned char>::iterator iter = _buf.begin();
-      //        iter != _buf.end(); iter++)
-      //     std::cout << *iter;
+      std::cout << "this is body:\n";
+      for (std::vector<unsigned char>::iterator iter = _buf.begin();
+        iter != _buf.end(); iter++)
+        std::cout << *iter;
       _req.checkRequestValidity();
       _req.convertURI();
       if (_req.getLocation().getCGIPass()) {
@@ -318,11 +318,11 @@ struct eventStatus ClientSocket::writeSocket() {
       } else {
         _res.setResponse(_req);
         _responseString = _res.getResponse();
-        // std::cout << "this is response:\n" << _responseString << std::endl;
+        std::cout << "this is response:\n" << _responseString << std::endl;
       }
     } catch (std::string &res) {
       _responseString = res;
-      // std::cout << "this is response:\n" << res << std::endl;
+      std::cout << "this is response:\n" << res << std::endl;
       return (makeStatus(CONTINUE, _socket));
     }
   }
