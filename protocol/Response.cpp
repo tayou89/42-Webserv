@@ -239,21 +239,24 @@ void Response::GET_HEAD() {
 
   std::stringstream ss;
   ss << body.size();
-  this->setResponseHeader("Content-Length", ss.str());
-  this->setResponseHeader("Content-Type",
-                          _config.getMimeType(_request.getRequestURI()));
+
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
+  if (_request.getRequestMethod() == "GET")
+  {
+    this->setResponseHeader("Content-Length", ss.str());
+    this->setResponseHeader("Content-Type",
+                            _config.getMimeType(_request.getRequestURI()));
+  }
   this->setResponse(this->_errorResponse.create200Response(
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
+  
+  // std::cout << "GET_HEAD done\n";
+  // std::cout << _request.getRequestURI() << std::endl;
 }
 
-void Response::POST() {
-  // straight to CGI (make two pipes, then fork)
-  std::cout << "POST" << std::endl;
-  // return 201 created
-}
+void Response::POST() { throw _errorResponse.create405Response(_config); }
 
 void Response::DELETE() {
   int fd;

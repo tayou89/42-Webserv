@@ -274,15 +274,6 @@ void Request::checkRequestValidity() {
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
 
-  if (acceptedMethods.empty())
-    return;
-  for (; iter != acceptedMethods.end(); iter++) {
-    if (*iter == _requestMethod)
-      break;
-  }
-  if (iter == acceptedMethods.end())
-    throw _errorResponse.create405Response(_config);
-
   //start request header validity check
   
   // if it is not method sp URI sp HTTP-Version, create 400 response
@@ -291,11 +282,15 @@ void Request::checkRequestValidity() {
     throw(this->_errorResponse.create400Response(this->_config));
   }
 
-  // if it is not GET, HEAD, DELETE, POST, create 400
-  // response
-  if (!(this->_requestMethod == "GET" || this->_requestMethod == "HEAD" ||
-        this->_requestMethod == "DELETE" || this->_requestMethod == "POST")) {
-    throw(this->_errorResponse.create400Response(this->_config));
+  //if it is not the METHOD defined in conf file, throw 405 response
+  if (!acceptedMethods.empty())
+  {
+    for (; iter != acceptedMethods.end(); iter++) {
+      if (*iter == _requestMethod)
+        break;
+    }
+    if (iter == acceptedMethods.end())
+      throw _errorResponse.create405Response(_config);
   }
 
   // if the requestURI is longer than large_client_header_buffers, create 414
@@ -335,4 +330,10 @@ void Request::checkRequestValidity() {
   else if (_requestBody.size() < static_cast<unsigned long>(
                              std::atol(this->_requestHeader["Content-Length"].c_str())))
     throw(this->_errorResponse.create400Response(this->_config));
+
+  // if (_requestMethod == "POST" && _requestBody.size() == 0)
+  // {
+  //   std::cout << "POST with body size of 0\n" << std::endl; 
+  //   throw(this->_errorResponse.create204Response(_config));
+  // }
 }
