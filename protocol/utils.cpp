@@ -173,3 +173,29 @@ findHeader(std::vector<unsigned char> &vec) {
 
   return (iter);
 }
+
+std::vector<unsigned char>::iterator
+findNewLine(std::vector<unsigned char> &vec) {
+  std::vector<unsigned char> needle;
+  std::vector<unsigned char>::iterator iter;
+
+  needle.push_back(13);
+  needle.push_back(10);
+
+  iter = std::search(vec.begin(), vec.end(), needle.begin(), needle.end());
+
+  return (iter);
+}
+
+std::vector<unsigned char>::iterator
+findNewLineNewLine(std::vector<unsigned char> &vec) {
+  std::vector<unsigned char> needle;
+  std::vector<unsigned char>::iterator iter;
+
+  needle.push_back(10);
+  needle.push_back(10);
+
+  iter = std::search(vec.begin(), vec.end(), needle.begin(), needle.end());
+
+  return (iter);
+}
