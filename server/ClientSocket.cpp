@@ -194,8 +194,10 @@ struct eventStatus ClientSocket::readHead() {
   if (iter != _buf.end()) {
     _header = std::string(_buf.begin(), iter + 2);
     _buf.erase(_buf.begin(), iter + 4);
-    std::cout << std::string(_buf.begin(), _buf.end()) << std::endl;
+
     std::cout << "this is request:\n" << _header << "\n------------------------" << std::endl;
+    std::cout << std::string(_buf.begin(), _buf.end()) << std::endl;
+
     _req.setRequest(_header);
     _status = _req.checkBodyExistence();
     if (_status == BODY_READ) { // read normal body
@@ -244,15 +246,15 @@ struct eventStatus ClientSocket::readContentBody() {
 struct eventStatus ClientSocket::readChunkedBody() {
   std::vector<unsigned char> buf(BUFFER_SIZE, 0);
 
-  if (_status != CHUNKED_START) {
+  if (_status != CHUNKED_START && _buf.empty()) {
     int readSize = read(_socket, &buf[0], BUFFER_SIZE);
+    _buf.insert(_buf.end(), buf.begin(), buf.begin() + readSize);
     if (readSize != 0) {
-      if (_bodySize != 0) {
+      if (_bodySize != 0 && _buf.size() > _bodySize) {
         _body.insert(_body.end(), buf.begin(), buf.begin() + _bodySize);
-        buf.erase(buf.begin(), buf.begin() + _bodySize + 2);
+        _buf.erase(buf.begin(), buf.begin() + _bodySize + 2);
         _bodySize = 0;
       }
-      _buf.insert(_buf.end(), buf.begin(), buf.begin() + readSize);
     }
   }
 
@@ -263,7 +265,7 @@ struct eventStatus ClientSocket::readChunkedBody() {
     std::istringstream iss(sizeStr);
     iss >> std::hex >> _bodySize;
 
-    std::cout << _bodySize << std::endl;
+    std::cout << "chunked: " << _bodySize << std::endl;
     if (_bodySize == 0) {
       _buf.clear();
       _req.readBody(_body);
