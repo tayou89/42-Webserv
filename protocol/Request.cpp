@@ -83,7 +83,7 @@ void Request::readHeader(std::string header) {
 int Request::checkBodyExistence() const {
   if (_requestHeader.find("Transfer-Encoding") != _requestHeader.end() &&
       _requestHeader.find("Transfer-Encoding")->second == "chunked")
-    return (CHUNKED_READ);
+    return (CHUNKED_START);
   else if (_requestHeader.find("Content-Length") != _requestHeader.end() &&
            _requestHeader.find("Content-Length")->second != "0") {
     return (BODY_READ);
