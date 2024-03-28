@@ -1,7 +1,3 @@
-
-
-from util import util
-
 def makeHTMLFileString(fileName):
 	htmlFileString = '<li><a href="/show/file.py?file={file}">{file}</a></li>'.format(
 		file = fileName)
