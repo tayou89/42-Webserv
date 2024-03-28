@@ -193,18 +193,10 @@ struct eventStatus ClientSocket::readHead() {
 
   if (iter != _buf.end()) {
     _header = std::string(_buf.begin(), iter + 2);
-    std::cout << _header << std::endl;
     _buf.erase(_buf.begin(), iter + 4);
     std::cout << std::string(_buf.begin(), _buf.end()) << std::endl;
-    try {
-      //   std::cout << "this is request:\n" << _header << std::endl;
-      _req.setRequest(_header);
-    } catch (std::string &res) {
-      _responseString = res;
-      //   std::cout << "this is response:\n" << res << std::endl;
-      _status = WRITE;
-      return (makeStatus(SOCKET_WRITE_MODE, _socket));
-    }
+    std::cout << "this is request:\n" << _header << "\n------------------------" << std::endl;
+    _req.setRequest(_header);
     _status = _req.checkBodyExistence();
     if (_status == BODY_READ) { // read normal body
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
@@ -316,7 +308,7 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       _req.convertURI();
-      //   std::cout << "this is body:\n";
+        std::cout << "this is body:\n";
       _req.checkRequestValidity();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
@@ -330,7 +322,7 @@ struct eventStatus ClientSocket::writeSocket() {
       }
     } catch (std::string &res) {
       _responseString = res;
-      //   std::cout << "this is response:\n" << res << std::endl;
+        std::cout << "this is response:\n" << res << std::endl;
       return (makeStatus(CONTINUE, _socket));
     }
   }

@@ -78,7 +78,7 @@ void Response::checkValidity() {
           getResponseBody()));
     } else {
       // auto index not available
-      throw(_errorResponse.create403Response(_config));
+      throw(_errorResponse.create404Response(_config));
     }
     closedir(dir);
   } else { // if URI is a file

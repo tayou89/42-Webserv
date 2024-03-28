@@ -10,7 +10,8 @@ cgitb.enable()
 form = cgi.FieldStorage()
 fileName = form.getvalue('file')
 # filePath = '/Users/jinhyeop/Desktop/project/webserv/document/uploaded' + '/' + fileName
-filePath = '/Users/tayou/Desktop/tayou/42_webserv/document/uploaded' + '/' + fileName
+# filePath = '/Users/tayou/Desktop/tayou/42_webserv/document/uploaded' + '/' + fileName
+filePath = '/Users/yejlee2/42cursus/webserv/document/uploaded' + '/' + fileName
 
 try:
     if os.path.isfile(filePath):
