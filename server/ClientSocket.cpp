@@ -48,7 +48,7 @@ struct eventStatus ClientSocket::sendCGIHeader() {
   std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
                      "Server: " + _routeServer->getConfig().getServerName() +
                      "\r\n" + "Transfer-Encoding: Chunked\r\n";
-                     
+
   std::string type = getContentType();
   if (type.size() == 0) {
     head = head + "\r\n";
@@ -201,7 +201,8 @@ struct eventStatus ClientSocket::readHead() {
     _header = std::string(_buf.begin(), iter + 2);
     _buf.erase(_buf.begin(), iter + 4);
 
-    std::cout << "this is request:\n" << _header << "\n------------------------" << std::endl;
+    std::cout << "this is request:\n"
+              << _header << "\n------------------------" << std::endl;
     std::cout << std::string(_buf.begin(), _buf.end()) << std::endl;
 
     _req.setRequest(_header);
@@ -252,16 +253,16 @@ struct eventStatus ClientSocket::readContentBody() {
 struct eventStatus ClientSocket::readChunkedBody() {
   std::vector<unsigned char> buf(BUFFER_SIZE, 0);
 
-  if (_status != CHUNKED_START && _buf.empty()) {
+  if (_status != CHUNKED_START || _buf.empty()) {
     int readSize = read(_socket, &buf[0], BUFFER_SIZE);
     _buf.insert(_buf.end(), buf.begin(), buf.begin() + readSize);
-    if (readSize != 0) {
-      if (_bodySize != 0 && _buf.size() > _bodySize) {
-        _body.insert(_body.end(), buf.begin(), buf.begin() + _bodySize);
-        _buf.erase(buf.begin(), buf.begin() + _bodySize + 2);
-        _bodySize = 0;
-      }
-    }
+    if (_bodySize != 0 && _buf.size() > _bodySize) {
+      _body.insert(_body.end(), buf.begin(), buf.begin() + _bodySize);
+      //   std::cout << _body.size() << std::endl;
+      _buf.erase(_buf.begin(), _buf.begin() + _bodySize + 2);
+      _bodySize = 0;
+    } else
+      return (makeStatus(CONTINUE, _socket));
   }
 
   std::string str(_buf.begin(), _buf.end());
@@ -284,11 +285,14 @@ struct eventStatus ClientSocket::readChunkedBody() {
 
     if (str.size() > _bodySize) {
       chunk = str.substr(0, _bodySize);
+      std::cout << "size of chunk: " << chunk.size() << std::endl;
       str.erase(0, _bodySize + 2);
       _bodySize = 0;
       _body.insert(_body.end(), chunk.begin(), chunk.end());
     } else {
       _bodySize -= str.size();
+      std::cout << "filled: " << str.size() << std::endl;
+      std::cout << "remain: " << _bodySize << std::endl;
       _body.insert(_body.end(), str.begin(), str.end());
       str.clear();
     }
@@ -316,7 +320,7 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       _req.convertURI();
-        std::cout << "this is body:\n";
+      std::cout << "this is body:\n";
       _req.checkRequestValidity();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
@@ -330,7 +334,7 @@ struct eventStatus ClientSocket::writeSocket() {
       }
     } catch (std::string &res) {
       _responseString = res;
-        std::cout << "this is response:\n" << res << std::endl;
+      std::cout << "this is response:\n" << res << std::endl;
       return (makeStatus(CONTINUE, _socket));
     }
   }
