@@ -315,12 +315,9 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
-      std::cout << _req.getRequestURI() << std::endl;
       _req.convertURI();
-      std::cout << _req.getRequestURI() << std::endl;
       //   std::cout << "this is body:\n";
       _req.checkRequestValidity();
-      std::cout << "?" << std::endl;
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;

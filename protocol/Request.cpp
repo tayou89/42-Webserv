@@ -324,15 +324,16 @@ void Request::checkRequestValidity() {
   }
 
   // read body
-  if (_requestBody.size() >
-      static_cast<unsigned long>(
-          std::atol(this->_requestHeader["Content-Length"].c_str())))
-    throw(this->_errorResponse.create413Response(this->_config));
-  else if (_requestBody.size() <
-           static_cast<unsigned long>(
-               std::atol(this->_requestHeader["Content-Length"].c_str())))
-    throw(this->_errorResponse.create400Response(this->_config));
-
+  if (_requestHeader.find("Content-Length") != _requestHeader.end()) {
+    if (_requestBody.size() >
+        static_cast<unsigned long>(
+            std::atol(this->_requestHeader["Content-Length"].c_str())))
+      throw(this->_errorResponse.create413Response(this->_config));
+    else if (_requestBody.size() <
+             static_cast<unsigned long>(
+                 std::atol(this->_requestHeader["Content-Length"].c_str())))
+      throw(this->_errorResponse.create400Response(this->_config));
+  }
   // if (_requestMethod == "POST" && _requestBody.size() == 0)
   // {
   //   std::cout << "POST with body size of 0\n" << std::endl;
