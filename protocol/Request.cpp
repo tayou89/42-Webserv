@@ -190,19 +190,19 @@ std::string Request::combinePATH(Location target, size_t rate) const {
   for (; rate < split.size(); rate++) {
     ss << "/" << split[rate];
   }
-  if (ss.str().empty()) {
-    std::vector<std::string> index = target.getIndexes();
-    std::vector<std::string>::iterator iter = index.begin();
-    for (; iter != index.end(); iter++) {
-      if ((*iter)[0] == '/')
-        path = target.getRootDirectory() + *iter;
-      else
-        path = target.getRootDirectory() + "/" + *iter;
-      if (access(path.c_str(), F_OK) == 0)
-        return (path);
-    }
-  } else
-    path = target.getRootDirectory() + ss.str();
+  path = target.getRootDirectory() + ss.str();
+
+  std::vector<std::string> index = target.getIndexes();
+  std::vector<std::string>::iterator iter = index.begin();
+  std::string tmpPath;
+  for (; iter != index.end(); iter++) {
+    if ((*iter)[0] == '/')
+      tmpPath = path + *iter;
+    else
+      tmpPath = path + "/" + *iter;
+    if (access(tmpPath.c_str(), F_OK) == 0)
+      return (tmpPath);
+  }
   return (path);
 }
 
