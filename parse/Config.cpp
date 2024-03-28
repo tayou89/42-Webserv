@@ -50,7 +50,7 @@ const Location &Config::getLocation(const std::string &urlPath) const {
   const_location_iterator iterator;
   const_location_iterator endPoint = _locations.end();
   std::string key;
-  size_t startIndex, endIndex;
+  std::size_t startIndex, endIndex;
 
   iterator = _locations.find(urlPath);
   if (iterator != endPoint)
