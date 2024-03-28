@@ -25,6 +25,7 @@
 #define PIPE_TO_SOCKET_HEAD 5
 #define PIPE_TO_SOCKET_BODY 6
 #define PIPE_END 7
+#define CHUNKED_START 8
 
 // event type define
 #define SOCKET 1

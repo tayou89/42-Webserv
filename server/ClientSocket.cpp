@@ -193,14 +193,15 @@ struct eventStatus ClientSocket::readHead() {
 
   if (iter != _buf.end()) {
     _header = std::string(_buf.begin(), iter + 2);
-    // std::cout << _header << std::endl;
+    std::cout << _header << std::endl;
     _buf.erase(_buf.begin(), iter + 4);
+    std::cout << std::string(_buf.begin(), _buf.end()) << std::endl;
     try {
-      std::cout << "this is request:\n" << _header << std::endl;
+      //   std::cout << "this is request:\n" << _header << std::endl;
       _req.setRequest(_header);
     } catch (std::string &res) {
       _responseString = res;
-      std::cout << "this is response:\n" << res << std::endl;
+      //   std::cout << "this is response:\n" << res << std::endl;
       _status = WRITE;
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
     }
@@ -209,12 +210,14 @@ struct eventStatus ClientSocket::readHead() {
       _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
       if (_buf.size() >= _bodySize) {
         _status = WRITE;
-        _req.readBody(_buf);
+        _body.insert(_body.end(), _buf.begin(), _buf.end());
+        _buf.clear();
+        _req.readBody(_body);
         return (makeStatus(SOCKET_WRITE_MODE, _socket));
       }
       return (makeStatus(CONTINUE, _socket));
-    } else if (_status == CHUNKED_READ) { // read chunked body
-      return (makeStatus(CONTINUE, _socket));
+    } else if (_status == CHUNKED_START) { // read chunked body
+      return (readChunkedBody());
     } else
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
   }
@@ -224,26 +227,21 @@ struct eventStatus ClientSocket::readHead() {
 struct eventStatus ClientSocket::readContentBody() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
-  size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
-  if (readSize == 0) {
-    clearSocket();
-    return (makeStatus(DISCONNECT, _socket));
+  if (!_buf.empty()) {
+    _body.insert(_body.end(), _buf.begin(), _buf.end());
+    _buf.clear();
   }
 
-  _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
+  size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  if (readSize == 0) {
+    _req.readBody(_body);
+    return (makeStatus(SOCKET_WRITE_MODE, _socket));
+  }
 
-  /* Body size check */
-  //   if (_body.size() < _bodySize && readSize < BUFFER_SIZE) {
-  //     // body size error
-  //     // _req.getErrorResponse.create413Response();
-  //   }
-  if (_buf.size() == _bodySize) {
-    // make response instance
-    try {
-      _req.readBody(_buf);
-    } catch (std::string &res) {
-      _responseString = res;
-    }
+  _body.insert(_body.end(), tmp.begin(), tmp.begin() + readSize);
+
+  if (_body.size() == _bodySize) {
+    _req.readBody(_body);
     _status = WRITE; // write 상태로 변경
     return (makeStatus(SOCKET_WRITE_MODE, _socket));
   }
@@ -253,37 +251,50 @@ struct eventStatus ClientSocket::readContentBody() {
 /* \r\n을 이용해서 한줄씩 읽는 방식으로 변경해야됨 */
 struct eventStatus ClientSocket::readChunkedBody() {
   std::vector<unsigned char> buf(BUFFER_SIZE, 0);
-  std::vector<unsigned char>::iterator iter;
 
-  int readSize = read(_socket, &buf[0], BUFFER_SIZE);
-  iter = findNewLine(buf);
-
-  std::string sizeStr(buf.begin(), iter); // size of chunk
-  size_t size;
-  std::stringstream ss(sizeStr);
-
-  ss >> std::hex >> size;
-
-  if (size == 0) {
-    _status = WRITE;
-    return (makeStatus(SOCKET_WRITE_MODE, _socket));
+  if (_status != CHUNKED_START) {
+    int readSize = read(_socket, &buf[0], BUFFER_SIZE);
+    if (readSize != 0) {
+      if (_bodySize != 0) {
+        _body.insert(_body.end(), buf.begin(), buf.begin() + _bodySize);
+        buf.erase(buf.begin(), buf.begin() + _bodySize + 2);
+        _bodySize = 0;
+      }
+      _buf.insert(_buf.end(), buf.begin(), buf.begin() + readSize);
+    }
   }
 
-  buf.erase(iter, iter + 2);
-  std::vector<unsigned char> content(buf.begin(), buf.begin() + readSize);
-  if (size == content.size() - 2) {
-    content.erase(content.end() - 2, content.end());
-  } else {
-    int remain = size - content.size() + 2;
-    buf.clear();
-    buf.resize(remain);
-    readSize = read(_socket, &buf[0], remain);
-    if (readSize == -1)
-      ; // read error
-    content.insert(content.end(), buf.begin(), buf.end() - 2);
-  }
-  _buf.insert(_buf.end(), content.begin(), content.end());
+  std::string str(_buf.begin(), _buf.end());
+  while (str.size()) {
 
+    std::string sizeStr = str.substr(0, str.find("\r\n"));
+    std::istringstream iss(sizeStr);
+    iss >> std::hex >> _bodySize;
+
+    std::cout << _bodySize << std::endl;
+    if (_bodySize == 0) {
+      _buf.clear();
+      _req.readBody(_body);
+      _status = WRITE;
+      return (makeStatus(SOCKET_WRITE_MODE, _socket));
+    }
+    str.erase(0, sizeStr.size() + 2);
+
+    std::string chunk;
+
+    if (str.size() > _bodySize) {
+      chunk = str.substr(0, _bodySize);
+      str.erase(0, _bodySize + 2);
+      _bodySize = 0;
+      _body.insert(_body.end(), chunk.begin(), chunk.end());
+    } else {
+      _bodySize -= str.size();
+      _body.insert(_body.end(), str.begin(), str.end());
+      str.clear();
+    }
+  }
+  _buf.clear();
+  _status = CHUNKED_READ;
   return (makeStatus(CONTINUE, _socket));
 }
 
@@ -304,14 +315,12 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
-      std::cout << "this is URI1:" << _req.getRequestURI() << std::endl;
+      std::cout << _req.getRequestURI() << std::endl;
       _req.convertURI();
-      std::cout << "this is URI2:" << _req.getRequestURI() << std::endl;
-      std::cout << "this is body:\n";
-      for (std::vector<unsigned char>::iterator iter = _buf.begin();
-           iter != _buf.end(); iter++)
-        std::cout << *iter;
+      std::cout << _req.getRequestURI() << std::endl;
+      //   std::cout << "this is body:\n";
       _req.checkRequestValidity();
+      std::cout << "?" << std::endl;
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;
@@ -324,7 +333,7 @@ struct eventStatus ClientSocket::writeSocket() {
       }
     } catch (std::string &res) {
       _responseString = res;
-      std::cout << "this is response:\n" << res << std::endl;
+      //   std::cout << "this is response:\n" << res << std::endl;
       return (makeStatus(CONTINUE, _socket));
     }
   }
@@ -347,6 +356,7 @@ void ClientSocket::clearSocket() {
   _status = HEAD_READ;
   _buf.clear();
   _header.clear();
+  _body.clear();
   _bodySize = 0;
   _responseString.clear();
   _req.initRequest();
