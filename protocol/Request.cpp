@@ -51,7 +51,8 @@ void Request::readStartLine(std::string startLine) {
   // }
   this->_requestMethod = startLine.substr(0, pos1);
   this->_requestURI = startLine.substr(pos1 + 1, pos2 - pos1 - 1);
-  this->_requestHTTPVersion = startLine.substr(pos2 + 1, startLine.size() - pos2);
+  this->_requestHTTPVersion =
+      startLine.substr(pos2 + 1, startLine.size() - pos2);
 }
 
 void Request::readHeader(std::string header) {
@@ -80,8 +81,8 @@ void Request::readHeader(std::string header) {
 }
 
 int Request::checkBodyExistence() const {
-  if (_requestHeader.find("Transfer-encoding") != _requestHeader.end() &&
-      _requestHeader.find("Transfer-encoding")->second == "chunked")
+  if (_requestHeader.find("Transfer-Encoding") != _requestHeader.end() &&
+      _requestHeader.find("Transfer-Encoding")->second == "chunked")
     return (CHUNKED_READ);
   else if (_requestHeader.find("Content-Length") != _requestHeader.end() &&
            _requestHeader.find("Content-Length")->second != "0") {
@@ -274,17 +275,16 @@ void Request::checkRequestValidity() {
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
 
-  //start request header validity check
-  
+  // start request header validity check
+
   // if it is not method sp URI sp HTTP-Version, create 400 response
   if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
       this->_requestHTTPVersion.size() == 0) {
     throw(this->_errorResponse.create400Response(this->_config));
   }
 
-  //if it is not the METHOD defined in conf file, throw 405 response
-  if (!acceptedMethods.empty())
-  {
+  // if it is not the METHOD defined in conf file, throw 405 response
+  if (!acceptedMethods.empty()) {
     for (; iter != acceptedMethods.end(); iter++) {
       if (*iter == _requestMethod)
         break;
@@ -302,7 +302,8 @@ void Request::checkRequestValidity() {
   // if the HTTP-Version is not HTTP/1.1, create 505 response, else create 400
   // response
   if (_requestHTTPVersion != "HTTP/1.1") {
-    if (_requestHTTPVersion == "HTTP/0.9" || _requestHTTPVersion == "HTTP/1.0" ||
+    if (_requestHTTPVersion == "HTTP/0.9" ||
+        _requestHTTPVersion == "HTTP/1.0" ||
         _requestHTTPVersion == "HTTP/2.0" || _requestHTTPVersion == "HTTP/3.0")
       throw(this->_errorResponse.create505Response(this->_config));
     else {
@@ -310,30 +311,31 @@ void Request::checkRequestValidity() {
     }
   }
 
-  //check request header validity & content-Length
+  // check request header validity & content-Length
   std::map<std::string, std::string>::iterator itr = _requestHeader.begin();
-  for (; itr != _requestHeader.end(); ++itr)
-  {
+  for (; itr != _requestHeader.end(); ++itr) {
     if (itr->first.empty() || itr->second.empty())
-      throw (this->_errorResponse.create400Response(_config));
-    if (itr->first == "Content-Length")
-    {
-      if (atol(itr->second.c_str()) > static_cast<long>(_config.getClientBodyMax()))
-        throw (this->_errorResponse.create413Response(_config));
+      throw(this->_errorResponse.create400Response(_config));
+    if (itr->first == "Content-Length") {
+      if (atol(itr->second.c_str()) >
+          static_cast<long>(_config.getClientBodyMax()))
+        throw(this->_errorResponse.create413Response(_config));
     }
   }
 
-  //read body
-  if (_requestBody.size() > static_cast<unsigned long>(
-                        std::atol(this->_requestHeader["Content-Length"].c_str())))
+  // read body
+  if (_requestBody.size() >
+      static_cast<unsigned long>(
+          std::atol(this->_requestHeader["Content-Length"].c_str())))
     throw(this->_errorResponse.create413Response(this->_config));
-  else if (_requestBody.size() < static_cast<unsigned long>(
-                             std::atol(this->_requestHeader["Content-Length"].c_str())))
+  else if (_requestBody.size() <
+           static_cast<unsigned long>(
+               std::atol(this->_requestHeader["Content-Length"].c_str())))
     throw(this->_errorResponse.create400Response(this->_config));
 
   // if (_requestMethod == "POST" && _requestBody.size() == 0)
   // {
-  //   std::cout << "POST with body size of 0\n" << std::endl; 
+  //   std::cout << "POST with body size of 0\n" << std::endl;
   //   throw(this->_errorResponse.create204Response(_config));
   // }
 }

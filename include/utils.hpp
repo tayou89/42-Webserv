@@ -31,3 +31,7 @@ void replace(std::string &str, const std::string &target,
              const std::string &replacement);
 std::vector<unsigned char>::iterator
 findHeader(std::vector<unsigned char> &vec);
+std::vector<unsigned char>::iterator
+findNewLine(std::vector<unsigned char> &vec);
+std::vector<unsigned char>::iterator
+findNewLineNewLine(std::vector<unsigned char> &vec);
