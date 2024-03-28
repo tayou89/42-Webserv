@@ -28,7 +28,7 @@ ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
 std::string ClientSocket::getContentType() {
   std::string tmp(_cgiResponse.begin(), _cgiResponse.end());
   std::string header;
-  size_t pos;
+  std::size_t pos;
 
   if ((pos = tmp.find("\r\n\r\n")) != std::string::npos) {
     header = tmp.substr(0, pos);
@@ -56,7 +56,7 @@ struct eventStatus ClientSocket::sendCGIHeader() {
     head = head + type + "\r\n\r\n";
   }
 
-  size_t writeSize = write(_socket, &head[0], head.size());
+  std::size_t writeSize = write(_socket, &head[0], head.size());
   if (writeSize != head.size())
     ; // write error
   _status = PIPE_TO_SOCKET_BODY;
@@ -85,10 +85,10 @@ struct eventStatus ClientSocket::sendCGIBody() {
 
   std::string sizeStr = ss.str() + "\r\n";
 
-  size_t sizeWrite = write(_socket, sizeStr.c_str(), sizeStr.size());
+  std::size_t sizeWrite = write(_socket, sizeStr.c_str(), sizeStr.size());
   if (sizeWrite != sizeStr.size())
     ;
-  size_t chunkWrite = write(_socket, &_cgiResponse[0], chunkSize);
+  std::size_t chunkWrite = write(_socket, &_cgiResponse[0], chunkSize);
   if (chunkWrite < 1)
     return (makeStatus(CONTINUE, _socket)); // write error
   write(_socket, "\r\n", 2);
@@ -128,12 +128,13 @@ struct eventStatus ClientSocket::readPipe() {
 struct eventStatus ClientSocket::socketToPipe() {
   if (_status != SOCKET_TO_PIPE_WRITE)
     return (makeStatus(CONTINUE, _socket));
+  std::cout << "SOCKET TO PIPE\n";
 
   std::vector<unsigned char> body = _req.getRequestBody();
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], body.size());
-  //   std::cout << "Write size: " << writeSize << std::endl;
-  //   std::cout << "Remain body size:" << body.size() << std::endl;
+  std::cout << "Write size: " << writeSize << std::endl;
+  std::cout << "Remain body size: " << body.size() << std::endl;
   _req.eraseRequestBody(0, writeSize);
   //   if (writeSize == -1) {
   //     perror("Error");
@@ -188,7 +189,7 @@ struct eventInfo &ClientSocket::getEventInfo() { return (_info); }
 struct eventStatus ClientSocket::readHead() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
-  size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  std::size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
   if (readSize == 0) {
     clearSocket();
     return (makeStatus(DISCONNECT, _socket));
@@ -203,12 +204,14 @@ struct eventStatus ClientSocket::readHead() {
 
     std::cout << "this is request:\n"
               << _header << "\n------------------------" << std::endl;
-    std::cout << std::string(_buf.begin(), _buf.end()) << std::endl;
+    std::cout << "this is remain body\n";
+    std::cout << std::string(_buf.begin(), _buf.end())
+              << "\n------------------------" << std::endl;
 
     _req.setRequest(_header);
     _status = _req.checkBodyExistence();
     if (_status == BODY_READ) { // read normal body
-      _bodySize = atoi(_req.getRequestHeader("Content-Length").c_str());
+      _bodySize = std::atoi(_req.getRequestHeader("Content-Length").c_str());
       if (_buf.size() >= _bodySize) {
         _status = WRITE;
         _body.insert(_body.end(), _buf.begin(), _buf.end());
@@ -233,7 +236,7 @@ struct eventStatus ClientSocket::readContentBody() {
     _buf.clear();
   }
 
-  size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  std::size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
   if (readSize == 0) {
     _req.readBody(_body);
     return (makeStatus(SOCKET_WRITE_MODE, _socket));
@@ -252,21 +255,31 @@ struct eventStatus ClientSocket::readContentBody() {
 /* \r\n을 이용해서 한줄씩 읽는 방식으로 변경해야됨 */
 struct eventStatus ClientSocket::readChunkedBody() {
   std::vector<unsigned char> buf(BUFFER_SIZE, 0);
+  std::cout << "read chunked body\n";
 
-  if (_status != CHUNKED_START || _buf.empty()) {
-    int readSize = read(_socket, &buf[0], BUFFER_SIZE);
+  int readSize = read(_socket, &buf[0], BUFFER_SIZE);
+  if (readSize) {
     _buf.insert(_buf.end(), buf.begin(), buf.begin() + readSize);
-    if (_bodySize != 0 && _buf.size() > _bodySize) {
-      _body.insert(_body.end(), buf.begin(), buf.begin() + _bodySize);
-      //   std::cout << _body.size() << std::endl;
+    std::cout << "current _buf size: " << _buf.size() << std::endl;
+    if (_bodySize != 0 && _buf.size() > _bodySize + 2) {
+      _body.insert(_body.end(), _buf.begin(), _buf.begin() + _bodySize);
       _buf.erase(_buf.begin(), _buf.begin() + _bodySize + 2);
       _bodySize = 0;
-    } else
+    } else if (_bodySize != 0)
       return (makeStatus(CONTINUE, _socket));
+  } else if (_buf.size() == 0) {
+    std::cout << "write mode" << std::endl;
+    _status = WRITE;
+    _req.readBody(_body);
+    return (makeStatus(SOCKET_WRITE_MODE, _socket));
   }
 
+  std::cout << "read buf\n";
   std::string str(_buf.begin(), _buf.end());
+  std::cout << "str size: " << str.size() << std::endl;
+  std::cout << str << std::endl;
   while (str.size()) {
+    std::cout << "loop start\n";
 
     std::string sizeStr = str.substr(0, str.find("\r\n"));
     std::istringstream iss(sizeStr);
@@ -274,6 +287,8 @@ struct eventStatus ClientSocket::readChunkedBody() {
 
     std::cout << "chunked: " << _bodySize << std::endl;
     if (_bodySize == 0) {
+      std::cout << "chunk end\n";
+      std::cout << "full body size: " << _body.size() << std::endl;
       _buf.clear();
       _req.readBody(_body);
       _status = WRITE;
@@ -320,12 +335,12 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_responseString.size() == 0) {
     try {
       _req.convertURI();
-      std::cout << "this is body:\n";
       _req.checkRequestValidity();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;
         _info.type = PIPE;
+        std::cout << "execute cgi!" << std::endl;
         return (_cgi.execute());
       } else {
         _res.setResponse(_req);
@@ -339,7 +354,7 @@ struct eventStatus ClientSocket::writeSocket() {
     }
   }
 
-  size_t writeSize =
+  std::size_t writeSize =
       write(_socket, _responseString.c_str(), _responseString.size());
 
   if (writeSize != _responseString.size())

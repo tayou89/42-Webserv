@@ -56,11 +56,11 @@ const std::string &Location::getRootDirectory(void) const {
 
 const std::string &Location::getReturn(void) const { return (_return); }
 
-const size_t &Location::getClientBodyMax(void) const {
+const std::size_t &Location::getClientBodyMax(void) const {
   return (_clientBodyMax);
 }
 
-const size_t &Location::getClientHeaderMax(void) const {
+const std::size_t &Location::getClientHeaderMax(void) const {
   return (_clientHeaderMax);
 }
 
@@ -178,7 +178,7 @@ void Location::_setParameters(void) {
 void Location::_setRootDirectory(void) { _rootDirectory = _parameters[0]; }
 
 void Location::_setIndexes(void) {
-  size_t i;
+  std::size_t i;
 
   if (_indexes.empty() == false)
     _indexes.clear();
@@ -205,16 +205,18 @@ void Location::_setReturn(void) { _return = _parameters[0]; }
 
 void Location::_setClientBodyMax(void) {
   std::string sizeString = _parameters[0];
-  size_t number = ConfigUtil::convertToSizeT(sizeString);
-  size_t unit = ConfigUtil::convertByteUnit(sizeString[sizeString.size() - 1]);
+  std::size_t number = ConfigUtil::convertToSizeT(sizeString);
+  std::size_t unit =
+      ConfigUtil::convertByteUnit(sizeString[sizeString.size() - 1]);
 
   _clientBodyMax = number * unit;
 }
 
 void Location::_setClientHeaderMax(void) {
   std::string sizeString = _parameters[0];
-  size_t number = ConfigUtil::convertToSizeT(sizeString);
-  size_t unit = ConfigUtil::convertByteUnit(sizeString[sizeString.size() - 1]);
+  std::size_t number = ConfigUtil::convertToSizeT(sizeString);
+  std::size_t unit =
+      ConfigUtil::convertByteUnit(sizeString[sizeString.size() - 1]);
 
   _clientHeaderMax = number * unit;
 }

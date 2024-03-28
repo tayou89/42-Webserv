@@ -40,8 +40,8 @@ public:
 
   //   int extensionURI(std::string location) const;
   bool extensionURI(std::string location) const;
-  size_t generalURI(std::string location) const;
-  std::string combinePATH(Location target, size_t rate) const;
+  std::size_t generalURI(std::string location) const;
+  std::string combinePATH(Location target, std::size_t rate) const;
   void convertURI();
   void eraseRequestBody(int start, int end);
   void initRequest();

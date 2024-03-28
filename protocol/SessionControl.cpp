@@ -163,8 +163,8 @@ void SessionControl::makeBody(std::string color, std::string size) {
 }
 
 void SessionControl::setCookieHeader(std::string rawCookie) {
-  size_t index = 0;
-  size_t pos = 0;
+  std::size_t index = 0;
+  std::size_t pos = 0;
   std::string tmp;
 
   _SIDHeaderExistance = 0;
