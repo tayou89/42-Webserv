@@ -256,7 +256,7 @@ void Response::GET_HEAD() {
   // std::cout << _request.getRequestURI() << std::endl;
 }
 
-void Response::POST() { throw _errorResponse.create405Response(_config); }
+void Response::POST() { throw _errorResponse.create400Response(_config); }
 
 void Response::DELETE() {
   int fd;

@@ -142,6 +142,10 @@ std::string Request::getRequestHeader(std::string key) const {
 
 std::string Request::getQueryStirng() const { return (_queryString); }
 
+std::string Request::getProtocolVersion() const {
+  return (_requestHTTPVersion);
+}
+
 Location Request::getLocation() const { return (_location); }
 
 void Request::setRequestHeader(std::string key, std::string value) {

@@ -48,6 +48,7 @@ private:
   std::string _getQueryString(void) const;
   std::string _getContentType(void) const;
   std::string _getContentLength(void) const;
+  std::string _getServerProtocol(void) const;
 
   Location _location;
   Request _request;

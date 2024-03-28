@@ -34,6 +34,7 @@ public:
   std::map<std::string, std::string> getRequestHeader() const;
   std::string getRequestHeader(std::string key) const;
   std::string getQueryStirng() const;
+  std::string getProtocolVersion() const;
   Location getLocation() const;
   void setRequestHeader(std::string key, std::string value);
 

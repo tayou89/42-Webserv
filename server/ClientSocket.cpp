@@ -47,8 +47,14 @@ struct eventStatus ClientSocket::sendCGIHeader() {
 
   std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
                      "Server: " + _routeServer->getConfig().getServerName() +
-                     "\r\n" + getContentType() + "\r\n" +
-                     "Transfer-Encoding: Chunked\r\n\r\n";
+                     "\r\n" + "Transfer-Encoding: Chunked\r\n";
+                     
+  std::string type = getContentType();
+  if (type.size() == 0) {
+    head = head + "\r\n";
+  } else {
+    head = head + type + "\r\n\r\n";
+  }
 
   size_t writeSize = write(_socket, &head[0], head.size());
   if (writeSize != head.size())
