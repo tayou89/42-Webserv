@@ -304,7 +304,9 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
+      std::cout << "this is URI1:" << _req.getRequestURI() << std::endl;
       _req.convertURI();
+      std::cout << "this is URI2:" << _req.getRequestURI() << std::endl;
       std::cout << "this is body:\n";
       for (std::vector<unsigned char>::iterator iter = _buf.begin();
            iter != _buf.end(); iter++)
