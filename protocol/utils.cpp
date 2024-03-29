@@ -199,3 +199,23 @@ findNewLineNewLine(std::vector<unsigned char> &vec) {
 
   return (iter);
 }
+
+std::string makeTempFile() {
+  char random[16];
+  int devRandom;
+  int idx = 0;
+
+  memset(&random[0], 0, 16);
+  devRandom = open("/dev/urandom", O_RDONLY);
+  if (read(devRandom, random, 15) == -1)
+    ;
+  close(devRandom);
+  while (idx < 15) {
+    if (random[idx] < 0)
+      random[idx] *= -1;
+    random[idx] = random[idx] % 25 + 'A';
+    idx++;
+  }
+  std::string randomFileName(random);
+  return (randomFileName);
+}

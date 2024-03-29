@@ -131,7 +131,13 @@ void CGIExecutor::_createProcess(void) {
 }
 
 void CGIExecutor::_createPipeGET(void) {
-  if (pipe(_nonBlockRead) == -1)
+  std::string path = "./tmp/" + makeTempFile();
+
+  _nonBlockRead[WRITEFD] =
+      open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  _nonBlockRead[READFD] = open(path.c_str(), O_RDONLY);
+  unlink(path.c_str());
+  if (_nonBlockRead[READFD] == -1 || _nonBlockRead[WRITEFD] == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
 }
 
@@ -154,8 +160,8 @@ struct eventStatus CGIExecutor::_executeGET(void) {
   if (_pid == 0) {
     char **envp = _getEnvp();
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
-    std::cerr << std::string(path) << std::endl;
 
+    std::cerr << "execute cgi get" << std::endl;
     if (execve(path, NULL, envp) == -1) {
       std::cerr << "execve failure\n";
       ConfigUtil::freeStringArray(envp);
@@ -166,9 +172,22 @@ struct eventStatus CGIExecutor::_executeGET(void) {
 }
 
 void CGIExecutor::_createPipePOST(void) {
-  if (pipe(_nonBlockRead) == -1)
+  std::string readPath = "./tmp/" + makeTempFile();
+  std::string writePath = "./tmp/" + makeTempFile();
+
+  _nonBlockRead[WRITEFD] =
+      open(readPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  _nonBlockRead[READFD] = open(readPath.c_str(), O_RDONLY);
+  unlink(readPath.c_str());
+
+  _nonBlockWrite[WRITEFD] =
+      open(writePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  _nonBlockWrite[READFD] = open(writePath.c_str(), O_RDONLY);
+  unlink(writePath.c_str());
+
+  if (_nonBlockRead[READFD] == -1 || _nonBlockRead[WRITEFD] == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
-  if (pipe(_nonBlockWrite) == -1)
+  if (_nonBlockWrite[READFD] == -1 || _nonBlockWrite[WRITEFD] == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
 }
 
@@ -197,6 +216,8 @@ struct eventStatus CGIExecutor::_executePOST(void) {
   if (_pid == 0) {
     char **envp = _getEnvp();
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
+
+    std::cerr << "execute cgi post" << std::endl;
     if (execve(path, NULL, envp) == -1) {
       std::cout << "execve failure\n";
       ConfigUtil::freeStringArray(envp);

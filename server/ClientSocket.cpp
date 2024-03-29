@@ -108,19 +108,25 @@ struct eventStatus ClientSocket::readPipe() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   int readSize = read(_cgi.getReadFD(), &tmp[0], BUFFER_SIZE);
+  std::cout << "pipe readSize: " << readSize << std::endl;
   if (readSize == -1) {
+    std::cout << "pipe read error -1\n";
     return (makeStatus(CONTINUE, _socket));
-  } else if (_processStatus == END && readSize == 0) {
+  } else if (_processStatus == END && readSize < BUFFER_SIZE) {
+    std::cout << "cgi process end. read size 0\n";
     _processStatus = CLOSEPIPE;
     close(_cgi.getReadFD());
     return (makeStatus(CGI_READ_END, _cgi.getReadFD()));
   }
 
-  _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
-
   int pid = waitpid(_cgi.getPID(), &_processStatus, WNOHANG);
-  if (pid != 0)
+  std::cout << pid << std::endl;
+  if (pid != 0) {
+    std::cout << "cgi process end" << std::endl;
     _processStatus = END;
+  }
+
+  _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
 
   return (makeStatus(CONTINUE, _socket));
 }
@@ -134,12 +140,14 @@ struct eventStatus ClientSocket::socketToPipe() {
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], body.size());
   std::cout << "Write size: " << writeSize << std::endl;
-  std::cout << "Remain body size: " << body.size() << std::endl;
   _req.eraseRequestBody(0, writeSize);
+  std::cout << "Remain body size: " << _req.getRequestBody().size()
+            << std::endl;
   //   if (writeSize == -1) {
   //     perror("Error");
   //   }
   if (_req.getRequestBody().size() == 0) {
+    std::cout << "socket to pipe fin\n";
     close(_cgi.getWriteFD());
     _status = PIPE_TO_SOCKET_HEAD;
     return (makeStatus(CGI_READ, _cgi.getReadFD(), _cgi.getWriteFD()));
@@ -340,7 +348,6 @@ struct eventStatus ClientSocket::writeSocket() {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;
         _info.type = PIPE;
-        std::cout << "execute cgi!" << std::endl;
         return (_cgi.execute());
       } else {
         _res.setResponse(_req);
