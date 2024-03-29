@@ -28,7 +28,7 @@ int CGIExecutor::setCGIExecutor(const Request &request) {
   _request = request;
   _setMetaVariables();
   if (_request.getRequestMethod() == "GET")
-    return (PIPE_TO_SOCKET_HEAD);
+    return (CGI_TO_PIPE);
   else if (_request.getRequestMethod() == "POST")
     return (SOCKET_TO_PIPE_WRITE);
   return (CONTINUE);
@@ -134,11 +134,12 @@ void CGIExecutor::_createPipeGET(void) {
   std::string path = "./tmp/" + makeTempFile();
 
   _nonBlockRead[WRITEFD] =
-      open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+      open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
   _nonBlockRead[READFD] = open(path.c_str(), O_RDONLY);
   unlink(path.c_str());
   if (_nonBlockRead[READFD] == -1 || _nonBlockRead[WRITEFD] == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
+  //   pipe(_nonBlockRead);
 }
 
 void CGIExecutor::_setPipeGET(void) {
@@ -168,7 +169,7 @@ struct eventStatus CGIExecutor::_executeGET(void) {
       exit(1);
     }
   }
-  return (makeStatus(CGI_READ, getReadFD()));
+  return (makeStatus(CGI_PROCESS, _pid));
 }
 
 void CGIExecutor::_createPipePOST(void) {
