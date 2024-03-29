@@ -31,11 +31,12 @@ public:
   struct eventStatus readChunkedBody();
   struct eventStatus writeSocket();
   struct eventStatus processFinish();
-  struct eventStatus socketToPipe();
+  struct eventStatus serverToPipe();
   struct eventStatus sendCGIHeader();
   struct eventStatus sendCGIBody();
   struct eventStatus readPipe();
   std::string getContentType();
+  std::string getContentLength();
   //   std::string makeCGIresponse(std::string result) const;
   //   void binaryResponse(std::vector<char> vec) const;
   void clearSocket();

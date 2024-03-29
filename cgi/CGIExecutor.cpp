@@ -30,7 +30,7 @@ int CGIExecutor::setCGIExecutor(const Request &request) {
   if (_request.getRequestMethod() == "GET")
     return (CGI_TO_PIPE);
   else if (_request.getRequestMethod() == "POST")
-    return (SOCKET_TO_PIPE_WRITE);
+    return (SERVER_TO_PIPE_WRITE);
   return (CONTINUE);
 }
 
@@ -218,14 +218,13 @@ struct eventStatus CGIExecutor::_executePOST(void) {
     char **envp = _getEnvp();
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
 
-    std::cerr << "execute cgi post" << std::endl;
     if (execve(path, NULL, envp) == -1) {
       std::cout << "execve failure\n";
       ConfigUtil::freeStringArray(envp);
       exit(1);
     }
   }
-  return (makeStatus(CGI_WRITE, getWriteFD()));
+  return (makeStatus(SERVER_TO_CGI, getWriteFD(), _pid));
 }
 
 char **CGIExecutor::_getEnvp(void) const {

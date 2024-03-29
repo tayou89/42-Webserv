@@ -8,11 +8,12 @@
 #define CONTINUE 0
 #define SOCKET_WRITE_MODE 1
 #define SOCKET_READ_MODE 2
-#define CGI_PROCESS 3
-#define CGI_READ 4
-#define CGI_WRITE 5
-#define CGI_END 6
-#define CGI_READ_END 7
+#define SERVER_TO_CGI 3
+#define CGI_PROCESS 4
+#define CGI_READ 5
+#define CGI_WRITE 6
+#define CGI_END 7
+#define CGI_READ_END 8
 #define FD_CLOSE 252
 #define DISCONNECT 253
 #define WRITE_ERROR 254
@@ -22,7 +23,7 @@
 #define BODY_READ 1
 #define CHUNKED_READ 2
 #define WRITE 3
-#define SOCKET_TO_PIPE_WRITE 4
+#define SERVER_TO_PIPE_WRITE 4
 #define PIPE_TO_SOCKET_HEAD 5
 #define PIPE_TO_SOCKET_BODY 6
 #define PIPE_END 7
@@ -36,8 +37,3 @@
 
 // default buffer size
 #define BUFFER_SIZE 4096
-
-// child process status
-#define CLOSEPIPE -1
-#define END 0
-#define ALIVE 1
