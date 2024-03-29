@@ -54,7 +54,7 @@ bool ConfigParser::parseDirectiveText(void) {
 }
 
 void ConfigParser::_readDirective(void) {
-  size_t delimeterIndex;
+  std::size_t delimeterIndex;
 
   if (!(_configStream >> _directive))
     return;

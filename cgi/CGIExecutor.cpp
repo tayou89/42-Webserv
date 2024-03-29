@@ -51,6 +51,8 @@ void CGIExecutor::_setMetaVariables(void) {
   _metaVariables["QUERY_STRING"] = _getQueryString();
   _metaVariables["CONTENT_TYPE"] = _getContentType();
   _metaVariables["CONTENT_LENGTH"] = _getContentLength();
+  _metaVariables["SERVER_PROTOCOL"] = std::string("HTTP/1.1");
+  // _metaVariables["SERVER_PROTOCOL"] = _getServerProtocol();
 }
 
 std::string CGIExecutor::_getRequestMethod(void) const {
@@ -64,8 +66,8 @@ std::string CGIExecutor::_getDocumentRoot(void) const {
 std::string CGIExecutor::_getScriptName(void) const {
   std::string locationPath = (_location.getLocationPath()).substr(1);
   std::string uri = _request.getRequestURI();
-  size_t startIndex = uri.find(locationPath) + locationPath.size();
-  size_t scriptEnd = ConfigUtil::findURIDelimeter(uri, startIndex);
+  std::size_t startIndex = uri.find(locationPath) + locationPath.size();
+  std::size_t scriptEnd = ConfigUtil::findURIDelimeter(uri, startIndex);
 
   if (scriptEnd == std::string::npos)
     return (uri);
@@ -80,9 +82,9 @@ std::string CGIExecutor::_getScriptFileName(void) const {
 
 std::string CGIExecutor::_getPathInfo(void) const {
   std::string uri = _request.getRequestURI();
-  size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
+  std::size_t scriptNameEnd = (_metaVariables.at("SCRIPT_NAME")).size();
 
-  size_t pathInfoEnd = uri.find('?', scriptNameEnd);
+  std::size_t pathInfoEnd = uri.find('?', scriptNameEnd);
 
   if (uri[scriptNameEnd] == '/')
     return (uri.substr(scriptNameEnd, pathInfoEnd));
@@ -118,6 +120,10 @@ std::string CGIExecutor::_getContentLength(void) const {
     return (iterator->second);
 }
 
+std::string CGIExecutor::_getServerProtocol(void) const {
+  return (_request.getProtocolVersion());
+}
+
 void CGIExecutor::_createProcess(void) {
   _pid = fork();
   if (_pid == -1)
@@ -148,9 +154,10 @@ struct eventStatus CGIExecutor::_executeGET(void) {
   if (_pid == 0) {
     char **envp = _getEnvp();
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
+    std::cerr << std::string(path) << std::endl;
 
     if (execve(path, NULL, envp) == -1) {
-      std::cout << "execve failure\n";
+      std::cerr << "execve failure\n";
       ConfigUtil::freeStringArray(envp);
       exit(1);
     }
@@ -204,7 +211,7 @@ char **CGIExecutor::_getEnvp(void) const {
   string_map::const_iterator iterator;
   string_map::const_iterator endPoint = _metaVariables.end();
   std::string envString;
-  size_t i = 0;
+  std::size_t i = 0;
 
   for (iterator = _metaVariables.begin(); iterator != endPoint; iterator++) {
     envString = iterator->first + '=' + iterator->second;

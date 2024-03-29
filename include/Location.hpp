@@ -27,8 +27,8 @@ public:
   const bool &getAutoIndex(void) const;
   const bool &getCGIPass(void) const;
   std::string getErrorPage(const int &errorPageNumber) const;
-  const size_t &getClientBodyMax(void) const;
-  const size_t &getClientHeaderMax(void) const;
+  const std::size_t &getClientBodyMax(void) const;
+  const std::size_t &getClientHeaderMax(void) const;
   const ConfigFile &getIndexFile(void) const;
   const std::string &getRootDirectory(void) const;
   const std::string &getReturn(void) const;
@@ -59,8 +59,8 @@ protected:
 
   std::string _path;
   bool _autoindex;
-  size_t _clientBodyMax;
-  size_t _clientHeaderMax;
+  std::size_t _clientBodyMax;
+  std::size_t _clientHeaderMax;
   std::string _rootDirectory;
   std::string _return;
   string_vector _indexes;
@@ -71,7 +71,7 @@ protected:
 
   location_function_map _locationFunctions;
   string_vector _parameters;
-  size_t _parameterCount;
+  std::size_t _parameterCount;
 };
 
 #endif

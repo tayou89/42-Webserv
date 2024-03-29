@@ -56,9 +56,9 @@ void Request::readStartLine(std::string startLine) {
 }
 
 void Request::readHeader(std::string header) {
-  size_t pos = 0;
-  size_t index = 0;
-  // size_t colon_index = 0;
+  std::size_t pos = 0;
+  std::size_t index = 0;
+  // std::size_t colon_index = 0;
   std::string tmp;
 
   while (1) {
@@ -83,7 +83,7 @@ void Request::readHeader(std::string header) {
 int Request::checkBodyExistence() const {
   if (_requestHeader.find("Transfer-Encoding") != _requestHeader.end() &&
       _requestHeader.find("Transfer-Encoding")->second == "chunked")
-    return (CHUNKED_READ);
+    return (CHUNKED_START);
   else if (_requestHeader.find("Content-Length") != _requestHeader.end() &&
            _requestHeader.find("Content-Length")->second != "0") {
     return (BODY_READ);
@@ -103,7 +103,7 @@ int Request::checkBodyExistence() const {
 //     if (this->_requestHeader["Content-Length"].size() > 10) {
 //       throw(this->_errorResponse.create400Response(this->_config));
 //     }
-//     if (atoi(this->_requestHeader["Content-Length"].c_str()) >
+//     if (std::atoi(this->_requestHeader["Content-Length"].c_str()) >
 //         client_max_body_size)
 //       throw(this->_errorResponse.create413Response(this->_config));
 //   }
@@ -142,6 +142,10 @@ std::string Request::getRequestHeader(std::string key) const {
 
 std::string Request::getQueryStirng() const { return (_queryString); }
 
+std::string Request::getProtocolVersion() const {
+  return (_requestHTTPVersion);
+}
+
 Location Request::getLocation() const { return (_location); }
 
 void Request::setRequestHeader(std::string key, std::string value) {
@@ -164,12 +168,12 @@ bool Request::extensionURI(std::string location) const {
   return (false);
 }
 
-size_t Request::generalURI(std::string location) const {
+std::size_t Request::generalURI(std::string location) const {
   std::vector<std::string> loc = splitString(location, '/');
   std::vector<std::string> url = splitString(_requestURI, '/');
   std::vector<std::string>::iterator locIter = loc.begin();
   std::vector<std::string>::iterator urlIter = url.begin();
-  size_t score = 0;
+  std::size_t score = 0;
 
   /* general location */
   for (; locIter != loc.end() && urlIter != url.end(); locIter++, urlIter++) {
@@ -182,7 +186,7 @@ size_t Request::generalURI(std::string location) const {
     return (0);
 }
 
-std::string Request::combinePATH(Location target, size_t rate) const {
+std::string Request::combinePATH(Location target, std::size_t rate) const {
   std::vector<std::string> split = splitString(_requestURI, '/');
   std::stringstream ss;
   std::string path;
@@ -324,15 +328,16 @@ void Request::checkRequestValidity() {
   }
 
   // read body
-  if (_requestBody.size() >
-      static_cast<unsigned long>(
-          std::atol(this->_requestHeader["Content-Length"].c_str())))
-    throw(this->_errorResponse.create413Response(this->_config));
-  else if (_requestBody.size() <
-           static_cast<unsigned long>(
-               std::atol(this->_requestHeader["Content-Length"].c_str())))
-    throw(this->_errorResponse.create400Response(this->_config));
-
+  if (_requestHeader.find("Content-Length") != _requestHeader.end()) {
+    if (_requestBody.size() >
+        static_cast<unsigned long>(
+            std::atol(this->_requestHeader["Content-Length"].c_str())))
+      throw(this->_errorResponse.create413Response(this->_config));
+    else if (_requestBody.size() <
+             static_cast<unsigned long>(
+                 std::atol(this->_requestHeader["Content-Length"].c_str())))
+      throw(this->_errorResponse.create400Response(this->_config));
+  }
   // if (_requestMethod == "POST" && _requestBody.size() == 0)
   // {
   //   std::cout << "POST with body size of 0\n" << std::endl;

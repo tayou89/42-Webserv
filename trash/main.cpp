@@ -3,8 +3,8 @@
 // int	main(int argc, char *argv[])
 // {
 // 	ConfigMain	configMain(argv[1]);
-// 	size_t		configCount;
-// 	size_t		i;	
+// 	std::size_t		configCount;
+// 	std::size_t		i;
 
 // 	(void) argc;
 // 	std::vector<Config>	configs= configMain.getServerConfigs();

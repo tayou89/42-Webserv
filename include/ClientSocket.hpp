@@ -49,7 +49,8 @@ private:
   int _status;
   std::vector<unsigned char> _buf;
   std::string _header;
-  size_t _bodySize;
+  std::vector<unsigned char> _body;
+  std::size_t _bodySize;
   Request _req;
   Response _res;
   std::string _responseString;

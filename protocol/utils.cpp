@@ -37,8 +37,8 @@ std::string getCurrentHttpDateForCookie() {
 }
 
 std::string splitBefore(std::string sentence, std::string splitWord) {
-  size_t split_index;
-  size_t i = 1;
+  std::size_t split_index;
+  std::size_t i = 1;
   std::string key;
 
   split_index = sentence.find(splitWord, 0);
@@ -55,8 +55,8 @@ std::string splitBefore(std::string sentence, std::string splitWord) {
 }
 
 std::string splitAfter(std::string sentence, std::string splitWord) {
-  size_t split_index;
-  size_t i = 0;
+  std::size_t split_index;
+  std::size_t i = 0;
   std::string value;
 
   split_index = sentence.find(splitWord, 0);
@@ -151,7 +151,7 @@ std::string decimalToRgb(int red, int green, int blue) {
 
 void replace(std::string &str, const std::string &target,
              const std::string &replacement) {
-  size_t pos = 0;
+  std::size_t pos = 0;
 
   while ((pos = str.find(target, pos)) != std::string::npos) {
     str.replace(pos, target.length(), replacement);

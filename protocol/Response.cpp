@@ -78,7 +78,7 @@ void Response::checkValidity() {
           getResponseBody()));
     } else {
       // auto index not available
-      throw(_errorResponse.create403Response(_config));
+      throw(_errorResponse.create404Response(_config));
     }
     closedir(dir);
   } else { // if URI is a file
@@ -256,7 +256,7 @@ void Response::GET_HEAD() {
   // std::cout << _request.getRequestURI() << std::endl;
 }
 
-void Response::POST() { throw _errorResponse.create405Response(_config); }
+void Response::POST() { throw _errorResponse.create400Response(_config); }
 
 void Response::DELETE() {
   int fd;
