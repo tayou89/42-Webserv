@@ -24,5 +24,4 @@ private:
   Config _config;
   int _listenSocket;
   struct sockaddr_in _serverAddress;
-  std::map<int, std::string> _clientSocket;
 };
