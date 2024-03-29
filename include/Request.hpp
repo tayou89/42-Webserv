@@ -42,10 +42,11 @@ public:
   bool extensionURI(std::string location) const;
   std::size_t generalURI(std::string location) const;
   std::string combinePATH(Location target, std::size_t rate) const;
-  void convertURI();
-  void eraseRequestBody(int start, int end);
-  void initRequest();
-  void checkRequestValidity();
+  void  convertURI();
+  void  eraseRequestBody(int start, int end);
+  void  initRequest();
+  void  checkRequestValidity();
+  void  checkRequestMethod();
 
 private:
   Config _config;

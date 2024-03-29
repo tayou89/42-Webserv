@@ -275,17 +275,10 @@ void Request::initRequest() {
   _location = Location();
 }
 
-void Request::checkRequestValidity() {
+void  Request::checkRequestMethod()
+{
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
-
-  // start request header validity check
-
-  // if it is not method sp URI sp HTTP-Version, create 400 response
-  if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
-      this->_requestHTTPVersion.size() == 0) {
-    throw(this->_errorResponse.create400Response(this->_config));
-  }
 
   // if it is not the METHOD defined in conf file, throw 405 response
   if (!acceptedMethods.empty()) {
@@ -295,6 +288,17 @@ void Request::checkRequestValidity() {
     }
     if (iter == acceptedMethods.end())
       throw _errorResponse.create405Response(_config);
+  }
+}
+
+void Request::checkRequestValidity() {
+
+  // start request header validity check
+
+  // if it is not method sp URI sp HTTP-Version, create 400 response
+  if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
+      this->_requestHTTPVersion.size() == 0) {
+    throw(this->_errorResponse.create400Response(this->_config));
   }
 
   // if the requestURI is longer than large_client_header_buffers, create 414
@@ -344,3 +348,4 @@ void Request::checkRequestValidity() {
   //   throw(this->_errorResponse.create204Response(_config));
   // }
 }
+

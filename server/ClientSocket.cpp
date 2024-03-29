@@ -334,8 +334,9 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.size() == 0) {
     try {
-      _req.convertURI();
       _req.checkRequestValidity();
+      _req.convertURI();
+      _req.checkRequestMethod();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;
