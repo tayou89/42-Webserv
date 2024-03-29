@@ -42,20 +42,25 @@ std::string ClientSocket::getContentType() {
 }
 
 struct eventStatus ClientSocket::sendCGIHeader() {
-  if (_cgiResponse.empty() == true)
+  if (_status != PIPE_TO_SOCKET_HEAD || _processStatus != CLOSEPIPE)
     return (makeStatus(CONTINUE, _socket));
+  std::cout << "send cgi header\n";
 
   std::string head = "HTTP/1.1 200 OK\r\n" + getCurrentHttpDate() +
                      "Server: " + _routeServer->getConfig().getServerName() +
-                     "\r\n" + "Transfer-Encoding: Chunked\r\n";
+                     "\r\n" + "Transfer-Encoding: chunked\r\n";
 
   std::string type = getContentType();
+  std::cout << "type = " << type << std::endl;
   if (type.size() == 0) {
     head = head + "\r\n";
   } else {
     head = head + type + "\r\n\r\n";
   }
 
+  std::cout << "response header\n";
+  std::cout << head << std::endl;
+  std::cout << "----------------\n";
   std::size_t writeSize = write(_socket, &head[0], head.size());
   if (writeSize != head.size())
     ; // write error
@@ -64,20 +69,22 @@ struct eventStatus ClientSocket::sendCGIHeader() {
 }
 
 struct eventStatus ClientSocket::sendCGIBody() {
+  if (_status != PIPE_TO_SOCKET_BODY)
+    return (makeStatus(CONTINUE, _socket));
+  std::cout << "send cgi body\n";
   if (_processStatus == CLOSEPIPE && _cgiResponse.empty() == true) {
     write(_socket, "0\r\n\r\n", 5);
     _status = HEAD_READ;
     _info.type = SOCKET;
-    return (makeStatus(SOCKET_READ_MODE, _socket, _cgi.getWriteFD()));
-  } else if (_cgiResponse.empty() == true)
-    return (makeStatus(CONTINUE, _socket));
+    return (makeStatus(SOCKET_READ_MODE, _socket));
+  }
 
   int chunkSize = _cgiResponse.size();
-  //   std::cout << "Response size: " << chunkSize << std::endl;
-  if (chunkSize > 1000)
-    chunkSize = 1000;
+  std::cout << "Response size: " << chunkSize << std::endl;
+  if (chunkSize > BUFFER_SIZE)
+    chunkSize = BUFFER_SIZE;
 
-  //   std::cout << "chunk size: " << chunkSize << std::endl;
+  std::cout << "chunk size: " << chunkSize << std::endl;
 
   std::stringstream ss;
 
@@ -88,39 +95,33 @@ struct eventStatus ClientSocket::sendCGIBody() {
   std::size_t sizeWrite = write(_socket, sizeStr.c_str(), sizeStr.size());
   if (sizeWrite != sizeStr.size())
     ;
-  std::size_t chunkWrite = write(_socket, &_cgiResponse[0], chunkSize);
-  if (chunkWrite < 1)
+  int chunkWrite = write(_socket, &_cgiResponse[0], chunkSize);
+  if (chunkWrite < 0)
     return (makeStatus(CONTINUE, _socket)); // write error
   write(_socket, "\r\n", 2);
   _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + chunkWrite);
-
-  //   if (_processStatus == END) {
-  //     write(_socket, "0\r\n\r\n", 5);
-  //     _status = HEAD_READ;
-  //     _info.type = SOCKET;
-  //     return (makeStatus(SOCKET_READ_MODE, _socket, _cgi.getWriteFD()));
-  //   }
 
   return (makeStatus(CONTINUE, _socket));
 }
 
 struct eventStatus ClientSocket::readPipe() {
+  if (_status != PIPE_TO_SERVER)
+    return (makeStatus(CONTINUE, _socket));
+
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   int readSize = read(_cgi.getReadFD(), &tmp[0], BUFFER_SIZE);
+  std::cout << "pipe readSize: " << readSize << std::endl;
+  _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
   if (readSize == -1) {
-    return (makeStatus(CONTINUE, _socket));
-  } else if (_processStatus == END && readSize == 0) {
+    // error status
+  } else if (readSize < BUFFER_SIZE) {
+    std::cout << "pipe read finish" << std::endl;
+    _status = PIPE_TO_SOCKET_HEAD;
     _processStatus = CLOSEPIPE;
     close(_cgi.getReadFD());
-    return (makeStatus(CGI_READ_END, _cgi.getReadFD()));
+    return (makeStatus(CGI_WRITE, _cgi.getReadFD()));
   }
-
-  _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
-
-  int pid = waitpid(_cgi.getPID(), &_processStatus, WNOHANG);
-  if (pid != 0)
-    _processStatus = END;
 
   return (makeStatus(CONTINUE, _socket));
 }
@@ -134,17 +135,28 @@ struct eventStatus ClientSocket::socketToPipe() {
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], body.size());
   std::cout << "Write size: " << writeSize << std::endl;
-  std::cout << "Remain body size: " << body.size() << std::endl;
   _req.eraseRequestBody(0, writeSize);
+  std::cout << "Remain body size: " << _req.getRequestBody().size()
+            << std::endl;
   //   if (writeSize == -1) {
   //     perror("Error");
   //   }
   if (_req.getRequestBody().size() == 0) {
+    std::cout << "socket to pipe fin\n";
     close(_cgi.getWriteFD());
     _status = PIPE_TO_SOCKET_HEAD;
     return (makeStatus(CGI_READ, _cgi.getReadFD(), _cgi.getWriteFD()));
   }
   return (makeStatus(CONTINUE, _socket));
+}
+
+struct eventStatus ClientSocket::processFinish() {
+  int pid = waitpid(_cgi.getPID(), &_processStatus, 0);
+  std::cout << "PID: " << pid << std::endl;
+  _status = PIPE_TO_SERVER;
+  _processStatus = END;
+
+  return (makeStatus(CGI_READ, _cgi.getReadFD()));
 }
 
 struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
@@ -158,7 +170,9 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
       result = writeSocket();
     }
   } else if (type == PIPE) {
-    if (event->filter == EVFILT_READ) {
+    if (event->filter == EVFILT_PROC) {
+      result = processFinish();
+    } else if (event->filter == EVFILT_READ) {
       result = readPipe();
     } else if (event->filter == EVFILT_WRITE) {
       if (_status == SOCKET_TO_PIPE_WRITE) {
@@ -341,7 +355,6 @@ struct eventStatus ClientSocket::writeSocket() {
         _status = _cgi.setCGIExecutor(_req);
         _processStatus = ALIVE;
         _info.type = PIPE;
-        std::cout << "execute cgi!" << std::endl;
         return (_cgi.execute());
       } else {
         _res.setResponse(_req);

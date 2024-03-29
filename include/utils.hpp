@@ -2,6 +2,7 @@
 
 #include "struct.hpp"
 #include <algorithm>
+#include <fcntl.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -35,3 +36,4 @@ std::vector<unsigned char>::iterator
 findNewLine(std::vector<unsigned char> &vec);
 std::vector<unsigned char>::iterator
 findNewLineNewLine(std::vector<unsigned char> &vec);
+std::string makeTempFile();
