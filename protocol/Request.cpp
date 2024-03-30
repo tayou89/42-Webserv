@@ -275,8 +275,7 @@ void Request::initRequest() {
   _location = Location();
 }
 
-void  Request::checkRequestMethod()
-{
+void Request::checkRequestMethod() {
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
 
@@ -348,4 +347,3 @@ void Request::checkRequestValidity() {
   //   throw(this->_errorResponse.create204Response(_config));
   // }
 }
-

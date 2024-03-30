@@ -7,10 +7,10 @@
 #include "unistd.h"
 #include <map>
 
-class errorResponse {
+class ErrorResponse {
 public:
-  errorResponse();
-  ~errorResponse();
+  ErrorResponse();
+  ~ErrorResponse();
 
   std::string
   create200Response(std::string serverName,
@@ -28,6 +28,6 @@ public:
   std::string create505Response(Config &conf);
 
 private:
-  errorResponse(const errorResponse &copy);
-  errorResponse operator=(const errorResponse &copy);
+  ErrorResponse(const ErrorResponse &copy);
+  ErrorResponse operator=(const ErrorResponse &copy);
 };

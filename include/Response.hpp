@@ -46,5 +46,5 @@ private:
   std::map<std::string, std::string> _responseHeader;
   std::string _responseBody;
   std::string _response;
-  errorResponse _errorResponse;
+  ErrorResponse _errorResponse;
 };
