@@ -40,69 +40,72 @@ void KqueueLoop::newEvent(uintptr_t ident, int16_t filter, uint16_t flags,
 void KqueueLoop::disconnect(int socket) {
   newEvent(socket, EVFILT_READ, EV_DELETE, 0, 0, NULL);
   newEvent(socket, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-  if (_clientList.find(socket) != _clientList.end()) {
-    delete _clientList[socket]; // allocation delete
-    _clientList[socket] = NULL;
-    _clientList.erase(socket);
-    close(socket);
-  }
+  delete _clientList[socket]; // allocation delete
+  _clientList[socket] = NULL;
+  _clientList.erase(socket);
+  close(socket);
+  usleep(500);
 }
 
 void KqueueLoop::eventHandler(struct kevent *event) {
   /* loop의 eventHandler에서 udata를 해석하고 ClientSocket으로 넘김 */
   struct eventStatus result;
-  struct eventInfo *info = static_cast<eventInfo *>(event->udata);
-  int socket = info->socket;
-  int type = info->type;
+  int socket;
+  int type;
+
+  struct eventInfo *info = static_cast<struct eventInfo *>(event->udata);
+  if (info == NULL) {
+    socket = event->ident;
+    type = SOCKET;
+  } else {
+    socket = info->socket;
+    type = info->type;
+  }
 
   result = _clientList[socket]->eventProcess(event, type);
-  if (result.status == DISCONNECT) {
+  if (result.status == DISCONNECT && type == SOCKET) {
     disconnect(result.ident);
   } else if (result.status == SERVER_TO_CGI) {
     newEvent(result.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
+             _clientList[socket]->getEventInfo());
     newEvent(result.sub, EVFILT_PROC, EV_ADD | EV_ENABLE | EV_ONESHOT,
-             NOTE_EXIT, 0, &_clientList[socket]->getEventInfo());
+             NOTE_EXIT, 0, _clientList[socket]->getEventInfo());
+    newEvent(socket, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
   } else if (result.status == CGI_PROCESS) {
     newEvent(result.ident, EVFILT_PROC, EV_ADD | EV_ENABLE | EV_ONESHOT,
-             NOTE_EXIT, 0, &_clientList[socket]->getEventInfo());
+             NOTE_EXIT, 0, _clientList[socket]->getEventInfo());
+    newEvent(socket, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
   } else if (result.status == CGI_READ) {
     newEvent(result.ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
-    if (result.sub != 0)
-      newEvent(result.ident, EVFILT_WRITE, EV_DELETE, 0, 0,
-               &_clientList[socket]->getEventInfo());
+             _clientList[socket]->getEventInfo());
+    if (result.sub > -1)
+      newEvent(result.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
   } else if (result.status == CGI_WRITE) {
-    newEvent(result.ident, EVFILT_READ, EV_DELETE, 0, 0,
-             &_clientList[socket]->getEventInfo());
+    newEvent(result.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+    newEvent(socket, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
   } else if (result.status == SOCKET_WRITE_MODE) {
-    newEvent(result.ident, EVFILT_READ, EV_DISABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
-    newEvent(result.ident, EVFILT_WRITE, EV_ENABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
+    newEvent(result.ident, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
+    newEvent(result.ident, EVFILT_WRITE, EV_ENABLE, 0, 0, NULL);
   } else if (result.status == SOCKET_READ_MODE) {
     _clientList[result.ident]->clearSocket();
-    newEvent(result.ident, EVFILT_READ, EV_ENABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
-    newEvent(result.ident, EVFILT_WRITE, EV_DISABLE, 0, 0,
-             &_clientList[socket]->getEventInfo());
+    newEvent(result.ident, EVFILT_READ, EV_ENABLE, 0, 0, NULL);
+    newEvent(result.ident, EVFILT_WRITE, EV_DISABLE, 0, 0, NULL);
   }
 }
 
 void KqueueLoop::run() {
   int eventCount;
   int eventStatus;
-  struct kevent newEvents[1024];
+  struct kevent newEvents[1];
   struct kevent *currentEvent;
 
   while (1) {
     eventCount = kevent(_kqueue, &_changeList[0], _changeList.size(), newEvents,
-                        1024, NULL);
-    if (eventCount == -1) {
-      std::cerr << "kill\n";
-      exit(1); // kevent error exit
-    }
+                        1, NULL);
     _changeList.clear(); // clear list of new register events
+    if (eventCount == -1 || eventCount == 0) {
+      continue;
+    }
 
     for (int idx = 0; idx < eventCount; idx++) {
       currentEvent = &newEvents[idx];
@@ -115,15 +118,12 @@ void KqueueLoop::run() {
           _serverList.find(currentEvent->ident) != _serverList.end()) {
         int newClient = accept(currentEvent->ident, NULL, NULL);
         if (newClient == -1) {
-          std::cout << newClient << ": invalid client fd\n";
           continue;
         }
         _clientList[newClient] = new ClientSocket(
             newClient, _serverList[currentEvent->ident], _envp);
-        newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0,
-                 &_clientList[newClient]->getEventInfo());
-        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0,
-                 &_clientList[newClient]->getEventInfo());
+        newEvent(newClient, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        newEvent(newClient, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
       } else {
         eventHandler(currentEvent);
         // if (currentEvent->filter == EVFILT_READ) {

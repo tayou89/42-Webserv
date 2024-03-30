@@ -11,19 +11,19 @@ ClientSocket &ClientSocket::operator=(const ClientSocket &ref) {
   return (*this);
 }
 
-ClientSocket::~ClientSocket() {}
+ClientSocket::~ClientSocket() { delete _info; }
 
 ClientSocket::ClientSocket(int socket, IServer *acceptServer, char **envp)
     : _routeServer(acceptServer), _req(acceptServer->getConfig()),
-      _res(envp, acceptServer->getConfig()) {
+      _res(envp, acceptServer->getConfig()), _info(new struct eventInfo) {
   _socket = socket;
   this->_status = HEAD_READ;
   _buf.clear();
   _header.clear();
   _bodySize = 0;
   _processStatus = 0;
-  _info.socket = _socket;
-  _info.type = SOCKET;
+  _info->socket = _socket;
+  _info->type = SOCKET;
 }
 
 std::string ClientSocket::getContentType() {
@@ -84,12 +84,13 @@ struct eventStatus ClientSocket::sendCGIBody() {
 
   int chunkWrite = write(_socket, &_cgiResponse[0], _cgiResponse.size());
   _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + chunkWrite);
-  std::cout << "chunkSize: " << chunkWrite << std::endl;
+  //   std::cout << "chunkSize: " << chunkWrite << std::endl;
   //   if (chunkWrite < 0)
   //     return (makeStatus(CONTINUE, _socket)); // write error
   if (_cgiResponse.empty() == true) {
     _status = HEAD_READ;
-    _info.type = SOCKET;
+    _info->socket = _socket;
+    _info->type = SOCKET;
     return (makeStatus(SOCKET_READ_MODE, _socket));
   }
 
@@ -97,8 +98,8 @@ struct eventStatus ClientSocket::sendCGIBody() {
 }
 
 struct eventStatus ClientSocket::readPipe() {
-  if (_status != PIPE_TO_SERVER)
-    return (makeStatus(CONTINUE, _socket));
+  //   if (_status != PIPE_TO_SERVER)
+  //     return (makeStatus(CONTINUE, _socket));
 
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
@@ -107,7 +108,6 @@ struct eventStatus ClientSocket::readPipe() {
   if (readSize == -1) {
     // error status
   } else if (readSize < BUFFER_SIZE) {
-    std::cout << "read pipe finish: " << _cgiResponse.size() << std::endl;
     _status = PIPE_TO_SOCKET_HEAD;
     close(_cgi.getReadFD());
     return (makeStatus(CGI_WRITE, _cgi.getReadFD()));
@@ -119,7 +119,6 @@ struct eventStatus ClientSocket::readPipe() {
 struct eventStatus ClientSocket::serverToPipe() {
   if (_status != SERVER_TO_PIPE_WRITE)
     return (makeStatus(CONTINUE, _socket));
-  std::cout << "server to pipe" << std::endl;
 
   std::vector<unsigned char> body = _req.getRequestBody();
 
@@ -128,13 +127,13 @@ struct eventStatus ClientSocket::serverToPipe() {
   //     chunkSize = BUFFER_SIZE;
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], chunkSize);
-  std::cout << "write size: " << writeSize << std::endl;
+  //   std::cout << "write size: " << writeSize << std::endl;
   _req.eraseRequestBody(0, writeSize);
   //   if (writeSize == -1) {
   //     perror("Error");
   //   }
   if (_req.getRequestBody().size() == 0) {
-    std::cout << "server to pipe finish" << std::endl;
+    // std::cout << "server to pipe finish" << std::endl;
     _status = PIPE_TO_SERVER;
     close(_cgi.getWriteFD());
     return (makeStatus(CGI_READ, _cgi.getReadFD(), _cgi.getWriteFD()));
@@ -143,8 +142,7 @@ struct eventStatus ClientSocket::serverToPipe() {
 }
 
 struct eventStatus ClientSocket::processFinish() {
-  int pid = waitpid(_cgi.getPID(), &_processStatus, 0);
-  std::cout << "PID: " << pid << std::endl;
+  waitpid(_cgi.getPID(), &_processStatus, 0);
   if (_status == CGI_TO_PIPE)
     _status = PIPE_TO_SERVER;
 
@@ -155,9 +153,12 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
   struct eventStatus result;
 
   if (type == SOCKET) {
-    if (event->filter == EVFILT_READ &&
-        static_cast<int>(event->ident) == _socket) {
-      // SOCKET READ
+    if (_status == PIPE_TO_SOCKET_HEAD)
+      result = sendCGIHeader();
+    else if (_status == PIPE_TO_SOCKET_BODY)
+      result = sendCGIBody();
+    else if (event->filter == EVFILT_READ &&
+             static_cast<int>(event->ident) == _socket) {
       result = readSocket();
     } else if (event->filter == EVFILT_WRITE &&
                static_cast<int>(event->ident) == _socket) {
@@ -196,7 +197,7 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
   return (result);
 }
 
-struct eventInfo &ClientSocket::getEventInfo() { return (_info); }
+struct eventInfo *ClientSocket::getEventInfo() { return (_info); }
 
 struct eventStatus ClientSocket::readHead() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
@@ -214,7 +215,7 @@ struct eventStatus ClientSocket::readHead() {
     _header = std::string(_buf.begin(), iter + 2);
     _buf.erase(_buf.begin(), iter + 4);
 
-    std::cout << _header << "\n------------------------" << std::endl;
+    // std::cout << _header << "\n------------------------" << std::endl;
 
     _req.setRequest(_header);
     _status = _req.checkBodyExistence();
@@ -333,7 +334,7 @@ struct eventStatus ClientSocket::writeSocket() {
       _req.checkRequestMethod();
       if (_req.getLocation().getCGIPass()) {
         _status = _cgi.setCGIExecutor(_req);
-        _info.type = PIPE;
+        _info->type = PIPE;
         return (_cgi.execute());
       } else {
         _res.setResponse(_req);
@@ -368,5 +369,9 @@ void ClientSocket::clearSocket() {
   _responseString.clear();
   _req.initRequest();
   _res.initResponse();
+  _info->socket = _socket;
+  _info->type = SOCKET;
+  _cgi = CGIExecutor();
+  _cgiResponse.clear();
   _processStatus = 0;
 }
