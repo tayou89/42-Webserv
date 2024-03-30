@@ -95,7 +95,7 @@ void Response::checkValidity() {
                              _request.getQueryStirng());
       this->setResponseHeader("Content-Length",
                               intToString(_cookie.getresBody().size()));
-      this->setResponseHeader("Content-Type", "text/html");
+      this->setResponseHeader("Content-Type", "text/html; charset=UTF-8");
       if (_cookie.getresCookieHeaderString().size() != 0)
         this->setResponseHeader("Set-Cookie",
                                 _cookie.getresCookieHeaderString());
@@ -109,7 +109,7 @@ void Response::checkValidity() {
                                      _request.getQueryStirng());
       this->setResponseHeader("Content-Length",
                               intToString(_sessionControl.getresBody().size()));
-      this->setResponseHeader("Content-Type", "text/html");
+      this->setResponseHeader("Content-Type", "text/html; charset=UTF-8");
 
       if (_sessionControl.getresSessionHeaderString().size() != 0)
         this->setResponseHeader("Set-Cookie",
@@ -242,16 +242,16 @@ void Response::GET_HEAD() {
 
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
-  if (_request.getRequestMethod() == "GET")
-  {
+  if (_request.getRequestMethod() == "GET") {
     this->setResponseHeader("Content-Length", ss.str());
     this->setResponseHeader("Content-Type",
-                            _config.getMimeType(_request.getRequestURI()));
+                            _config.getMimeType(_request.getRequestURI()) +
+                                "; charset=UTF-8");
   }
   this->setResponse(this->_errorResponse.create200Response(
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
-  
+
   // std::cout << "GET_HEAD done\n";
   // std::cout << _request.getRequestURI() << std::endl;
 }
@@ -294,7 +294,7 @@ void Response::DELETE() {
 
   this->setResponseBody("");
   // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
-  this->setResponseHeader("Content-Type", "text/html");
+  this->setResponseHeader("Content-Type", "text/html; charset=UTF-8");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponse(this->_errorResponse.create200Response(
       this->_config.getServerName(), this->getResponseHeader(),
