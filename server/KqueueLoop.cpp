@@ -96,12 +96,12 @@ void KqueueLoop::eventHandler(struct kevent *event) {
 void KqueueLoop::run() {
   int eventCount;
   int eventStatus;
-  struct kevent newEvents[1];
+  struct kevent newEvents[16];
   struct kevent *currentEvent;
 
   while (1) {
     eventCount = kevent(_kqueue, &_changeList[0], _changeList.size(), newEvents,
-                        1, NULL);
+                        16, NULL);
     _changeList.clear(); // clear list of new register events
     if (eventCount == -1 || eventCount == 0) {
       continue;

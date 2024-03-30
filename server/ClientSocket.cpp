@@ -72,8 +72,9 @@ struct eventStatus ClientSocket::sendCGIHeader() {
   }
 
   std::size_t writeSize = write(_socket, &head[0], head.size());
-  if (writeSize != head.size())
-    ; // write error
+  if (writeSize < 0) {
+    return (makeStatus(DISCONNECT, _socket));
+  }
   _status = PIPE_TO_SOCKET_BODY;
   return (makeStatus(CONTINUE, _socket));
 }
@@ -82,11 +83,12 @@ struct eventStatus ClientSocket::sendCGIBody() {
   if (_status != PIPE_TO_SOCKET_BODY)
     return (makeStatus(CONTINUE, _socket));
 
-  int chunkWrite = write(_socket, &_cgiResponse[0], _cgiResponse.size());
-  _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + chunkWrite);
-  //   std::cout << "chunkSize: " << chunkWrite << std::endl;
-  //   if (chunkWrite < 0)
-  //     return (makeStatus(CONTINUE, _socket)); // write error
+  int writeSize = write(_socket, &_cgiResponse[0], _cgiResponse.size());
+  if (writeSize < 0) {
+    return (makeStatus(DISCONNECT, _socket));
+  }
+  _cgiResponse.erase(_cgiResponse.begin(), _cgiResponse.begin() + writeSize);
+
   if (_cgiResponse.empty() == true) {
     _status = HEAD_READ;
     _info->socket = _socket;
@@ -327,7 +329,7 @@ struct eventStatus ClientSocket::writeSocket() {
   if (_status != WRITE)
     return (makeStatus(CONTINUE, _socket));
 
-  if (_responseString.size() == 0) {
+  if (_responseString.empty()) {
     try {
       _req.checkRequestValidity();
       _req.convertURI();
@@ -339,6 +341,7 @@ struct eventStatus ClientSocket::writeSocket() {
       } else {
         _res.setResponse(_req);
         _responseString = _res.getResponse();
+        return (makeStatus(CONTINUE, _socket));
       }
     } catch (std::string &res) {
       _responseString = res;
@@ -346,18 +349,20 @@ struct eventStatus ClientSocket::writeSocket() {
     }
   }
 
-  std::size_t writeSize =
+  int writeSize =
       write(_socket, _responseString.c_str(), _responseString.size());
-
-  if (writeSize != _responseString.size())
-    ; //   return (WRITE_ERROR);
-
-  if (_req.getRequestHeader("Connection") == "close") {
-    clearSocket();
+  if (writeSize < 0) {
     return (makeStatus(DISCONNECT, _socket));
   }
-
-  return (makeStatus(SOCKET_READ_MODE, _socket));
+  _responseString.erase(0, writeSize);
+  if (_responseString.empty()) {
+    if (_req.getRequestHeader("Connection") == "close") {
+      clearSocket();
+      return (makeStatus(DISCONNECT, _socket));
+    }
+    return (makeStatus(SOCKET_READ_MODE, _socket));
+  }
+  return (makeStatus(CONTINUE, _socket));
 }
 
 void ClientSocket::clearSocket() {
