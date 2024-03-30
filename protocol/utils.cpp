@@ -90,7 +90,7 @@ struct eventStatus makeStatus(int status, int ident) {
 
   res.status = status;
   res.ident = ident;
-  res.sub = 0;
+  res.sub = -1;
   return (res);
 }
 
@@ -205,10 +205,11 @@ std::string makeTempFile() {
   int devRandom;
   int idx = 0;
 
-  memset(&random[0], 0, 16);
+  //   memset(&random[0], 0, 16);
   devRandom = open("/dev/urandom", O_RDONLY);
   if (read(devRandom, random, 15) == -1)
     ;
+  random[15] = '\0';
   close(devRandom);
   while (idx < 15) {
     if (random[idx] < 0)

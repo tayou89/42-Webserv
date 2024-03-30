@@ -24,7 +24,7 @@ public:
   virtual ~ClientSocket();
 
   struct eventStatus eventProcess(struct kevent *event, int type);
-  struct eventInfo &getEventInfo();
+  struct eventInfo *getEventInfo();
   struct eventStatus readSocket();
   struct eventStatus readHead();
   struct eventStatus readContentBody();
@@ -37,8 +37,6 @@ public:
   struct eventStatus readPipe();
   std::string getContentType();
   std::string getContentLength();
-  //   std::string makeCGIresponse(std::string result) const;
-  //   void binaryResponse(std::vector<char> vec) const;
   void clearSocket();
 
 private:
@@ -56,7 +54,7 @@ private:
   Request _req;
   Response _res;
   std::string _responseString;
-  struct eventInfo _info;
+  struct eventInfo *_info;
   CGIExecutor _cgi;
   std::vector<unsigned char> _cgiResponse;
   int _processStatus;

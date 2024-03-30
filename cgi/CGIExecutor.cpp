@@ -139,7 +139,6 @@ void CGIExecutor::_createPipeGET(void) {
   unlink(path.c_str());
   if (_nonBlockRead[READFD] == -1 || _nonBlockRead[WRITEFD] == -1)
     throw(std::runtime_error(std::string("pipe: ") + std::strerror(errno)));
-  //   pipe(_nonBlockRead);
 }
 
 void CGIExecutor::_setPipeGET(void) {
@@ -162,7 +161,6 @@ struct eventStatus CGIExecutor::_executeGET(void) {
     char **envp = _getEnvp();
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
 
-    std::cerr << "execute cgi get" << std::endl;
     if (execve(path, NULL, envp) == -1) {
       std::cerr << "execve failure\n";
       ConfigUtil::freeStringArray(envp);

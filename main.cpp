@@ -10,6 +10,7 @@ std::map<int, IServer *> serverMap;
 
 void sigpipeDetect(int signal) {
   std::cout << "SIGPIPE Detect: " << signal << std::endl;
+  perror("Error");
 
   exit(signal);
 }
