@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CGIExecutor.hpp"
+#include "ErrorResponse.hpp"
 #include "IServer.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -58,4 +59,5 @@ private:
   CGIExecutor _cgi;
   std::vector<unsigned char> _cgiResponse;
   int _processStatus;
+  ErrorResponse _errorResponse;
 };

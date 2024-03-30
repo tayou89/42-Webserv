@@ -162,7 +162,7 @@ struct eventStatus CGIExecutor::_executeGET(void) {
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
 
     if (execve(path, NULL, envp) == -1) {
-      std::cerr << "execve failure\n";
+      //   perror("Excute fail");
       ConfigUtil::freeStringArray(envp);
       exit(1);
     }
@@ -217,7 +217,7 @@ struct eventStatus CGIExecutor::_executePOST(void) {
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
 
     if (execve(path, NULL, envp) == -1) {
-      std::cout << "execve failure\n";
+      perror("Excute fail");
       ConfigUtil::freeStringArray(envp);
       exit(1);
     }

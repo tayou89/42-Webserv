@@ -145,6 +145,12 @@ struct eventStatus ClientSocket::serverToPipe() {
 
 struct eventStatus ClientSocket::processFinish() {
   waitpid(_cgi.getPID(), &_processStatus, 0);
+  if (WEXITSTATUS(_processStatus) != 0) {
+    close(_cgi.getReadFD());
+    _status = WRITE;
+    _info->type = SOCKET;
+    throw(_errorResponse.create500Response(_routeServer->getConfig()));
+  }
   if (_status == CGI_TO_PIPE)
     _status = PIPE_TO_SERVER;
 
@@ -168,7 +174,12 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
     }
   } else if (type == PIPE) {
     if (event->filter == EVFILT_PROC) {
-      result = processFinish();
+      try {
+        result = processFinish();
+      } catch (std::string &res) {
+        _responseString = res;
+        return (makeStatus(SOCKET_WRITE_MODE, _socket));
+      }
     } else if (event->filter == EVFILT_READ &&
                static_cast<int>(event->ident) == _cgi.getReadFD()) {
       result = readPipe();
@@ -204,11 +215,12 @@ struct eventInfo *ClientSocket::getEventInfo() { return (_info); }
 struct eventStatus ClientSocket::readHead() {
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
-  std::size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  int readSize = read(_socket, &tmp[0], BUFFER_SIZE);
   if (readSize == 0) {
     clearSocket();
     return (makeStatus(DISCONNECT, _socket));
-  }
+  } else if (readSize == -1)
+    return (makeStatus(DISCONNECT, _socket));
 
   _buf.insert(_buf.end(), tmp.begin(), tmp.begin() + readSize);
   std::vector<unsigned char>::iterator iter = findHeader(_buf);
@@ -247,10 +259,12 @@ struct eventStatus ClientSocket::readContentBody() {
     _buf.clear();
   }
 
-  std::size_t readSize = read(_socket, &tmp[0], BUFFER_SIZE);
+  int readSize = read(_socket, &tmp[0], BUFFER_SIZE);
   if (readSize == 0) {
     _req.readBody(_body);
     return (makeStatus(SOCKET_WRITE_MODE, _socket));
+  } else if (readSize == -1) {
+    return (makeStatus(DISCONNECT, _socket));
   }
 
   _body.insert(_body.end(), tmp.begin(), tmp.begin() + readSize);
@@ -268,7 +282,7 @@ struct eventStatus ClientSocket::readChunkedBody() {
   std::vector<unsigned char> buf(BUFFER_SIZE, 0);
 
   int readSize = read(_socket, &buf[0], BUFFER_SIZE);
-  if (readSize) {
+  if (readSize > 0) {
     _buf.insert(_buf.end(), buf.begin(), buf.begin() + readSize);
     if (_bodySize != 0 && _buf.size() > _bodySize + 2) {
       _body.insert(_body.end(), _buf.begin(), _buf.begin() + _bodySize);
@@ -280,7 +294,8 @@ struct eventStatus ClientSocket::readChunkedBody() {
     _status = WRITE;
     _req.readBody(_body);
     return (makeStatus(SOCKET_WRITE_MODE, _socket));
-  }
+  } else if (readSize == -1)
+    return (makeStatus(DISCONNECT, _socket));
 
   std::string str(_buf.begin(), _buf.end());
   while (str.size()) {
