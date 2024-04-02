@@ -1,4 +1,5 @@
 #include "../include/ConfigFile.hpp"
+#include <iostream>
 #include <sstream>
 
 ConfigFile::ConfigFile(void) {
@@ -27,8 +28,13 @@ ConfigFile &ConfigFile::operator=(const ConfigFile &object) {
 }
 
 ConfigFile::ConfigFile(const char *configFilePath) {
-  _setFilePath(configFilePath);
-  _openFile();
+  try {
+    _setFilePath(configFilePath);
+    _openFile();
+  } catch (const std::exception &e) {
+    std::cerr << "Error: " << e.what() << '\n';
+    exit(1);
+  }
 }
 
 void ConfigFile::_setFilePath(const char *configFilePath) {
