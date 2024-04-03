@@ -119,7 +119,7 @@ struct eventStatus ClientSocket::readPipe() {
 }
 
 struct eventStatus ClientSocket::serverToPipe() {
-  if (_status != SERVER_TO_CGI)
+  if (_status != SERVER_TO_PIPE_WRITE)
     return (makeStatus(CONTINUE, _socket));
 
   std::vector<unsigned char> body = _req.getRequestBody();
@@ -183,7 +183,7 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
                static_cast<int>(event->ident) == _cgi.getReadFD()) {
       result = readPipe();
     } else if (event->filter == EVFILT_WRITE) {
-      if (_status == SERVER_TO_CGI &&
+      if (_status == SERVER_TO_PIPE_WRITE &&
           static_cast<int>(event->ident) != _socket) {
         // request body의 내용을 PIPE로 전달할 때
         result = serverToPipe();
@@ -348,6 +348,7 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.empty()) {
     try {
+      std::cout << _body.size() << std::endl;
       _req.checkRequestValidity();
       _req.convertURI();
       _req.checkRequestMethod();

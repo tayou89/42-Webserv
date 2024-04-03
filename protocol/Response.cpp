@@ -213,7 +213,8 @@ std::string Response::getPath(char **envp, std::string cmd) {
 }
 
 void Response::GET_HEAD() {
-  char readbuf[BUFFER_SIZE + 1];
+  //   char readbuf[BUFFER_SIZE + 1];
+  std::vector<unsigned char> buf(BUFFER_SIZE);
   int readSize = BUFFER_SIZE;
   std::string body;
 
@@ -226,13 +227,15 @@ void Response::GET_HEAD() {
 
   body.clear();
   while (readSize == BUFFER_SIZE) {
-    memset(readbuf, 0, BUFFER_SIZE + 1);
-    readSize = read(fd, readbuf, BUFFER_SIZE);
+    memset(&buf[0], 0, BUFFER_SIZE);
+    readSize = read(fd, &buf[0], BUFFER_SIZE);
+    std::cout << "read size: " << readSize << std::endl;
     if (readSize < 0) {
       close(fd);
       throw _errorResponse.create500Response(this->_config);
     }
-    std::string tmp(readbuf);
+    std::string tmp(buf.begin(), buf.begin() + readSize);
+    std::cout << "tmp size: " << tmp.size() << std::endl;
     body += tmp;
   }
   close(fd);
