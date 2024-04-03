@@ -52,7 +52,6 @@ void CGIExecutor::_setMetaVariables(void) {
   _metaVariables["CONTENT_TYPE"] = _getContentType();
   _metaVariables["CONTENT_LENGTH"] = _getContentLength();
   _metaVariables["SERVER_PROTOCOL"] = std::string("HTTP/1.1");
-  // _metaVariables["SERVER_PROTOCOL"] = _getServerProtocol();
 }
 
 std::string CGIExecutor::_getRequestMethod(void) const {
@@ -162,7 +161,6 @@ struct eventStatus CGIExecutor::_executeGET(void) {
     const char *path = _metaVariables["SCRIPT_FILENAME"].c_str();
 
     if (execve(path, NULL, envp) == -1) {
-      //   perror("Excute fail");
       ConfigUtil::freeStringArray(envp);
       exit(1);
     }

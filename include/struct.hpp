@@ -4,7 +4,7 @@
 #include <cstdint>
 
 struct eventStatus {
-  int status; // WRITE_MODE, READ_MODE, NEW_EVENT, PROCESSOR, READ_ERROR ...
+  int status;
   int ident;
   int sub;
 };

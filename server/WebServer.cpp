@@ -1,5 +1,5 @@
 #include "../include/WebServer.hpp"
-#include <iostream> // test
+#include <iostream>
 
 WebServer::WebServer(Config conf) : _config(conf) {
   _listenSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -11,7 +11,7 @@ WebServer::WebServer(Config conf) : _config(conf) {
   int optval = 1;
   if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &optval,
                  sizeof(optval)) < 0) {
-    close(_listenSocket); // 소켓 닫기
+    close(_listenSocket);
     exit(1);
   }
 
@@ -24,11 +24,11 @@ WebServer::WebServer(Config conf) : _config(conf) {
   if (bind(_listenSocket, (struct sockaddr *)&_serverAddress,
            sizeof(_serverAddress)) == -1) {
     std::cout << "bind error\n";
-    exit(1); // bind error
+    exit(1);
   }
 
-  if (listen(_listenSocket, 64) == -1) // siege test 수행 후 backlog 사이즈 변경
-    exit(1);                           // listen error
+  if (listen(_listenSocket, 64) == -1)
+    exit(1);
   fcntl(_listenSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 }
 

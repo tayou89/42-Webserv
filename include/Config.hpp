@@ -26,7 +26,6 @@ public:
   const int &getPortNumber(void) const;
   const location_map &getLocationMap(void) const;
   bool isLocationExist(const std::string &path) const;
-  // 매치되는 Location을 반환하는 함수, 못 찾을시 자기 자신(config객체)를 반환
   const Location &getLocation(const std::string &urlPath) const;
 
 private:

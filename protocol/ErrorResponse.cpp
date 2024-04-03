@@ -1,9 +1,5 @@
 #include "../include/ErrorResponse.hpp"
 
-////////////////////////////////////////////
-// you MUST change the servername!!!!!!!!!!!!
-////////////////////////////////////////////
-
 ErrorResponse::ErrorResponse() {}
 
 ErrorResponse::~ErrorResponse() {}
@@ -24,33 +20,13 @@ std::string ErrorResponse::create200Response(
            responseHeader.begin();
        itr != responseHeader.end(); ++itr)
     response = response + itr->first + ": " + itr->second + "\r\n";
-  // std::cout << "this is response header:\n" << response << "\n" << std::endl;
   response = response + responseBody;
   return (response);
 }
 
 std::string ErrorResponse::create204Response(Config &conf) {
   std::string response = "HTTP/1.1 204 No Content\r\n" + getCurrentHttpDate() +
-                         "Server: " + conf.getServerName() + "\r\n";
-  std::string body;
-  int readSize;
-  int contentLength = 0;
-
-  int fd = open(conf.getErrorPage(204).c_str(), O_RDONLY);
-  if (fd == -1)
-    return (response);
-  char buf[1000]; // change this
-  memset(&buf[0], 0, 1000);
-  while ((readSize = read(fd, buf, 1000)) > 0) {
-    std::string tmp_body(buf);
-    body = body + buf;
-    contentLength += readSize;
-  }
-  std::stringstream ss;
-  ss << contentLength;
-  response += "Content-Length: " + ss.str() + "\r\n\r\n";
-  response = response + body;
-  close(fd);
+                         "Server: " + conf.getServerName() + "\r\n\r\n";
   return (response);
 }
 
@@ -74,7 +50,7 @@ std::string ErrorResponse::create400Response(Config &conf) {
   int fd = open(conf.getErrorPage(400).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -92,7 +68,6 @@ std::string ErrorResponse::create400Response(Config &conf) {
 std::string ErrorResponse::create403Response(Config &conf) {
   std::string response = "HTTP/1.1 403 Forbidden\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
-  // this->_response = response;
   std::string body;
   int readSize;
   int contentLength = 0;
@@ -100,7 +75,7 @@ std::string ErrorResponse::create403Response(Config &conf) {
   int fd = open(conf.getErrorPage(403).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -118,7 +93,6 @@ std::string ErrorResponse::create403Response(Config &conf) {
 std::string ErrorResponse::create404Response(Config &conf) {
   std::string response = "HTTP/1.1 404 Not Found\r\n" + getCurrentHttpDate() +
                          "Server: " + conf.getServerName() + "\r\n";
-  // this->_response = response;
   std::string body;
   int readSize;
   int contentLength = 0;
@@ -126,7 +100,7 @@ std::string ErrorResponse::create404Response(Config &conf) {
   int fd = open(conf.getErrorPage(404).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -152,7 +126,7 @@ std::string ErrorResponse::create405Response(Config &conf) {
   int fd = open(conf.getErrorPage(405).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -178,7 +152,7 @@ std::string ErrorResponse::create413Response(Config &conf) {
   int fd = open(conf.getErrorPage(413).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -204,7 +178,7 @@ std::string ErrorResponse::create414Response(Config &conf) {
   int fd = open(conf.getErrorPage(414).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -230,7 +204,7 @@ std::string ErrorResponse::create500Response(Config &conf) {
   int fd = open(conf.getErrorPage(500).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
@@ -256,7 +230,7 @@ std::string ErrorResponse::create505Response(Config &conf) {
   int fd = open(conf.getErrorPage(505).c_str(), O_RDONLY);
   if (fd == -1)
     return (response);
-  char buf[1000]; // change this
+  char buf[1000];
   memset(&buf[0], 0, 1000);
   while ((readSize = read(fd, buf, 1000)) > 0) {
     std::string tmp_body(buf);
