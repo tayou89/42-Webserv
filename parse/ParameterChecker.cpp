@@ -171,14 +171,14 @@ void ParameterChecker::_checkAutoindexParameter(void) const {
 
   if (_parameterCount == 0)
     throw(std::invalid_argument(
-        "\'Autoindex\' directive needs a parameter(\"on\" or \"off\""));
+        "\'autoindex\' directive needs a parameter(\"on\" or \"off\""));
   if (_parameterCount > 1)
     throw(std::invalid_argument(
-        "Too many parameters: \'Autoindex\' directive need one parameter"));
+        "Too many parameters: \'autoindex\' directive need one parameter"));
   element = _parameters[0];
   if (element != "on" && element != "off")
     throw(std::invalid_argument(
-        "Wrong \'Autoindex\' parameter: must be \"on\" or \"off\""));
+        "Wrong \'autoindex\' parameter: must be \"on\" or \"off\""));
 }
 
 void ParameterChecker::_checkReturnParameter(void) const {
@@ -206,7 +206,7 @@ void ParameterChecker::_checkErrorPageParameter(void) const {
   if (ConfigUtil::isValidErrorStatusCode(std::atoi(errorNumber.c_str())) ==
       false)
     throw(std::invalid_argument(": " + errorNumber +
-                                "error number must be (300 ~ 600)"));
+                                " error number must be (300 ~ 600)"));
 }
 
 void ParameterChecker::_checkLimitExceptParameter(void) const {
