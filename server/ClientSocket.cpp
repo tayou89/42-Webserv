@@ -228,7 +228,7 @@ struct eventStatus ClientSocket::readHead() {
     _header = std::string(_buf.begin(), iter + 2);
     _buf.erase(_buf.begin(), iter + 4);
 
-    std::cout << _header << std::endl;
+    // std::cout << _header << std::endl;
 
     try {
       _req.setRequest(_header);

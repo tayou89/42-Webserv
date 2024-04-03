@@ -219,6 +219,8 @@ void Response::GET_HEAD() {
 
   int fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
   if (fd == -1) {
+    if (access(this->_request.getRequestURI().c_str(), F_OK) == 0)
+      throw(this->_errorResponse.create403Response(_config));
     throw(this->_errorResponse.create404Response(_config));
   }
 
