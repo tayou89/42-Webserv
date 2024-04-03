@@ -231,7 +231,11 @@ struct eventStatus ClientSocket::readHead() {
 
     // std::cout << _header << "\n------------------------" << std::endl;
 
-    _req.setRequest(_header);
+    try {
+      _req.setRequest(_header);
+    } catch (std::string &res) {
+      _responseString = res;
+    }
     _status = _req.checkBodyExistence();
     if (_status == BODY_READ) { // read normal body
       _bodySize = std::atoi(_req.getRequestHeader("Content-Length").c_str());

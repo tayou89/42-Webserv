@@ -46,9 +46,9 @@ void Request::readStartLine(std::string startLine) {
   std::string::size_type pos1 = startLine.find(" ");
   std::string::size_type pos2 = startLine.find(" ", pos1 + 1);
 
-  // if (pos1 == std::string::npos || pos2 == std::string::npos) {
-  //   throw(this->_errorResponse.create400Response(this->_config));
-  // }
+  if (pos1 == std::string::npos || pos2 == std::string::npos) {
+    throw(this->_errorResponse.create400Response(this->_config));
+  }
   this->_requestMethod = startLine.substr(0, pos1);
   this->_requestURI = startLine.substr(pos1 + 1, pos2 - pos1 - 1);
   this->_requestHTTPVersion =
@@ -76,7 +76,7 @@ void Request::readHeader(std::string header) {
   for (std::map<std::string, std::string>::iterator it =
            this->_requestHeader.begin();
        it != this->_requestHeader.end(); it++) {
-    // this->checkValidHeader(it->first, it->second);
+    this->checkValidHeader(it->first, it->second);
   }
 }
 
@@ -91,11 +91,11 @@ int Request::checkBodyExistence() const {
     return (WRITE);
 }
 
-// void Request::checkValidHeader(std::string key, std::string value) {
-//   if (key.empty() || value.empty()) {
-//     throw(this->_errorResponse.create400Response(this->_config));
-//   }
-// }
+void Request::checkValidHeader(std::string key, std::string value) {
+  if (key.empty() || value.empty()) {
+    throw(this->_errorResponse.create400Response(this->_config));
+  }
+}
 
 // void Request::checkContentLength(int client_max_body_size) {
 //   if (this->_requestHeader.find("Content-Length") !=

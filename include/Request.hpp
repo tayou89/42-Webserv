@@ -21,7 +21,7 @@ public:
   Request(const Request &copy);
 
   void setRequest(std::string packet);
-  // void	checkValidity();
+  void checkValidHeader(std::string key, std::string value);
   void readStartLine(std::string startLine);
   void readHeader(std::string header);
   void readBody(std::vector<unsigned char> body);

@@ -205,7 +205,6 @@ std::string makeTempFile() {
   int devRandom;
   int idx = 0;
 
-  //   memset(&random[0], 0, 16);
   devRandom = open("/dev/urandom", O_RDONLY);
   if (read(devRandom, random, 15) == -1)
     ;
