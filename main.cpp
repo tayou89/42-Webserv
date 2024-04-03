@@ -38,8 +38,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
   signal(SIGINT, signalHandler);  // Ctrl+C 시그널 핸들러 등록
   signal(SIGQUIT, signalHandler); // Ctrl+\ 시그널 핸들러 등록
-                                  //   signal(SIGPIPE, SIG_IGN);
-  signal(SIGPIPE, sigpipeDetect);
+  signal(SIGPIPE, SIG_IGN);
 
   for (; iter != confVec.end(); iter++) {
     WebServer *temp = new WebServer(*iter);
