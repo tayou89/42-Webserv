@@ -30,7 +30,7 @@ int CGIExecutor::setCGIExecutor(const Request &request) {
   if (_request.getRequestMethod() == "GET")
     return (CGI_TO_PIPE);
   else if (_request.getRequestMethod() == "POST")
-    return (SERVER_TO_CGI);
+    return (SERVER_TO_PIPE_WRITE);
   return (CONTINUE);
 }
 
