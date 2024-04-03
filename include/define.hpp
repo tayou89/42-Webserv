@@ -27,7 +27,6 @@
 #define PIPE_TO_SOCKET_HEAD 5
 #define PIPE_TO_SOCKET_BODY 6
 #define PIPE_END 7
-#define CHUNKED_START 8
 #define CGI_TO_PIPE 9
 #define PIPE_TO_SERVER 10
 

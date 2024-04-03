@@ -119,7 +119,7 @@ struct eventStatus ClientSocket::readPipe() {
 }
 
 struct eventStatus ClientSocket::serverToPipe() {
-  if (_status != SERVER_TO_PIPE_WRITE)
+  if (_status != SERVER_TO_CGI)
     return (makeStatus(CONTINUE, _socket));
 
   std::vector<unsigned char> body = _req.getRequestBody();
@@ -135,7 +135,6 @@ struct eventStatus ClientSocket::serverToPipe() {
   //     perror("Error");
   //   }
   if (_req.getRequestBody().size() == 0) {
-    // std::cout << "server to pipe finish" << std::endl;
     _status = PIPE_TO_SERVER;
     close(_cgi.getWriteFD());
     return (makeStatus(CGI_READ, _cgi.getReadFD(), _cgi.getWriteFD()));
@@ -184,7 +183,7 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
                static_cast<int>(event->ident) == _cgi.getReadFD()) {
       result = readPipe();
     } else if (event->filter == EVFILT_WRITE) {
-      if (_status == SERVER_TO_PIPE_WRITE &&
+      if (_status == SERVER_TO_CGI &&
           static_cast<int>(event->ident) != _socket) {
         // request body의 내용을 PIPE로 전달할 때
         result = serverToPipe();
@@ -229,7 +228,7 @@ struct eventStatus ClientSocket::readHead() {
     _header = std::string(_buf.begin(), iter + 2);
     _buf.erase(_buf.begin(), iter + 4);
 
-    // std::cout << _header << "\n------------------------" << std::endl;
+    std::cout << _header << std::endl;
 
     try {
       _req.setRequest(_header);
@@ -247,7 +246,7 @@ struct eventStatus ClientSocket::readHead() {
         return (makeStatus(SOCKET_WRITE_MODE, _socket));
       }
       return (makeStatus(CONTINUE, _socket));
-    } else if (_status == CHUNKED_START) { // read chunked body
+    } else if (_status == CHUNKED_READ) { // read chunked body
       return (readChunkedBody());
     } else
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
@@ -329,7 +328,6 @@ struct eventStatus ClientSocket::readChunkedBody() {
     }
   }
   _buf.clear();
-  _status = CHUNKED_READ;
   return (makeStatus(CONTINUE, _socket));
 }
 
