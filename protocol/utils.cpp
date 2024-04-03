@@ -7,7 +7,6 @@ std::string getCurrentHttpDate() {
 
   // Convert to a struct tm
   struct tm *timeinfo = gmtime(&rawtime);
-  // std::cout << "tm_hour: " << timeinfo->tm_hour << std::endl;
   timeinfo->tm_hour = (timeinfo->tm_hour + 9) % 24; // UTC to KST
 
   // Format the time to HTTP date format
@@ -25,7 +24,6 @@ std::string getCurrentHttpDateForCookie() {
 
   // Convert to a struct tm
   struct tm *timeinfo = gmtime(&rawtime);
-  // std::cout << "tm_hour: " << timeinfo->tm_hour << std::endl;
   timeinfo->tm_hour = (timeinfo->tm_hour + 9) % 24; // UTC to KST
 
   // Format the time to HTTP date format

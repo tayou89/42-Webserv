@@ -106,7 +106,6 @@ void SessionControl::controlSession(std::map<std::string, std::string> header,
     _resSessionHeaderString.clear();
     _resSessionHeaderString = "SID=" + newSID + "; ";
     makeBody(_queryString["color"], _queryString["size"]);
-    // 어떠한 방식으로든 SID 전달해서 response header에 넣도록하자
   } else if (_queryStringExistance == 0 &&
              _SIDHeaderExistance == 1) // 쿼리스트링 x, SID o
   {
@@ -124,7 +123,6 @@ void SessionControl::controlSession(std::map<std::string, std::string> header,
     _resSessionHeaderString.clear();
     _resSessionHeaderString = "SID=" + newSID + "; ";
     makeBody("000000", "15");
-    // 어떠한 방식으로든 SID 전달해서 response header에 넣도록하자
   }
 }
 

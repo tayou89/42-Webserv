@@ -100,16 +100,11 @@ struct eventStatus ClientSocket::sendCGIBody() {
 }
 
 struct eventStatus ClientSocket::readPipe() {
-  //   if (_status != PIPE_TO_SERVER)
-  //     return (makeStatus(CONTINUE, _socket));
-
   std::vector<unsigned char> tmp(BUFFER_SIZE, 0);
 
   int readSize = read(_cgi.getReadFD(), &tmp[0], BUFFER_SIZE);
   _cgiResponse.insert(_cgiResponse.end(), tmp.begin(), tmp.begin() + readSize);
-  if (readSize == -1) {
-    // error status
-  } else if (readSize < BUFFER_SIZE) {
+  if (readSize < BUFFER_SIZE) {
     _status = PIPE_TO_SOCKET_HEAD;
     close(_cgi.getReadFD());
     return (makeStatus(CGI_WRITE, _cgi.getReadFD()));
@@ -125,15 +120,9 @@ struct eventStatus ClientSocket::serverToPipe() {
   std::vector<unsigned char> body = _req.getRequestBody();
 
   int chunkSize = body.size();
-  //   if (chunkSize > BUFFER_SIZE)
-  //     chunkSize = BUFFER_SIZE;
 
   int writeSize = write(_cgi.getWriteFD(), &body[0], chunkSize);
-  //   std::cout << "write size: " << writeSize << std::endl;
   _req.eraseRequestBody(0, writeSize);
-  //   if (writeSize == -1) {
-  //     perror("Error");
-  //   }
   if (_req.getRequestBody().size() == 0) {
     _status = PIPE_TO_SERVER;
     close(_cgi.getWriteFD());
@@ -185,11 +174,9 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
     } else if (event->filter == EVFILT_WRITE) {
       if (_status == SERVER_TO_PIPE_WRITE &&
           static_cast<int>(event->ident) != _socket) {
-        // request body의 내용을 PIPE로 전달할 때
         result = serverToPipe();
       } else if (_status == PIPE_TO_SOCKET_HEAD &&
                  static_cast<int>(event->ident) == _socket) {
-        // status PIPE HEAD 처음 버퍼의 내용을 소켓에 작성할 때
         try {
           result = sendCGIHeader();
         } catch (std::string &res) {
@@ -197,7 +184,6 @@ struct eventStatus ClientSocket::eventProcess(struct kevent *event, int type) {
         }
       } else if (_status == PIPE_TO_SOCKET_BODY &&
                  static_cast<int>(event->ident)) {
-        // status PIPE BODY 그 이후에 버퍼의 내용을 소켓에 작성할 때
         try {
           result = sendCGIBody();
         } catch (std::string &res) {
@@ -228,15 +214,13 @@ struct eventStatus ClientSocket::readHead() {
     _header = std::string(_buf.begin(), iter + 2);
     _buf.erase(_buf.begin(), iter + 4);
 
-    // std::cout << _header << std::endl;
-
     try {
       _req.setRequest(_header);
     } catch (std::string &res) {
       _responseString = res;
     }
     _status = _req.checkBodyExistence();
-    if (_status == BODY_READ) { // read normal body
+    if (_status == BODY_READ) {
       _bodySize = std::atoi(_req.getRequestHeader("Content-Length").c_str());
       if (_buf.size() >= _bodySize) {
         _status = WRITE;
@@ -246,7 +230,7 @@ struct eventStatus ClientSocket::readHead() {
         return (makeStatus(SOCKET_WRITE_MODE, _socket));
       }
       return (makeStatus(CONTINUE, _socket));
-    } else if (_status == CHUNKED_READ) { // read chunked body
+    } else if (_status == CHUNKED_READ) {
       return (readChunkedBody());
     } else
       return (makeStatus(SOCKET_WRITE_MODE, _socket));
@@ -274,13 +258,12 @@ struct eventStatus ClientSocket::readContentBody() {
 
   if (_body.size() == _bodySize) {
     _req.readBody(_body);
-    _status = WRITE; // write 상태로 변경
+    _status = WRITE;
     return (makeStatus(SOCKET_WRITE_MODE, _socket));
   }
   return (makeStatus(CONTINUE, _socket));
 }
 
-/* \r\n을 이용해서 한줄씩 읽는 방식으로 변경해야됨 */
 struct eventStatus ClientSocket::readChunkedBody() {
   std::vector<unsigned char> buf(BUFFER_SIZE, 0);
 
@@ -348,7 +331,6 @@ struct eventStatus ClientSocket::writeSocket() {
 
   if (_responseString.empty()) {
     try {
-      std::cout << _body.size() << std::endl;
       _req.checkRequestValidity();
       _req.convertURI();
       _req.checkRequestMethod();

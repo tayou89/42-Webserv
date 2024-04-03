@@ -55,18 +55,6 @@ public:
   static std::vector<std::string> getStringVector(const std::string &string);
   static std::vector<std::string> splitString(const std::string &string,
                                               const char &delimeter);
-
-  // //for test
-  // static void			printStringVector(const std::vector<std::string>
-  // vector); static void			printConfigData(const Config
-  // &config); static void			printLocationData(const Location
-  // &location);
-
-  // static void			printLocations(const std::map<std::string, Location>
-  // &locations); static void			printIndexes(const
-  // std::vector<std::string> &indexes); static void
-  // printErrorPages(const std::map<int, std::string> &errorPages); static void
-  // printAcceptedMethods(const std::vector<std::string> &httpMethods);
 };
 
 #endif

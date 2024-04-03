@@ -8,16 +8,7 @@
 
 std::map<int, IServer *> serverMap;
 
-void sigpipeDetect(int signal) {
-  std::cout << "SIGPIPE Detect: " << signal << std::endl;
-  perror("Error");
-
-  exit(signal);
-}
-
 void signalHandler(int signal) {
-  std::cout << "\nsignal " << signal << " occurs. quit server.\n";
-
   std::map<int, IServer *>::iterator iter = serverMap.begin();
   for (; iter != serverMap.end(); iter++) {
     close(iter->second->getListenSocket());
@@ -29,15 +20,15 @@ void signalHandler(int signal) {
 
 int main(int argc, char *argv[], char *envp[]) {
   if (argc > 2)
-    exit(1); // too many arguments error
+    exit(1);
 
   ConfigMain configMain(argv[1]);
 
   std::vector<Config> confVec = configMain.getServerConfigs();
   std::vector<Config>::iterator iter = confVec.begin();
 
-  signal(SIGINT, signalHandler);  // Ctrl+C 시그널 핸들러 등록
-  signal(SIGQUIT, signalHandler); // Ctrl+\ 시그널 핸들러 등록
+  signal(SIGINT, signalHandler);
+  signal(SIGQUIT, signalHandler);
   signal(SIGPIPE, SIG_IGN);
 
   for (; iter != confVec.end(); iter++) {

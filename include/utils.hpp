@@ -13,10 +13,6 @@
 #define OPEN_MAX 256
 #endif
 
-// # ifndef BUFFER_SIZE
-// #  define BUFFER_SIZE 1
-// # endif
-
 std::string getCurrentHttpDate();
 std::string getCurrentHttpDateForCookie();
 std::string splitBefore(std::string sentence, std::string splitWord);

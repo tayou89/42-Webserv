@@ -28,42 +28,8 @@ std::string Response::setResponse(Request request) {
 void Response::checkValidity() {
   DIR *dir = opendir(this->_request.getRequestURI().c_str());
   if (dir != NULL) {
-    // 1. check index directive in conf file
-    // if (this->_request.getLocation().getIndexFile().isAccessible() == true) {
-    //   // find index files in order, then put it in the response packet
-    //   //   if (this->_config.getLocation(this->_request.getRequestURI())
-    //   //           .getIndexFile()
-    //   //           .isReadable() == true) {
-    //   std::string path =
-    //       this->_config.getLocation(this->_request.getRequestURI())
-    //           .getIndexFile()
-    //           .getPath();
-    //   int fd = open(path.c_str(), O_RDONLY);
-    //   if (fd == -1)
-    //     throw(this->_errorResponse.create500Response(this->_config));
-    //   char buf[1000]; // need to change buffer size
-    //   memset(buf, 0, 1000);
-    //   std::string body;
-    //   if (read(fd, buf, 1000) > 0) {
-    //     std::string tmp_body(buf);
-    //     body = body + tmp_body;
-    //     memset(buf, 0, 1000);
-    //   }
-    //   close(fd);
-    //   this->setResponseBody(body);
-    //   this->setResponseHeader("Content-Length", std::to_string(body.size()));
-    //   this->setResponseHeader("Last-Modified", getCurrentHttpDate());
-    //   this->setResponse(this->_errorResponse.create200Response(
-    //       this->_config.getServerName(), getResponseHeader(),
-    //       getResponseBody()));
-    //   //   }
-    // }
-
-    // 2. check if autoindex is enabled
+    // check if autoindex is enabled
     if (this->_request.getLocation().getAutoIndex() == true) {
-      // read all files in the directory and put it in the response packet
-      // if (1) {
-
       std::string filelist;
       filelist = makeAutoindexBody(dir);
       this->setResponseBody(filelist);
@@ -77,20 +43,11 @@ void Response::checkValidity() {
           this->_config.getServerName(), getResponseHeader(),
           getResponseBody()));
     } else {
-      // auto index not available
       throw(_errorResponse.create404Response(_config));
     }
     closedir(dir);
-  } else { // if URI is a file
-    // 1. check if the method is allowed or executable
-    // -> going to check it in executeMethod()
-    // 2. check if authorization header exists
-    if (this->_request.getRequestHeader("Authorization") != "") {
-      // check if the user is authorized
-      // if not, throw 401 response
-    }
+  } else {
     if (_request.getRequestURI().find("cookie") != std::string::npos) {
-      // std::cout << "inside cookie\n";
       _cookie.controlCookies(_request.getRequestHeader(),
                              _request.getQueryStirng());
       this->setResponseHeader("Content-Length",
@@ -103,7 +60,6 @@ void Response::checkValidity() {
       this->setResponse(this->_errorResponse.create200Response(
           this->_config.getServerName(), getResponseHeader(),
           _cookie.getresBody()));
-      // std::cout << "\nthis is response:\n" << getResponse() << std::endl;
     } else if (_request.getRequestURI().find("session") != std::string::npos) {
       _sessionControl.controlSession(_request.getRequestHeader(),
                                      _request.getQueryStirng());
@@ -120,7 +76,6 @@ void Response::checkValidity() {
           _sessionControl.getresBody()));
     } else
       this->executeMethod();
-    // check for cookie
   }
 }
 
@@ -130,7 +85,6 @@ std::string Response::makeAutoindexBody(DIR *dir) {
   std::vector<std::string> fileName;
   std::vector<std::string> fileDate;
   std::vector<std::string> fileVolume;
-  // get directory file information
   while ((ent = readdir(dir)) != NULL) {
     std::stringstream ss;
     lstat(ent->d_name, &buf);
@@ -140,7 +94,6 @@ std::string Response::makeAutoindexBody(DIR *dir) {
     fileVolume.push_back(ss.str());
   }
 
-  // read autoindex.html
   char readbuf[1023 + 1];
   std::string autoindexHTML;
   int fd = open("document/html/autoindex.html", O_RDONLY);
@@ -153,7 +106,6 @@ std::string Response::makeAutoindexBody(DIR *dir) {
     memset(readbuf, 0, 1023);
   }
 
-  // make autoindex.html with directory file information
   std::string retBody;
   autoindexHTML = splitBefore(autoindexHTML, "{filename}") + " " +
                   _request.getRequestURI() +
@@ -207,13 +159,11 @@ std::string Response::getPath(char **envp, std::string cmd) {
       return (RmPath);
     path = splitAfter(path, ":");
   }
-  // cannot find cmd, so 500 internal server error
   throw(this->_errorResponse.create500Response(this->_config));
   return ("");
 }
 
 void Response::GET_HEAD() {
-  //   char readbuf[BUFFER_SIZE + 1];
   std::vector<unsigned char> buf(BUFFER_SIZE);
   int readSize = BUFFER_SIZE;
   std::string body;
@@ -229,13 +179,11 @@ void Response::GET_HEAD() {
   while (readSize == BUFFER_SIZE) {
     memset(&buf[0], 0, BUFFER_SIZE);
     readSize = read(fd, &buf[0], BUFFER_SIZE);
-    std::cout << "read size: " << readSize << std::endl;
     if (readSize < 0) {
       close(fd);
       throw _errorResponse.create500Response(this->_config);
     }
     std::string tmp(buf.begin(), buf.begin() + readSize);
-    std::cout << "tmp size: " << tmp.size() << std::endl;
     body += tmp;
   }
   close(fd);
@@ -256,9 +204,6 @@ void Response::GET_HEAD() {
   this->setResponse(this->_errorResponse.create200Response(
       this->_config.getServerName(), this->getResponseHeader(),
       this->getResponseBody()));
-
-  // std::cout << "GET_HEAD done\n";
-  // std::cout << _request.getRequestURI() << std::endl;
 }
 
 void Response::POST() { throw _errorResponse.create400Response(_config); }
@@ -274,31 +219,15 @@ void Response::DELETE() {
       throw(this->_errorResponse.create403Response(_config));
   }
   fd = open(this->_request.getRequestURI().c_str(), O_RDONLY);
-  if (fd == -1)
-    throw(this->_errorResponse.create204Response(
-        this->_config)); // file does not exist, thus cannot be
-                         // deleted, 204 No Content
-  close(fd);
-  std::string rmPath = getPath(this->getEnvp(), "rm");
-
-  // leak warning
-  int pid = fork();
-  if (pid < 0)
-    throw(this->_errorResponse.create500Response(this->_config));
-  else if (pid == 0) {
-    char **option = (char **)malloc(sizeof(char *) * 3);
-    option[0] = strdup("rm\0");
-    option[1] = strdup(this->_request.getRequestURI().c_str());
-    option[2] = NULL;
-    execve(rmPath.c_str(), option, this->getEnvp());
-    // free(option[0]);
-    // free(option[1]);
-    // free(option);
+  if (fd == -1) {
+    if (access(this->_request.getRequestURI().c_str(), F_OK) == 0)
+      throw(this->_errorResponse.create403Response(_config));
+    throw(this->_errorResponse.create404Response(this->_config));
   }
-  waitpid(pid, NULL, 0);
+  close(fd);
+  unlink(_request.getRequestURI().c_str());
 
   this->setResponseBody("");
-  // this->_protocol.setResponseHeader("Transfer-Encoding", "chunked");
   this->setResponseHeader("Content-Type", "text/html; charset=UTF-8");
   this->setResponseHeader("Content-Language", "en-US");
   this->setResponse(this->_errorResponse.create200Response(

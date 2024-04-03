@@ -1,8 +1,5 @@
 #include "../include/Request.hpp"
 
-// #define LARGE_CLIENT_HEADER_BUFFERS 1000
-// #define MAX_BODY_SIZE 1000
-
 Request::Request() {}
 
 Request::Request(Config &conf) : _config(conf) {}
@@ -31,13 +28,9 @@ Request &Request::operator=(const Request &copy) {
 }
 
 void Request::setRequest(std::string packet) {
-  //   if (packet.find("\r\n\r\n") == std::string::npos ||
-  //       packet.find("\r\n") == std::string::npos)
-  //     throw(this->_errorResponse.create400Response(this->_config));
   std::string firstLine = packet.substr(0, packet.find("\r\n"));
   this->readStartLine(firstLine);
   std::string header = packet.substr(packet.find("\r\n") + 2);
-  // packet.find("\r\n\r\n") - packet.find("\r\n") - 2)/
   this->readHeader(header);
 }
 
@@ -58,7 +51,6 @@ void Request::readStartLine(std::string startLine) {
 void Request::readHeader(std::string header) {
   std::size_t pos = 0;
   std::size_t index = 0;
-  // std::size_t colon_index = 0;
   std::string tmp;
 
   while (1) {
@@ -97,27 +89,7 @@ void Request::checkValidHeader(std::string key, std::string value) {
   }
 }
 
-// void Request::checkContentLength(int client_max_body_size) {
-//   if (this->_requestHeader.find("Content-Length") !=
-//       this->_requestHeader.end()) {
-//     if (this->_requestHeader["Content-Length"].size() > 10) {
-//       throw(this->_errorResponse.create400Response(this->_config));
-//     }
-//     if (std::atoi(this->_requestHeader["Content-Length"].c_str()) >
-//         client_max_body_size)
-//       throw(this->_errorResponse.create413Response(this->_config));
-//   }
-// }
-
 void Request::readBody(std::vector<unsigned char> body) {
-  // if (body.size() > static_cast<unsigned long>(
-  //                       std::stol(this->_requestHeader["Content-Length"])))
-  //   throw(this->_errorResponse.create413Response(this->_config));
-  // else if (body.size() < static_cast<unsigned long>(
-  //                            std::stol(this->_requestHeader["Content-Length"])))
-  //   throw(this->_errorResponse.create400Response(this->_config));
-  // else
-  //   this->_requestBody = body;
   this->_requestBody = body;
 }
 
@@ -279,7 +251,6 @@ void Request::checkRequestMethod() {
   std::vector<std::string> acceptedMethods = _location.getAcceptedMethods();
   std::vector<std::string>::iterator iter = acceptedMethods.begin();
 
-  // if it is not the METHOD defined in conf file, throw 405 response
   if (!acceptedMethods.empty()) {
     for (; iter != acceptedMethods.end(); iter++) {
       if (*iter == _requestMethod)
@@ -291,9 +262,6 @@ void Request::checkRequestMethod() {
 }
 
 void Request::checkRequestValidity() {
-
-  // start request header validity check
-
   // if it is not method sp URI sp HTTP-Version, create 400 response
   if (this->_requestMethod.size() == 0 || this->_requestURI.size() == 0 ||
       this->_requestHTTPVersion.size() == 0) {
@@ -341,9 +309,4 @@ void Request::checkRequestValidity() {
                  std::atol(this->_requestHeader["Content-Length"].c_str())))
       throw(this->_errorResponse.create400Response(this->_config));
   }
-  // if (_requestMethod == "POST" && _requestBody.size() == 0)
-  // {
-  //   std::cout << "POST with body size of 0\n" << std::endl;
-  //   throw(this->_errorResponse.create204Response(_config));
-  // }
 }
