@@ -6,24 +6,25 @@
 #include <string>
 #include <vector>
 
-class ConfigMain : public ConfigBase {
-public:
-  ConfigMain(const char *configFilePath);
-  ConfigMain(const ConfigMain &object);
-  ConfigMain &operator=(const ConfigMain &object);
-  ~ConfigMain(void);
+class ConfigMain : public ConfigBase
+{
+    public:
+        ConfigMain(const char *configFilePath);
+        ConfigMain(const ConfigMain &object);
+        ConfigMain &operator=(const ConfigMain &object);
+        ~ConfigMain(void);
 
-  std::vector<Config> getServerConfigs(void) const;
+        std::vector<Config> getServerConfigs(void) const;
 
-private:
-  ConfigMain(void);
+    private:
+        ConfigMain(void);
 
-  virtual string_set _getDirectiveSet(void) const;
-  virtual void _setDirectiveData(void);
-  void _setServerConfig(void);
-  void _checkConfigMainException(void) const;
+        virtual string_set  _getDirectiveSet(void) const;
+        virtual void        _setDirectiveData(void);
+        void                _setServerConfig(void);
+        void                _checkConfigMainException(void) const;
 
-  std::vector<Config> _serverConfig;
+        std::vector<Config> _serverConfig;
 };
 
 #endif

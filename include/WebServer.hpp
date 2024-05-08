@@ -11,17 +11,18 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-class WebServer : public IServer {
+class WebServer : public IServer
+{
 
-public:
-  WebServer(Config conf);
-  ~WebServer();
+    public:
+        WebServer(Config conf);
+        ~WebServer();
 
-  int getListenSocket() const;
-  Config &getConfig();
+        int     getListenSocket() const;
+        Config &getConfig();
 
-private:
-  Config _config;
-  int _listenSocket;
-  struct sockaddr_in _serverAddress;
+    private:
+        Config             _config;
+        int                _listenSocket;
+        struct sockaddr_in _serverAddress;
 };

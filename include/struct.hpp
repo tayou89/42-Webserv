@@ -3,13 +3,15 @@
 #include "define.hpp"
 #include <cstdint>
 
-struct eventStatus {
+struct eventStatus 
+{
   int status;
   int ident;
   int sub;
 };
 
-struct eventInfo {
+struct eventInfo 
+{
   int socket;
   int type;
 };
