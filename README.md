@@ -100,6 +100,7 @@ You can access the test page by entering the following URL in your web browser:
 ```
 http://127.0.0.1:8082
 ```
+<img width="1119" alt="Screen Shot 2024-08-28 at 9 27 58 PM" src="https://github.com/user-attachments/assets/73a267f8-7237-473c-80af-b0dbf033f3d7">
 
 You should see a welcome page with the text "Welcome to Webserv Test" and a "Start Test" link. This page allows you to begin testing various features of your Webserv implementation.
 
